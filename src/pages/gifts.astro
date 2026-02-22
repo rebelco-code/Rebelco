@@ -244,8 +244,9 @@ import Layout from '../layouts/Layout.astro';
 		margin: 0; padding: 0; background: var(--dark); color: #fff;
 		font-family: 'Staatliches', cursive; overflow-x: hidden;
 	}
-	.page-section { min-height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-	.nature-bg { position: absolute; inset: -20%; background-size: cover; background-position: center; filter: brightness(0.4) saturate(1.1); z-index: -1; pointer-events: none; transition: transform 0.1s ease-out; }
+	.page-section { min-height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; }
+	.nature-bg { position: absolute; inset: -20%; background-size: cover; background-position: center; filter: brightness(0.4) saturate(1.2); z-index: 1; pointer-events: none; transition: transform 0.1s ease-out; }
+	.landing-content, .gift-layout, .main-interaction { position: relative; z-index: 10; }
 	
     .landing-content { z-index: 10; text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
 	.landing-tagline { font-family: 'Bangers', cursive; font-size: clamp(3rem, 7vw, 6rem); margin: 0; color: var(--gold); text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
