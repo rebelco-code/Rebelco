@@ -101,6 +101,14 @@ import Layout from '../layouts/Layout.astro';
 			<section class={`page-section product-biome ${p.id}-biome`} id={p.id}>
 				<div class="nature-bg" style={`background-image: url('${p.bg}');`}></div>
 				<div class="split-layout">
+					<div class="text-panel left desktop-only">
+						<div class="content-box">
+							{p.bullets.map(b => (
+								<p class="bullet">{b}</p>
+							))}
+						</div>
+					</div>
+
 					<div class="center-panel interactive-panel">
 						<div class="hero-image-container">
 							<img src={p.hero} alt={`REBEL ${p.name}`} class="hero-img" />
@@ -121,14 +129,6 @@ import Layout from '../layouts/Layout.astro';
 							</button>
 						</div>
 						<button class="ingredients-toggle" data-id={p.id}>SEE INGREDIENTS</button>
-					</div>
-
-					<div class="text-panel left desktop-only">
-						<div class="content-box">
-							{p.bullets.map(b => (
-								<p class="bullet">{b}</p>
-							))}
-						</div>
 					</div>
 
 					<div class="text-panel right ingredients-panel" id={`ingredients-${p.id}`}>
@@ -324,17 +324,25 @@ import Layout from '../layouts/Layout.astro';
 		});
 	});
 
+	function toggleIngredients(id, show) {
+		const panel = document.getElementById(`ingredients-${id}`);
+		if (panel) {
+			if (show) panel.classList.add('active');
+			else panel.classList.remove('active');
+		}
+	}
+
 	document.querySelectorAll('.ingredients-toggle').forEach(btn => {
 		btn.addEventListener('click', (e) => {
 			const id = (e.currentTarget as HTMLElement).dataset.id;
-			document.getElementById(`ingredients-${id}`)?.classList.add('active');
+			toggleIngredients(id, true);
 		});
 	});
 
 	document.querySelectorAll('.close-panel').forEach(btn => {
 		btn.addEventListener('click', (e) => {
 			const id = (e.currentTarget as HTMLElement).dataset.id;
-			document.getElementById(`ingredients-${id}`)?.classList.remove('active');
+			toggleIngredients(id, false);
 		});
 	});
 
@@ -417,7 +425,6 @@ import Layout from '../layouts/Layout.astro';
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		will-change: opacity;
 	}
 
 	.nature-bg {
@@ -430,22 +437,21 @@ import Layout from '../layouts/Layout.astro';
 		pointer-events: none;
 	}
 
-	.landing-content { z-index: 10; text-align: center; }
+	.landing-content { z-index: 10; text-align: center; width: 90%; max-width: 800px; }
 
 	.split-layout {
-		display: flex;
+		display: grid;
+		grid-template-columns: 1fr 1.5fr 1fr;
 		align-items: center;
-		justify-content: center;
-		width: 90%;
+		width: 95%;
 		max-width: 1600px;
-		height: 80vh;
+		height: 85vh;
 		position: relative;
 		z-index: 5;
 		gap: 2rem;
 	}
 
-	.interactive-panel { flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-	.desktop-only { flex: 1; }
+	.interactive-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
 
 	.hero-image-container {
 		width: 100%;
@@ -458,19 +464,18 @@ import Layout from '../layouts/Layout.astro';
 		width: auto; 
 		height: auto; 
 		max-width: 100%; 
-		max-height: 50vh; 
+		max-height: 45vh; 
 		object-fit: contain; 
 		filter: drop-shadow(0 20px 60px rgba(0,0,0,0.8)); 
 	}
 
 	.product-identity { text-align: center; margin-bottom: 1rem; }
-	.product-title { font-family: 'Bangers', cursive; font-size: 3rem; color: #fff; margin: 0; }
+	.product-title { font-family: 'Bangers', cursive; font-size: 3.5rem; color: #fff; margin: 0; line-height: 1; }
 	.price-tag { font-family: 'Bangers', cursive; font-size: 2.5rem; color: var(--accent-gold); margin: 0.5rem 0; text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
 
-	.hero-logo { width: 320px; height: auto; margin-bottom: 2rem; display: block !important; }
+	.hero-logo { width: 320px; height: auto; margin: 0 auto 2rem; display: block; }
 
 	.about-rebel-box {
-		max-width: 600px;
 		margin: 2rem auto;
 		padding: 2rem;
 		background: rgba(0,0,0,0.4);
@@ -488,15 +493,16 @@ import Layout from '../layouts/Layout.astro';
 	.qty-btn { background: none; border: none; color: #fff; padding: 0.5rem 1rem; font-family: 'Staatliches'; font-size: 1.4rem; cursor: pointer; }
 	.qty-value { min-width: 40px; text-align: center; font-family: 'Staatliches', cursive; font-size: 1.4rem; color: var(--accent-gold); }
 
-	.add-btn.premium { background: var(--accent-gold); color: #000; border: none; padding: 0.8rem 2.5rem; font-family: 'Staatliches'; font-size: 1.3rem; cursor: pointer; position: relative; overflow: hidden; font-weight: bold; }
+	.add-btn.premium { background: var(--accent-gold); color: #000; border: none; padding: 1rem 3rem; font-family: 'Staatliches'; font-size: 1.5rem; cursor: pointer; position: relative; overflow: hidden; font-weight: bold; }
 	.success-check { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: transform 0.3s; }
 	.add-btn.success .success-check { transform: translateY(0); }
 
-	.ingredients-toggle { background: none; border: 1px solid rgba(255,255,255,0.3); color: #999; padding: 0.5rem 1rem; margin-top: 1.5rem; font-family: 'Staatliches'; cursor: pointer; }
+	.ingredients-toggle { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.8rem 1.5rem; margin-top: 1.5rem; font-family: 'Staatliches'; cursor: pointer; transition: all 0.3s; }
+	.ingredients-toggle:hover { background: #fff; color: #000; }
 
-	.text-panel { background: var(--panel-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: center; }
-	.bullet { font-family: 'Staatliches', cursive; font-size: 1.35rem; color: #fff; margin-bottom: 1.5rem; padding-left: 1.5rem; position: relative; line-height: 1.1; display: flex; align-items: flex-start; }
-	.bullet::before { content: '•'; color: var(--accent-gold); margin-right: 0.5rem; }
+	.text-panel { background: var(--panel-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: center; height: fit-content; align-self: center; }
+	.bullet { font-family: 'Staatliches', cursive; font-size: 1.35rem; color: #fff; margin-bottom: 1.5rem; padding-left: 1.5rem; position: relative; line-height: 1.1; }
+	.bullet::before { content: '•'; color: var(--accent-gold); position: absolute; left: 0; }
 
 	.cart-trigger { position: fixed; bottom: 2rem; right: 2rem; width: 65px; height: 65px; background: var(--accent-gold); border-radius: 50%; border: none; cursor: pointer; z-index: 2000; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 	.cart-count { position: absolute; top: 0; right: 0; background: #000; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent-gold); font-family: 'Staatliches'; }
@@ -506,18 +512,9 @@ import Layout from '../layouts/Layout.astro';
 	.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2900; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 	.cart-overlay.active { opacity: 1; pointer-events: auto; }
 
-	.cart-header-gold { padding: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-	.cart-items-scroll { flex: 1; overflow-y: auto; padding: 2rem; }
-	.cart-item-gold { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
-	.item-info { display: flex; justify-content: space-between; font-family: 'Staatliches'; font-size: 1.3rem; margin-bottom: 0.5rem; }
-	.item-controls { display: flex; align-items: center; gap: 1rem; }
-	.cart-qty-btn { background: none; border: 1px solid #333; color: #fff; width: 30px; height: 30px; cursor: pointer; }
-	.cart-qty-val { font-family: 'Staatliches'; color: var(--accent-gold); }
-
-	.cart-footer { padding: 2rem; background: #000; border-top: 1px solid #222; }
-	.cart-total { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 2rem; color: #fff; margin-bottom: 1rem; }
-	.wa-btn-premium { width: 100%; background: #25d366; color: #fff; border: none; padding: 1.5rem; font-family: 'Staatliches'; font-size: 1.4rem; cursor: pointer; font-weight: bold; }
-	.wa-btn-premium:disabled { opacity: 0.3; cursor: not-allowed; }
+	.ingredients-panel { z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.5s, transform 0.5s; }
+	.ingredients-panel.active { opacity: 1; pointer-events: auto; }
+	.close-panel { display: none; }
 
 	.scroll-nav { position: fixed; right: 2rem; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 2rem; z-index: 1000; }
 	.nav-dot { width: 8px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 4px; transition: all 0.3s; }
@@ -526,23 +523,26 @@ import Layout from '../layouts/Layout.astro';
 	.sticky-header { position: fixed; top: 2rem; left: 2rem; mix-blend-mode: exclusion; z-index: 1500; transition: opacity 0.5s; }
 	.sticky-logo { width: 85px; }
 
+	@media (min-width: 1025px) {
+		.ingredients-panel { opacity: 1; pointer-events: auto; transform: none; position: static; }
+		.ingredients-toggle { display: none; }
+	}
+
 	@media (max-width: 1024px) {
-		.split-layout { width: 95%; flex-direction: column; height: auto; padding: 6rem 0; }
-		.hero-img { max-height: 40vh; }
-		.product-title { font-size: 2.5rem; }
-		.text-panel.left { display: none; }
+		.split-layout { width: 95%; display: flex; flex-direction: column; height: auto; padding: 6rem 0; gap: 3rem; }
+		.hero-img { max-height: 35vh; }
+		.product-title { font-size: 2.8rem; }
+		.desktop-only { display: none; }
+		.ingredients-panel { position: fixed; inset: 0; z-index: 5000; transform: translateY(100%); transition: transform 0.5s ease; background: #000; padding: 4rem 1.5rem; opacity: 1; display: flex; align-items: center; justify-content: center; }
+		.ingredients-panel.active { transform: translateY(0); }
+		.close-panel { display: block; position: absolute; top: 1rem; right: 1.5rem; font-size: 3rem; background: none; border: none; color: #fff; cursor: pointer; }
 	}
 
 	@media (max-width: 768px) {
-		.page-section { height: auto; min-height: 100vh; }
-		.split-layout { padding: 4rem 1rem; }
-		.hero-logo { width: 220px; }
-		.about-rebel-box { width: 90%; font-size: 1.1rem; padding: 1.5rem; }
+		.hero-logo { width: 240px; }
+		.about-rebel-box { font-size: 1.1rem; padding: 1.5rem; }
 		.cart-sidebar { width: 100%; }
 		.sticky-logo { width: 60px; }
 		.scroll-nav { display: none; }
-		.ingredients-panel { position: fixed; inset: 0; z-index: 5000; transform: translateY(100%); transition: transform 0.5s ease; background: #000; padding: 4rem 1.5rem; }
-		.ingredients-panel.active { transform: translateY(0); }
-		.close-panel { position: absolute; top: 1rem; right: 1.5rem; font-size: 3rem; background: none; border: none; color: #fff; cursor: pointer; }
 	}
 </style>
