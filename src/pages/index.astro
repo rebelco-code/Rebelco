@@ -125,6 +125,40 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</section>
 
+		<!-- Section 5: Rainforest Herbs -->
+		<section class="page-section rainforest-biome" id="rainforest">
+			<div class="rainforest-overlay"></div>
+			<div class="split-layout">
+				<div class="benefits-panel">
+					<div class="content-box">
+						<p>• TALLOW IS BIO-IDENTICAL TO OUR OWN SEBUM, ABSORBING EASILY FOR INTENSE MOISTURIZATION.</p>
+						<p>• RICH IN FAT-SOLUBLE VITAMINS A, D, E, AND K TO NOURISH AND REPAIR SKIN CELLS.</p>
+						<p>• MIXED HERBS PROVIDE SPECIFIC ANTIOXIDANTS AND ANTI-INFLAMMATORIES.</p>
+						<p>• NATURAL CLEANSING WITHOUT STRIPPING OILS.</p>
+					</div>
+				</div>
+				<div class="center-panel">
+					<div class="hero-image-container">
+						<img src="/rainforest_hero.png" alt="REBEL Rainforest Herbs" class="hero-img" />
+					</div>
+					<div class="order-controls">
+						<button class="add-btn" data-product="Rainforest Herbs">ADD TO ORDER</button>
+					</div>
+				</div>
+				<div class="ingredients-panel">
+					<div class="img-stack">
+						<img src="/rainforest_top.png" alt="Rainforest Herbs" class="stack-img" />
+						<img src="/rainforest_bottom.png" alt="Jungle Canopy" class="stack-img" />
+						<div class="ingredients-text">
+							<h3>INGREDIENTS</h3>
+							<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS,</p>
+							<p>NATURAL CLAYS. EXFOLIATING SEEDS MIXED HERBS</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
 		<!-- Cart Sidebar -->
 		<div class="cart-floating" id="cart-drawer">
 			<div class="cart-header">YOUR REBEL ORDER</div>
@@ -136,10 +170,11 @@ import Layout from '../layouts/Layout.astro';
 
 		<!-- Nav Dots -->
 		<nav class="scroll-nav">
-			<a href="#charcoal" class="nav-dot active"></a>
-			<a href="#turmeric-info" class="nav-dot"></a>
-			<a href="#rooibos" class="nav-dot"></a>
-			<a href="#cocoa" class="nav-dot"></a>
+			<a href="#charcoal" class="nav-dot active" title="Charcoal"></a>
+			<a href="#turmeric-info" class="nav-dot" title="Turmeric"></a>
+			<a href="#rooibos" class="nav-dot" title="Rooibos"></a>
+			<a href="#cocoa" class="nav-dot" title="Cocoa"></a>
+			<a href="#rainforest" class="nav-dot" title="Rainforest"></a>
 		</nav>
 	</main>
 </Layout>
@@ -169,7 +204,7 @@ import Layout from '../layouts/Layout.astro';
 		// Attach remove listeners
 		document.querySelectorAll('.remove-btn').forEach(btn => {
 			btn.addEventListener('click', (e) => {
-				const product = (e.target as HTMLButtonElement).dataset.product;
+				const product = (e.currentTarget as HTMLButtonElement).dataset.product;
 				if (product) {
 					delete cart[product];
 					updateCartUI();
@@ -180,7 +215,7 @@ import Layout from '../layouts/Layout.astro';
 
 	document.querySelectorAll('.add-btn').forEach(btn => {
 		btn.addEventListener('click', (e) => {
-			const product = (e.target as HTMLButtonElement).dataset.product;
+			const product = (e.currentTarget as HTMLButtonElement).dataset.product;
 			if (product) {
 				cart[product] = (cart[product] || 0) + 1;
 				updateCartUI();
@@ -317,27 +352,43 @@ import Layout from '../layouts/Layout.astro';
 
 	.rooibos-biome { background: #000; }
 	
-	/* Cocoa Forest Biome */
 	.cocoa-biome {
-		background: #3e2723; /* Deep Cocoa Brown */
+		background: #3e2723;
 		overflow: hidden;
 	}
 	.cocoa-husk-overlay {
 		position: absolute;
 		inset: 0;
-		background-image: 
+		background: 
 			linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-			url('https://www.transparenttextures.com/patterns/wood-pattern.png'); /* Subtle forest texture */
+			url('https://www.transparenttextures.com/patterns/wood-pattern.png');
 		opacity: 0.4;
 		z-index: 1;
 	}
 	.cocoa-biome .benefits-panel, .cocoa-biome .ingredients-panel {
 		background: rgba(62, 39, 35, 0.95);
 	}
-	.cocoa-biome .center-panel {
-		background: #1b100e;
+	.cocoa-biome .center-panel { background: #1b100e; }
+
+	/* Rainforest Biome */
+	.rainforest-biome {
+		background: #1b5e20; /* Deep Jungle Green */
+		overflow: hidden;
 	}
-	.cocoa-biome .ingredients-text h3 { color: #d7ccc8; }
+	.rainforest-overlay {
+		position: absolute;
+		inset: 0;
+		background: 
+			linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+			url('https://www.transparenttextures.com/patterns/leaves.png'); /* Lush leaf pattern */
+		opacity: 0.6;
+		z-index: 1;
+	}
+	.rainforest-biome .benefits-panel, .rainforest-biome .ingredients-panel {
+		background: rgba(27, 94, 32, 0.95);
+	}
+	.rainforest-biome .center-panel { background: #0a2d0d; }
+	.rainforest-biome .ingredients-text h3 { color: #a5d6a7; }
 
 	/* Controls */
 	.order-controls { margin-top: 2rem; }
