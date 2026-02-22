@@ -15,6 +15,11 @@ import Layout from '../layouts/Layout.astro';
 			<div class="center-panel landing-content">
 				<img src="/logo.png" alt="REBEL Tallow Soap" class="hero-logo" />
 				<h1 class="landing-tagline">HANDCRAFTED DISRUPTION</h1>
+				<div class="about-rebel-box">
+					<p>REBEL is family owned, all natural, soap and skin care product manufacturer.</p>
+					<p>We 'rebel' against harsh chemicals in our carefully-handcrafted disruption against the norm of modern skincare.</p>
+					<p>Rebel uses old techniques with a modern approach for every age!</p>
+				</div>
 				<div class="scroll-indicator">
 					<span>SCROLL TO DISRUPT</span>
 					<div class="arrow"></div>
@@ -429,7 +434,32 @@ import Layout from '../layouts/Layout.astro';
 		transition: transform 0.5s ease;
 	}
 	.hero-img { width: 100%; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.8)); }
+	.hero-logo {
+		width: 320px;
+		height: auto;
+		filter: drop-shadow(0 0 40px rgba(0,0,0,0.8));
+		margin-bottom: 2rem;
+		display: block !important;
+	}
 
+	.about-rebel-box {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 2rem;
+		background: rgba(0,0,0,0.4);
+		backdrop-filter: blur(10px);
+		border-left: 3px solid var(--accent-gold);
+		font-family: 'Staatliches', cursive;
+		font-size: 1.25rem;
+		color: #fff;
+		text-align: left;
+		line-height: 1.4;
+	}
+	.about-rebel-box p {
+		margin-bottom: 1rem;
+		letter-spacing: 0.05em;
+	}
+	.about-rebel-box p:last-child { margin-bottom: 0; }
 	/* Gold Standard Controls */
 	.gold-standard {
 		display: flex;
@@ -693,5 +723,15 @@ import Layout from '../layouts/Layout.astro';
 		.cart-sidebar { width: 100%; }
 		.sticky-logo { width: 60px; }
 		.scroll-nav { display: none; }
+		.about-rebel-box {
+			width: 85%;
+			font-size: 1.1rem;
+			padding: 1.5rem;
+			margin: 1.5rem auto;
+		}
+		.hero-logo {
+			width: 240px;
+			margin-bottom: 1.5rem;
+		}
 	}
 </style>
