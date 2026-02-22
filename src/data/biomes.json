@@ -1,0 +1,135 @@
+[
+    {
+        "id": "charcoal",
+        "name": "Charcoal & Turmeric",
+        "accent": "#f59e0b",
+        "brandColor": "#ef4444",
+        "panelBg": "#6a6a6a",
+        "mainBg": "#000000",
+        "logoType": "circle",
+        "benefitsLeft": [
+            "Charcoal acts like a magnet, drawing out deep-seated dirt, oil, and impurities from pores.",
+            "Provides gentle physical exfoliation, removing dead skin cells for a smoother texture."
+        ],
+        "benefitsRight": [
+            "Turmeric is a potent anti-inflammatory, reducing redness, swelling, and acne breakouts.",
+            "Its antioxidants brighten skin, even out tone, and fade dark spots over time."
+        ],
+        "ingredientsLeft": [
+            "Natural Tallow",
+            "Palm Oil",
+            "Coconut Oil",
+            "Essential Oils"
+        ],
+        "ingredientsRight": [
+            "Natural Clays",
+            "Exfoliating Seeds",
+            "Charcoal",
+            "Turmeric"
+        ],
+        "images": {
+            "left": "https://images.unsplash.com/photo-1541818166-3d237190bf03?auto=format&fit=crop&q=80&w=800",
+            "right": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=800"
+        }
+    },
+    {
+        "id": "rooibos",
+        "name": "Rooibos & Tea Tree",
+        "accent": "#ef4444",
+        "brandColor": "#ef4444",
+        "panelBg": "#1a1a1a",
+        "mainBg": "#000000",
+        "logoType": "circle",
+        "benefitsLeft": [
+            "Rich in antioxidants",
+            "Gentle exfoliation and smoother skin.",
+            "Anti-inflammatory properties help soothe eczema, acne, and irritation.",
+            "Naturally hydrating without stripping the skin's essential moisture barrier."
+        ],
+        "benefitsRight": [
+            "Caffeine in tea tree helps reduce under-eye puffiness effectively.",
+            "Antiseptic and antibacterial to cleanse pores and prevent breakouts."
+        ],
+        "ingredientsLeft": [
+            "Natural Tallow",
+            "Palm Oil",
+            "Coconut Oil",
+            "Essential Oils"
+        ],
+        "ingredientsRight": [
+            "Natural Clays",
+            "Exfoliating Seeds",
+            "Rooibos",
+            "Tea Tree"
+        ],
+        "images": {
+            "left": "https://images.unsplash.com/photo-1594610605151-6107f9c2182c?auto=format&fit=crop&q=80&w=800",
+            "right": "https://images.unsplash.com/photo-1631560733554-72990666687a?auto=format&fit=crop&q=80&w=800"
+        }
+    },
+    {
+        "id": "cocoa",
+        "name": "Cocoa Coconut",
+        "accent": "#d97706",
+        "brandColor": "#ef4444",
+        "panelBg": "#451a03",
+        "mainBg": "#1c0a0a",
+        "logoType": "circle",
+        "benefitsLeft": [
+            "Coconut oil deeply moisturizes, prevents water loss, and strengthens skin barrier.",
+            "Antibacterial properties to fight acne-causing bacteria."
+        ],
+        "benefitsRight": [
+            "Cacao is packed with antioxidants.",
+            "Improves skin elasticity, boosts circulation, and promotes a radiant, youthful glow."
+        ],
+        "ingredientsLeft": [
+            "Natural Tallow",
+            "Palm Oil",
+            "Coconut Oil",
+            "Essential Oils"
+        ],
+        "ingredientsRight": [
+            "Natural Clays",
+            "Exfoliating Seeds",
+            "Cocoa",
+            "Coconut"
+        ],
+        "images": {
+            "left": "https://images.unsplash.com/photo-1548964814-16477d853123?auto=format&fit=crop&q=80&w=800",
+            "right": "https://images.unsplash.com/photo-1582245329718-248720822600?auto=format&fit=crop&q=80&w=800"
+        }
+    },
+    {
+        "id": "rainforest",
+        "name": "Rainforest Herbs",
+        "accent": "#22c55e",
+        "brandColor": "#ef4444",
+        "panelBg": "#064e3b",
+        "mainBg": "#022c22",
+        "logoType": "circle",
+        "benefitsLeft": [
+            "Tallow is bio-identical to our own sebum, absorbing easily for intense moisturization.",
+            "Rich in fat-soluble vitamins A, D, E, and K to nourish and repair skin cells."
+        ],
+        "benefitsRight": [
+            "Mixed herbs provide specific antioxidants and anti-inflammatories.",
+            "Natural cleansing without stripping oils."
+        ],
+        "ingredientsLeft": [
+            "Natural Tallow",
+            "Palm Oil",
+            "Coconut Oil",
+            "Essential Oils"
+        ],
+        "ingredientsRight": [
+            "Natural Clays",
+            "Exfoliating Seeds",
+            "Mixed Herbs"
+        ],
+        "images": {
+            "left": "https://images.unsplash.com/photo-1512149177596-f817c7ef5d4c?auto=format&fit=crop&q=80&w=800",
+            "right": "https://images.unsplash.com/photo-1502337580314-9b689c4e8b57?auto=format&fit=crop&q=80&w=800"
+        }
+    }
+]
