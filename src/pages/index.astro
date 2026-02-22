@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="REBEL | Handcrafted Tallow Soap">
 	<main class="scroll-container">
+		<!-- Header / Logo -->
 		<header class="sticky-header" id="main-header">
 			<img src="/logo.png" alt="REBEL Logo" class="sticky-logo" />
 		</header>
@@ -23,7 +24,7 @@ import Layout from '../layouts/Layout.astro';
 
 		<!-- Section 1: Charcoal & Turmeric (Rooibos Vibe) -->
 		<section class="page-section product-biome charcoal-biome" id="charcoal">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -87,9 +88,9 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</section>
 
-		<!-- Section 3: Cocoa Coconut (Rooibos Vibe) -->
+		<!-- Section 3: Cocoa Coconut (No More Math) -->
 		<section class="page-section product-biome cocoa-biome" id="cocoa">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1590004953392-5aba2e785a3c?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -120,9 +121,9 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</section>
 
-		<!-- Section 4: Rainforest Herbs (Rooibos Vibe) -->
+		<!-- Section 4: Rainforest Herbs (Knysna Forest Vibe) -->
 		<section class="page-section product-biome rainforest-biome" id="rainforest">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -153,7 +154,7 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</section>
 
-		<!-- Cart Sidebar -->
+		<!-- Cart Sidebar (Moved to Bottom Right) -->
 		<div class="cart-floating" id="cart-drawer">
 			<div class="cart-header">YOUR REBEL ORDER</div>
 			<div id="cart-list" class="cart-list">
@@ -162,7 +163,7 @@ import Layout from '../layouts/Layout.astro';
 			<button id="whatsapp-link" class="wa-btn" disabled>ORDER VIA WHATSAPP</button>
 		</div>
 
-		<!-- Nav Dots -->
+		<!-- Nav Dots (Moved to Center Right) -->
 		<nav class="scroll-nav">
 			<a href="#home" class="nav-dot active" title="Home"></a>
 			<a href="#charcoal" class="nav-dot" title="Charcoal"></a>
@@ -235,7 +236,7 @@ import Layout from '../layouts/Layout.astro';
 					dot.classList.toggle('active', dot.getAttribute('href') === `#${id}`);
 				});
 				
-				// Hide sticky header on home page
+				// Show sticky header on all pages except home
 				if (header) {
 					header.style.opacity = id === 'home' ? '0' : '1';
 					header.style.pointerEvents = id === 'home' ? 'none' : 'auto';
@@ -302,15 +303,15 @@ import Layout from '../layouts/Layout.astro';
 	}
 
 	.hero-logo {
-		width: 350px;
+		width: 320px;
 		height: auto;
-		filter: drop-shadow(0 0 50px rgba(0,0,0,0.8));
+		filter: drop-shadow(0 0 40px rgba(0,0,0,0.8));
 		margin-bottom: 2rem;
 	}
 
 	.landing-tagline {
 		font-family: 'Bangers', cursive;
-		font-size: 5rem;
+		font-size: clamp(2.5rem, 5vw, 5rem);
 		color: #fff;
 		letter-spacing: 0.2em;
 		text-shadow: 0 5px 15px rgba(0,0,0,0.5);
@@ -328,8 +329,8 @@ import Layout from '../layouts/Layout.astro';
 	}
 
 	.arrow {
-		width: 20px;
-		height: 20px;
+		width: 15px;
+		height: 15px;
 		border-right: 3px solid #fff;
 		border-bottom: 3px solid #fff;
 		transform: rotate(45deg);
@@ -358,7 +359,7 @@ import Layout from '../layouts/Layout.astro';
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		padding: 2.5rem;
+		padding: 2rem;
 		background: var(--panel-bg);
 		backdrop-filter: blur(25px);
 		border: 1px solid rgba(255,255,255,0.1);
@@ -367,8 +368,8 @@ import Layout from '../layouts/Layout.astro';
 
 	.content-box p.bullet {
 		font-family: 'Staatliches', cursive;
-		font-size: clamp(1.1rem, 1.8vw, 1.5rem);
-		margin-bottom: 2rem;
+		font-size: clamp(1rem, 1.5vw, 1.35rem);
+		margin-bottom: 1.5rem;
 		text-transform: uppercase;
 		line-height: 1.2;
 		color: #fff;
@@ -394,133 +395,137 @@ import Layout from '../layouts/Layout.astro';
 
 	.hero-image-container {
 		width: 100%;
-		max-width: 480px;
+		max-width: 420px;
 		margin-bottom: 2rem;
 	}
 
 	.hero-img {
 		width: 100%;
-		filter: drop-shadow(0 30px 60px rgba(0,0,0,0.9));
+		filter: drop-shadow(0 25px 50px rgba(0,0,0,0.9));
 	}
 
 	.ingredients-box h3 {
 		font-family: 'Bangers', cursive;
-		font-size: 2.5rem;
-		margin-bottom: 1.5rem;
+		font-size: 2.2rem;
+		margin-bottom: 1.2rem;
 		letter-spacing: 0.1em;
 		color: var(--accent);
 	}
 
 	.ingredients-box p {
 		font-family: 'Staatliches', cursive;
-		font-size: clamp(1rem, 1.4vw, 1.25rem);
+		font-size: clamp(0.9rem, 1.3vw, 1.15rem);
 		color: #ddd;
 		text-transform: uppercase;
 		line-height: 1.4;
 	}
 
 	.extra-benefits {
-		margin-top: 2rem;
-		padding-top: 2rem;
+		margin-top: 1.5rem;
+		padding-top: 1.5rem;
 		border-top: 1px solid rgba(255,255,255,0.2);
 	}
 
 	.extra-benefits p {
 		font-family: 'Staatliches', cursive;
 		color: #fff;
-		font-size: 1.1rem;
-		margin-bottom: 1rem;
-		opacity: 0.9;
+		font-size: 1rem;
+		margin-bottom: 0.8rem;
+		opacity: 0.85;
 	}
 
 	/* Controls */
-	.order-controls { margin-top: 1.5rem; }
+	.order-controls { margin-top: 1rem; }
 	.add-btn {
 		background: var(--accent);
 		color: #fff;
 		border: none;
-		padding: 1rem 3.5rem;
+		padding: 0.8rem 3rem;
 		font-family: 'Staatliches', cursive;
-		font-size: 1.6rem;
+		font-size: 1.4rem;
 		cursor: pointer;
 		transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-		box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+		box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 	}
-	.add-btn:hover { transform: translateY(-5px) scale(1.05); background: #fff; color: #000; }
+	.add-btn:hover { transform: translateY(-3px) scale(1.03); background: #fff; color: #000; }
 
-	/* Cart Sidebar */
+	/* Cart Sidebar (Moved to Bottom Right) */
 	.cart-floating {
 		position: fixed;
-		top: 2rem;
-		right: 2rem;
-		width: 300px;
-		background: rgba(0,0,0,0.95);
-		border: 1px solid rgba(255,255,255,0.1);
-		padding: 2rem;
-		backdrop-filter: blur(30px);
+		bottom: 2.5rem;
+		right: 2.5rem;
+		width: 280px;
+		background: rgba(0,0,0,0.9);
+		border: 1px solid rgba(255,255,255,0.15);
+		padding: 1.5rem;
+		backdrop-filter: blur(20px);
 		z-index: 1000;
-		border-radius: 4px;
+		border-radius: 8px;
+		box-shadow: 0 15px 40px rgba(0,0,0,0.6);
 	}
-	.cart-header { font-family: 'Staatliches', cursive; color: var(--accent); font-size: 1.4rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.2); }
-	.cart-item { display: flex; justify-content: space-between; font-family: 'Staatliches', cursive; margin-bottom: 0.8rem; align-items: center; font-size: 1.2rem; }
-	.remove-btn { background: none; border: none; color: var(--accent); font-size: 1.8rem; cursor: pointer; line-height: 1; }
+	.cart-header { font-family: 'Staatliches', cursive; color: var(--accent); font-size: 1.3rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.2); }
+	.cart-item { display: flex; justify-content: space-between; font-family: 'Staatliches', cursive; margin-bottom: 0.6rem; align-items: center; font-size: 1.1rem; }
+	.remove-btn { background: none; border: none; color: var(--accent); font-size: 1.6rem; cursor: pointer; line-height: 1; }
 	.wa-btn {
 		width: 100%;
 		background: #25d366;
 		color: #fff;
 		border: none;
-		padding: 1.2rem;
+		padding: 1rem;
 		font-family: 'Staatliches', cursive;
-		font-size: 1.3rem;
-		margin-top: 1.5rem;
+		font-size: 1.2rem;
+		margin-top: 1rem;
 		cursor: pointer;
 		border-radius: 4px;
 	}
-	.wa-btn:disabled { opacity: 0.3; }
+	.wa-btn:disabled { background: #1a1a1a; color: #444; cursor: not-allowed; }
 
 	.scroll-nav {
 		position: fixed;
-		left: 2rem;
+		right: 2.5rem;
 		top: 50%;
 		transform: translateY(-50%);
 		display: flex;
 		flex-direction: column;
-		gap: 2.5rem;
+		gap: 2rem;
 		z-index: 1000;
 	}
 	.nav-dot {
-		width: 16px;
-		height: 16px;
+		width: 12px;
+		height: 12px;
 		border-radius: 50%;
 		background: rgba(255,255,255,0.2);
-		transition: all 0.5s ease;
+		transition: all 0.4s ease;
 	}
-	.nav-dot.active { background: var(--accent); transform: scale(1.8); box-shadow: 0 0 25px var(--accent); }
+	.nav-dot.active { background: var(--accent); transform: scale(1.6); box-shadow: 0 0 15px var(--accent); }
 
 	.sticky-header {
 		position: fixed;
-		top: 2rem;
-		left: 2rem;
+		top: 2.5rem;
+		left: 2.5rem;
 		z-index: 1100;
 		mix-blend-mode: exclusion;
-		transition: opacity 0.5s ease;
+		transition: opacity 0.4s ease;
 	}
-	.sticky-logo { width: 90px; height: auto; }
+	.sticky-logo { width: 75px; height: auto; }
 
 	@media (max-width: 1200px) {
 		.split-layout { grid-template-columns: 1fr 1.2fr; }
 		.text-panel.right { display: none; }
+		.cart-floating { width: 240px; }
 	}
 
 	@media (max-width: 768px) {
 		.split-layout { grid-template-columns: 1fr; height: auto; padding-top: 6rem; }
 		.page-section { height: auto; min-height: 100vh; padding: 4rem 1.5rem; }
 		.scroll-container { scroll-snap-type: none; }
-		.text-panel { padding: 2rem; }
-		.hero-image-container { max-width: 320px; }
+		.text-panel { padding: 1.5rem; }
+		.hero-image-container { max-width: 280px; }
 		.scroll-nav { display: none; }
-		.cart-floating { position: static; width: 100%; margin-top: 3rem; }
+		.cart-floating { position: static; width: 100%; margin-top: 2rem; }
 		.landing-tagline { font-size: 2.5rem; }
-		.hero-logo { width: 250px; }
+		.hero-logo { width: 220px; }
+		.sticky-header { top: 1rem; left: 1.5rem; }
+		.sticky-logo { width: 60px; }
 	}
 </style>
