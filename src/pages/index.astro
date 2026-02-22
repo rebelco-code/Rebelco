@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="REBEL | Handcrafted Tallow Soap">
 	<main class="scroll-container">
+
 		<!-- Sticky Header -->
 		<header class="sticky-header" id="main-header">
 			<a href="/"><img src="/logo.png" alt="REBEL Logo" class="sticky-logo" /></a>
@@ -20,119 +21,199 @@ import Layout from '../layouts/Layout.astro';
 				<h1 class="landing-tagline">HANDCRAFTED DISRUPTION</h1>
 				<div class="about-rebel-box">
 					<p>REBEL is family owned, all natural, soap and skin care product manufacturer.</p>
-					<p>We 'rebel' against harsh chemicals in our carefully-handcrafted disruption against the norm of modern skincare.</p>
-					<p>Rebel uses old techniques with a modern approach for every age!</p>
+					<p>We rebel against harsh chemicals in our carefully-handcrafted disruption against the norm of modern skincare.</p>
+					<p>Old techniques. Modern approach. Every age.</p>
 				</div>
-				<div class="scroll-indicator">
-					<span>SCROLL TO DISRUPT</span>
-					<div class="arrow"></div>
-				</div>
+				<p class="scroll-hint">↓ SCROLL TO DISRUPT ↓</p>
 			</div>
 		</section>
 
-		<!-- Product Biome Sections -->
-		{[
-			{
-				id: 'charcoal',
-				name: 'Charcoal & Turmeric',
-				hero: '/charcoal_turmeric_hero.png',
-				bg: 'https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&q=80&w=1920',
-				bullets: [
-					'CHARCOAL ACTS LIKE A MAGNET, DRAWING OUT IMPURITIES.',
-					'GENTLE PHYSICAL EXFOLIATION FOR SMOOTHER TEXTURE.',
-					'TURMERIC REDUCES REDNESS AND BREAKOUTS.',
-					'ANTIOXIDANTS BRIGHTEN SKIN OVER TIME.'
-				],
-				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC',
-				extra: ['• DETOXIFIES PORES WITHOUT STRIPPING OILS.', '• PROMOTES A RADIANT, EVEN SKIN TONE.']
-			},
-			{
-				id: 'rooibos',
-				name: 'Rooibos & Tea Tree',
-				hero: '/rooibos_hero.png',
-				bg: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1920',
-				bullets: [
-					'RICH IN ANTIOXIDANTS FOR CELLULAR REPAIR.',
-					'GENTLE EXFOLIATION PROMOTING RADIANT SKIN.',
-					'ANTI-INFLAMMATORY HELPS SOOTHE ECZEMA.',
-					'NATURALLY HYDRATING BARRIER PROTECTION.'
-				],
-				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, ROOIBOS, TEA TREE',
-				extra: ['• CAFFEINE IN TEA TREE REDUCES PUFFINESS.', '• ANTISEPTIC PROPERTIES TO PREVENT BREAKOUTS.']
-			},
-			{
-				id: 'cocoa',
-				name: 'Cocoa Coconut',
-				hero: '/cocoa_hero.png',
-				bg: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1920',
-				bullets: [
-					'COCONUT OIL DEEPLY MOISTURIZES SKIN.',
-					'ANTIBACTERIAL PROPERTIES FIGHT ACNE.',
-					'CACAO PACKED WITH ANTIOXIDANTS FOR GLOW.',
-					'IMPROVES ELASTICITY AND MICRO-CIRCULATION.'
-				],
-				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT',
-				extra: ['• INTENSE HYDRATION FOR DRY SKIN.', '• PROMOTES A YOUTHFUL, FIRM APPEARANCE.']
-			},
-			{
-				id: 'rainforest',
-				name: 'Rainforest Herbs',
-				hero: '/rainforest_hero.png',
-				bg: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1920',
-				bullets: [
-					'TALLOW IS BIO-IDENTICAL TO SEBUM.',
-					'RICH IN VITAMINS A, D, E, AND K.',
-					'MIXED HERBS PROVIDE BOTANICAL ANTIOXIDANTS.',
-					'NATURAL CLEANSING WITHOUT STRIPPING OILS.'
-				],
-				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS',
-				extra: ['• SOOTHES SENSITIVE SKIN WITH EXTRACTS.', '• RESTORES NATURAL VITALITY AND BALANCE.']
-			}
-		].map((p) => (
-			<section class="page-section product-biome" id={p.id}>
-				<div class="nature-bg" style={`background-image: url('${p.bg}');`}></div>
-				<div class="section-content product-layout">
-					<div class="side-panel desktop-only">
-						{p.bullets.map(b => <p class="bullet-item">{b}</p>)}
-					</div>
-					<div class="main-interaction">
-						<div class="product-hero-container">
-							<img src={p.hero} alt={p.name} class="product-pure-img" />
-						</div>
-						<h2 class="main-title">{p.name}</h2>
-						<p class="main-price">R100</p>
-						<div class="buying-tools">
-							<div class="quantity-box">
-								<button class="qty-trigger dec" data-pid={p.id}>-</button>
-								<span class="qty-count" id={`qty-val-${p.id}`}>1</span>
-								<button class="qty-trigger inc" data-pid={p.id}>+</button>
-							</div>
-							<button class="buy-trigger premium-btn" data-name={p.name} data-id={p.id}>
-								ADD TO ORDER
-								<div class="buy-success">ADDED!</div>
-							</button>
-						</div>
-						<button class="modal-trigger mobile-only" data-target={p.id}>SEE INGREDIENTS</button>
-					</div>
-					<div class="side-panel desktop-only ingredients-side">
-						<h3 class="ing-title">INGREDIENTS</h3>
-						<p class="ing-text">{p.ingredients}</p>
-						{p.extra.map(e => <p class="ing-extra">{e}</p>)}
-					</div>
+		<!-- Charcoal & Turmeric -->
+		<section class="page-section product-biome" id="charcoal">
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="section-content product-layout">
+				<div class="side-panel desktop-only">
+					<p class="bullet-item">CHARCOAL ACTS LIKE A MAGNET, DRAWING OUT IMPURITIES.</p>
+					<p class="bullet-item">GENTLE PHYSICAL EXFOLIATION FOR SMOOTHER TEXTURE.</p>
+					<p class="bullet-item">TURMERIC REDUCES REDNESS AND BREAKOUTS.</p>
+					<p class="bullet-item">ANTIOXIDANTS BRIGHTEN SKIN OVER TIME.</p>
 				</div>
-				<div class="mobile-modal" id={`modal-${p.id}`}>
-					<div class="modal-content">
-						<button class="modal-close" data-close={p.id}>&times;</button>
-						<h3>INGREDIENTS</h3>
-						<p>{p.ingredients}</p>
-						<hr />
-						{p.bullets.map(b => <p class="bullet-item">{b}</p>)}
+				<div class="main-interaction">
+					<img src="/charcoal_turmeric_hero.png" alt="Charcoal & Turmeric" class="product-pure-img" />
+					<h2 class="main-title">Charcoal & Turmeric</h2>
+					<p class="main-price">R100</p>
+					<div class="buying-tools">
+						<div class="quantity-box">
+							<button class="qty-dec" data-pid="charcoal">-</button>
+							<span class="qty-count" id="qty-val-charcoal">1</span>
+							<button class="qty-inc" data-pid="charcoal">+</button>
+						</div>
+						<button class="add-btn" data-name="Charcoal & Turmeric" data-pid="charcoal">
+							<span class="add-label">ADD TO ORDER</span>
+							<span class="add-ok">✓ ADDED</span>
+						</button>
 					</div>
+					<button class="ing-open mobile-only" data-modal="modal-charcoal">SEE INGREDIENTS</button>
 				</div>
-			</section>
-		))}
+				<div class="side-panel desktop-only">
+					<h3 class="ing-title">INGREDIENTS</h3>
+					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC</p>
+					<p class="ing-extra">• DETOXIFIES PORES WITHOUT STRIPPING OILS.</p>
+					<p class="ing-extra">• PROMOTES A RADIANT, EVEN SKIN TONE.</p>
+				</div>
+			</div>
+		</section>
+		<div class="mobile-modal" id="modal-charcoal">
+			<div class="modal-box">
+				<button class="modal-x" data-close="modal-charcoal">✕</button>
+				<h3>INGREDIENTS</h3>
+				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC</p>
+				<hr/>
+				<p class="bullet-item">CHARCOAL ACTS LIKE A MAGNET, DRAWING OUT IMPURITIES.</p>
+				<p class="bullet-item">GENTLE PHYSICAL EXFOLIATION FOR SMOOTHER TEXTURE.</p>
+				<p class="bullet-item">TURMERIC REDUCES REDNESS AND BREAKOUTS.</p>
+			</div>
+		</div>
 
-		<!-- Cart -->
+		<!-- Rooibos & Tea Tree -->
+		<section class="page-section product-biome" id="rooibos">
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="section-content product-layout">
+				<div class="side-panel desktop-only">
+					<p class="bullet-item">RICH IN ANTIOXIDANTS FOR CELLULAR REPAIR.</p>
+					<p class="bullet-item">GENTLE EXFOLIATION PROMOTING RADIANT SKIN.</p>
+					<p class="bullet-item">ANTI-INFLAMMATORY HELPS SOOTHE ECZEMA.</p>
+					<p class="bullet-item">NATURALLY HYDRATING BARRIER PROTECTION.</p>
+				</div>
+				<div class="main-interaction">
+					<img src="/rooibos_hero.png" alt="Rooibos & Tea Tree" class="product-pure-img" />
+					<h2 class="main-title">Rooibos & Tea Tree</h2>
+					<p class="main-price">R100</p>
+					<div class="buying-tools">
+						<div class="quantity-box">
+							<button class="qty-dec" data-pid="rooibos">-</button>
+							<span class="qty-count" id="qty-val-rooibos">1</span>
+							<button class="qty-inc" data-pid="rooibos">+</button>
+						</div>
+						<button class="add-btn" data-name="Rooibos & Tea Tree" data-pid="rooibos">
+							<span class="add-label">ADD TO ORDER</span>
+							<span class="add-ok">✓ ADDED</span>
+						</button>
+					</div>
+					<button class="ing-open mobile-only" data-modal="modal-rooibos">SEE INGREDIENTS</button>
+				</div>
+				<div class="side-panel desktop-only">
+					<h3 class="ing-title">INGREDIENTS</h3>
+					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, ROOIBOS, TEA TREE</p>
+					<p class="ing-extra">• CAFFEINE IN TEA TREE REDUCES PUFFINESS.</p>
+					<p class="ing-extra">• ANTISEPTIC PROPERTIES TO PREVENT BREAKOUTS.</p>
+				</div>
+			</div>
+		</section>
+		<div class="mobile-modal" id="modal-rooibos">
+			<div class="modal-box">
+				<button class="modal-x" data-close="modal-rooibos">✕</button>
+				<h3>INGREDIENTS</h3>
+				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, ROOIBOS, TEA TREE</p>
+				<hr/>
+				<p class="bullet-item">RICH IN ANTIOXIDANTS FOR CELLULAR REPAIR.</p>
+				<p class="bullet-item">ANTI-INFLAMMATORY HELPS SOOTHE ECZEMA.</p>
+			</div>
+		</div>
+
+		<!-- Cocoa Coconut -->
+		<section class="page-section product-biome" id="cocoa">
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="section-content product-layout">
+				<div class="side-panel desktop-only">
+					<p class="bullet-item">COCONUT OIL DEEPLY MOISTURIZES SKIN.</p>
+					<p class="bullet-item">ANTIBACTERIAL PROPERTIES FIGHT ACNE.</p>
+					<p class="bullet-item">CACAO PACKED WITH ANTIOXIDANTS FOR GLOW.</p>
+					<p class="bullet-item">IMPROVES ELASTICITY AND MICRO-CIRCULATION.</p>
+				</div>
+				<div class="main-interaction">
+					<img src="/cocoa_hero.png" alt="Cocoa Coconut" class="product-pure-img" />
+					<h2 class="main-title">Cocoa Coconut</h2>
+					<p class="main-price">R100</p>
+					<div class="buying-tools">
+						<div class="quantity-box">
+							<button class="qty-dec" data-pid="cocoa">-</button>
+							<span class="qty-count" id="qty-val-cocoa">1</span>
+							<button class="qty-inc" data-pid="cocoa">+</button>
+						</div>
+						<button class="add-btn" data-name="Cocoa Coconut" data-pid="cocoa">
+							<span class="add-label">ADD TO ORDER</span>
+							<span class="add-ok">✓ ADDED</span>
+						</button>
+					</div>
+					<button class="ing-open mobile-only" data-modal="modal-cocoa">SEE INGREDIENTS</button>
+				</div>
+				<div class="side-panel desktop-only">
+					<h3 class="ing-title">INGREDIENTS</h3>
+					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT</p>
+					<p class="ing-extra">• INTENSE HYDRATION FOR DRY SKIN.</p>
+					<p class="ing-extra">• PROMOTES A YOUTHFUL, FIRM APPEARANCE.</p>
+				</div>
+			</div>
+		</section>
+		<div class="mobile-modal" id="modal-cocoa">
+			<div class="modal-box">
+				<button class="modal-x" data-close="modal-cocoa">✕</button>
+				<h3>INGREDIENTS</h3>
+				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT</p>
+				<hr/>
+				<p class="bullet-item">COCONUT OIL DEEPLY MOISTURIZES SKIN.</p>
+				<p class="bullet-item">CACAO PACKED WITH ANTIOXIDANTS FOR GLOW.</p>
+			</div>
+		</div>
+
+		<!-- Rainforest Herbs -->
+		<section class="page-section product-biome" id="rainforest">
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="section-content product-layout">
+				<div class="side-panel desktop-only">
+					<p class="bullet-item">TALLOW IS BIO-IDENTICAL TO SEBUM.</p>
+					<p class="bullet-item">RICH IN VITAMINS A, D, E, AND K.</p>
+					<p class="bullet-item">MIXED HERBS PROVIDE BOTANICAL ANTIOXIDANTS.</p>
+					<p class="bullet-item">NATURAL CLEANSING WITHOUT STRIPPING OILS.</p>
+				</div>
+				<div class="main-interaction">
+					<img src="/rainforest_hero.png" alt="Rainforest Herbs" class="product-pure-img" />
+					<h2 class="main-title">Rainforest Herbs</h2>
+					<p class="main-price">R100</p>
+					<div class="buying-tools">
+						<div class="quantity-box">
+							<button class="qty-dec" data-pid="rainforest">-</button>
+							<span class="qty-count" id="qty-val-rainforest">1</span>
+							<button class="qty-inc" data-pid="rainforest">+</button>
+						</div>
+						<button class="add-btn" data-name="Rainforest Herbs" data-pid="rainforest">
+							<span class="add-label">ADD TO ORDER</span>
+							<span class="add-ok">✓ ADDED</span>
+						</button>
+					</div>
+					<button class="ing-open mobile-only" data-modal="modal-rainforest">SEE INGREDIENTS</button>
+				</div>
+				<div class="side-panel desktop-only">
+					<h3 class="ing-title">INGREDIENTS</h3>
+					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS</p>
+					<p class="ing-extra">• SOOTHES SENSITIVE SKIN WITH EXTRACTS.</p>
+					<p class="ing-extra">• RESTORES NATURAL VITALITY AND BALANCE.</p>
+				</div>
+			</div>
+		</section>
+		<div class="mobile-modal" id="modal-rainforest">
+			<div class="modal-box">
+				<button class="modal-x" data-close="modal-rainforest">✕</button>
+				<h3>INGREDIENTS</h3>
+				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS</p>
+				<hr/>
+				<p class="bullet-item">TALLOW IS BIO-IDENTICAL TO SEBUM.</p>
+				<p class="bullet-item">RICH IN VITAMINS A, D, E, AND K.</p>
+			</div>
+		</div>
+
+		<!-- Cart Button & Panel -->
 		<div class="cart-anchor">
 			<button id="cart-open" class="cart-pill"><span id="cart-tally">0</span> ITEMS</button>
 		</div>
@@ -140,127 +221,187 @@ import Layout from '../layouts/Layout.astro';
 		<div class="cart-panel" id="cart-panel">
 			<div class="cart-top">
 				<h3>YOUR ORDER</h3>
-				<button id="cart-exit">CLOSE</button>
+				<button id="cart-exit" style="background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer;font-family:inherit;">CLOSE ✕</button>
 			</div>
-			<div id="cart-scroll-area" class="cart-body">
+			<div id="cart-body" class="cart-body">
 				<p class="cart-empty">YOUR CRATE IS EMPTY</p>
 			</div>
 			<div class="cart-bottom">
-				<div class="cart-math"><span>TOTAL:</span><span id="cart-total-cash">R0</span></div>
-				<button id="wa-checkout" class="checkout-btn" disabled>ORDER ON WHATSAPP</button>
+				<div class="cart-math"><span>TOTAL</span><span id="cart-total">R0</span></div>
+				<button id="wa-btn" class="checkout-btn" disabled>ORDER ON WHATSAPP</button>
 			</div>
 		</div>
+
 	</main>
 </Layout>
 
-<script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/dist/lenis.min.js" is:inline></script>
-<script>
-	let orderData = {};
-	const localQtys = { charcoal: 1, rooibos: 1, cocoa: 1, rainforest: 1 };
-	const cartPanel = document.getElementById('cart-panel');
-	const cartShield = document.getElementById('cart-shield');
-	const cartScroll = document.getElementById('cart-scroll-area');
-	const cartTally = document.getElementById('cart-tally');
-	const cartCash = document.getElementById('cart-total-cash');
-	const waBtn = document.getElementById('wa-checkout');
+<script is:inline>
+// Wrapped in IIFE — runs immediately, no fragile imports
+(function() {
+	var cart = {};
+	var qtys = { charcoal: 1, rooibos: 1, cocoa: 1, rainforest: 1 };
 
-	// @ts-ignore
-	const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
-	function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-	requestAnimationFrame(raf);
+	function getQtyEl(pid) { return document.getElementById('qty-val-' + pid); }
 
-	function refreshCart() {
-		const items = Object.entries(orderData);
-		let count = 0, total = 0;
-		if (items.length === 0) {
-			if (cartScroll) cartScroll.innerHTML = '<p class="cart-empty">YOUR CRATE IS EMPTY</p>';
-			if (cartTally) cartTally.textContent = '0';
-			if (cartCash) cartCash.textContent = 'R0';
-			if (waBtn) (waBtn as HTMLButtonElement).disabled = true;
+	function drawCart() {
+		var body = document.getElementById('cart-body');
+		var tally = document.getElementById('cart-tally');
+		var total = document.getElementById('cart-total');
+		var wa = document.getElementById('wa-btn');
+		var keys = Object.keys(cart);
+
+		if (!body) return;
+
+		if (keys.length === 0) {
+			body.innerHTML = '<p class="cart-empty">YOUR CRATE IS EMPTY</p>';
+			if (tally) tally.textContent = '0';
+			if (total) total.textContent = 'R0';
+			if (wa) wa.disabled = true;
 			return;
 		}
-		if (cartScroll) cartScroll.innerHTML = items.map(([name, data]: [string, any]) => {
-			count += data.qty; total += data.qty * 100;
-			return `<div class="cart-entry">
-				<div class="entry-row"><span>${name}</span><span>R${data.qty * 100}</span></div>
-				<div class="entry-tweak">
-					<button class="tweak-btn minus" data-item="${name}">-</button>
-					<span class="tweak-val">${data.qty}</span>
-					<button class="tweak-btn plus" data-item="${name}">+</button>
-				</div>
-			</div>`;
-		}).join('');
-		if (cartTally) cartTally.textContent = count.toString();
-		if (cartCash) cartCash.textContent = `R${total}`;
-		if (waBtn) (waBtn as HTMLButtonElement).disabled = false;
-		document.querySelectorAll('.tweak-btn').forEach(b => {
-			b.onclick = (e) => {
-				const item = (e.currentTarget as HTMLElement).dataset.item;
-				if (!item) return;
-				if ((e.currentTarget as HTMLElement).classList.contains('plus')) orderData[item].qty++;
-				else { orderData[item].qty--; if (orderData[item].qty <= 0) delete orderData[item]; }
-				refreshCart();
-			};
+
+		var count = 0, sum = 0;
+		var html = '';
+		keys.forEach(function(name) {
+			var qty = cart[name];
+			count += qty;
+			sum += qty * 100;
+			html += '<div class="cart-row">' +
+				'<div class="cart-row-top"><span>' + name + '</span><span>R' + (qty * 100) + '</span></div>' +
+				'<div class="cart-row-btns">' +
+				'<button onclick="rebelCartDec(\'' + name + '\')" class="cv-btn">-</button>' +
+				'<span class="cv-val">' + qty + '</span>' +
+				'<button onclick="rebelCartInc(\'' + name + '\')" class="cv-btn">+</button>' +
+				'</div></div>';
 		});
+
+		body.innerHTML = html;
+		if (tally) tally.textContent = count.toString();
+		if (total) total.textContent = 'R' + sum;
+		if (wa) wa.disabled = false;
 	}
 
-	document.addEventListener('click', (e) => {
-		const t = e.target as HTMLElement;
-		const qty = t.closest('.qty-trigger') as HTMLElement;
-		if (qty) {
-			const pid = qty.dataset.pid;
-			if (!pid) return;
-			if (qty.classList.contains('inc')) localQtys[pid]++;
-			else if (localQtys[pid] > 1) localQtys[pid]--;
-			const el = document.getElementById(`qty-val-${pid}`);
-			if (el) el.textContent = localQtys[pid];
-			return;
+	// Expose cart helpers globally so onclick in injected HTML works
+	window.rebelCartInc = function(name) { if (cart[name] !== undefined) { cart[name]++; drawCart(); } };
+	window.rebelCartDec = function(name) {
+		if (cart[name] !== undefined) {
+			cart[name]--;
+			if (cart[name] <= 0) delete cart[name];
+			drawCart();
 		}
-		const buy = t.closest('.buy-trigger') as HTMLElement;
-		if (buy) {
-			const name = buy.dataset.name, pid = buy.dataset.id;
-			if (name && pid) {
-				if (!orderData[name]) orderData[name] = { qty: 0 };
-				orderData[name].qty += localQtys[pid];
-				buy.classList.add('is-success');
-				setTimeout(() => buy.classList.remove('is-success'), 2000);
-				refreshCart();
-			}
-			return;
-		}
-		const mt = t.closest('.modal-trigger') as HTMLElement;
-		if (mt) { document.getElementById(`modal-${mt.dataset.target}`)?.classList.add('open'); return; }
-		const mc = t.closest('.modal-close') as HTMLElement;
-		if (mc) { document.getElementById(`modal-${mc.dataset.close}`)?.classList.remove('open'); return; }
-		if (t.classList.contains('mobile-modal')) { (t as HTMLElement).classList.remove('open'); return; }
-		if (t.closest('#cart-open')) { cartPanel?.classList.add('visible'); cartShield?.classList.add('visible'); return; }
-		if (t.id === 'cart-exit' || t.id === 'cart-shield') { cartPanel?.classList.remove('visible'); cartShield?.classList.remove('visible'); return; }
-		const wa = t.closest('#wa-checkout') as HTMLElement;
-		if (wa) {
-			const num = "27636936204";
-			let total = 0, msg = "Hi RebelCo! My order:\n\n";
-			Object.entries(orderData).forEach(([n, d]: [string, any]) => { msg += `• ${d.qty} x ${n} (R${d.qty * 100})\n`; total += d.qty * 100; });
-			msg += `\nTOTAL: R${total}\n\nNo Excuses.`;
-			window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
-		}
+	};
+
+	document.addEventListener('DOMContentLoaded', function() {
+
+		// --- QTY BUTTONS ---
+		document.querySelectorAll('.qty-dec').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				var pid = btn.getAttribute('data-pid');
+				if (!pid) return;
+				if (!qtys[pid]) qtys[pid] = 1;
+				if (qtys[pid] > 1) qtys[pid]--;
+				var el = getQtyEl(pid);
+				if (el) el.textContent = qtys[pid];
+			});
+		});
+		document.querySelectorAll('.qty-inc').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				var pid = btn.getAttribute('data-pid');
+				if (!pid) return;
+				if (!qtys[pid]) qtys[pid] = 1;
+				qtys[pid]++;
+				var el = getQtyEl(pid);
+				if (el) el.textContent = qtys[pid];
+			});
+		});
+
+		// --- ADD TO ORDER BUTTONS ---
+		document.querySelectorAll('.add-btn').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				var name = btn.getAttribute('data-name');
+				var pid = btn.getAttribute('data-pid');
+				if (!name || !pid) return;
+				var q = qtys[pid] || 1;
+				if (!cart[name]) cart[name] = 0;
+				cart[name] += q;
+				btn.classList.add('added');
+				setTimeout(function() { btn.classList.remove('added'); }, 2000);
+				drawCart();
+			});
+		});
+
+		// --- INGREDIENTS MODALS ---
+		document.querySelectorAll('.ing-open').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				var mid = btn.getAttribute('data-modal');
+				if (mid) {
+					var el = document.getElementById(mid);
+					if (el) el.classList.add('open');
+				}
+			});
+		});
+		document.querySelectorAll('.modal-x').forEach(function(btn) {
+			btn.addEventListener('click', function() {
+				var mid = btn.getAttribute('data-close');
+				if (mid) {
+					var el = document.getElementById(mid);
+					if (el) el.classList.remove('open');
+				}
+			});
+		});
+		// Close modal on backdrop click
+		document.querySelectorAll('.mobile-modal').forEach(function(modal) {
+			modal.addEventListener('click', function(e) {
+				if (e.target === modal) modal.classList.remove('open');
+			});
+		});
+
+		// --- CART PANEL ---
+		var cartPanel = document.getElementById('cart-panel');
+		var cartShield = document.getElementById('cart-shield');
+		var cartOpen = document.getElementById('cart-open');
+		var cartExit = document.getElementById('cart-exit');
+
+		if (cartOpen) cartOpen.addEventListener('click', function() {
+			if (cartPanel) cartPanel.classList.add('visible');
+			if (cartShield) cartShield.classList.add('visible');
+		});
+		if (cartExit) cartExit.addEventListener('click', function() {
+			if (cartPanel) cartPanel.classList.remove('visible');
+			if (cartShield) cartShield.classList.remove('visible');
+		});
+		if (cartShield) cartShield.addEventListener('click', function() {
+			if (cartPanel) cartPanel.classList.remove('visible');
+			cartShield.classList.remove('visible');
+		});
+
+		// --- WHATSAPP CHECKOUT ---
+		var waBtn = document.getElementById('wa-btn');
+		if (waBtn) waBtn.addEventListener('click', function() {
+			var num = "27636936204";
+			var total = 0;
+			var msg = "Hi RebelCo! My soap order:\n\n";
+			Object.keys(cart).forEach(function(name) {
+				msg += '• ' + cart[name] + ' x ' + name + ' (R' + (cart[name] * 100) + ')\n';
+				total += cart[name] * 100;
+			});
+			msg += '\nTOTAL: R' + total + '\n\nNo Excuses.';
+			window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+		});
+
+		// --- SMOOTH SCROLL (native, no library needed) ---
+		document.documentElement.style.scrollBehavior = 'smooth';
+
+		// --- PARALLAX ---
+		window.addEventListener('scroll', function() {
+			var scrollY = window.scrollY;
+			document.querySelectorAll('.nature-bg').forEach(function(bg) {
+				bg.style.transform = 'translateY(' + (scrollY * 0.05) + 'px)';
+			});
+		}, { passive: true });
 	});
 
-	// Parallax scroll
-	lenis.on('scroll', (e) => {
-		document.querySelectorAll('.nature-bg').forEach((bg) => {
-			(bg as HTMLElement).style.transform = `translateY(${e.scroll * 0.05}px)`;
-		});
-	});
-
-	// Sticky header
-	const obs = new IntersectionObserver((entries) => {
-		entries.forEach(entry => {
-			if (!entry.isIntersecting) return;
-			const h = document.getElementById('main-header');
-			if (h) h.style.opacity = entry.target.id === 'home' ? '0' : '1';
-		});
-	}, { threshold: 0.5 });
-	document.querySelectorAll('.page-section').forEach(s => obs.observe(s));
+})();
 </script>
 
 <style>
@@ -268,106 +409,161 @@ import Layout from '../layouts/Layout.astro';
 	* { box-sizing: border-box; }
 	html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Staatliches', cursive; overflow-x: hidden; }
 
-	/* KEY FIX: nature-bg uses z-index: 1 (not -1), content uses z-index: 10+ */
+	/* ── BACKGROUNDS ─────────────────────────────────── */
+	/* z-index: 1 so overflow:hidden doesn't clip it;    */
+	/* pointer-events:none so it never blocks clicks     */
 	.page-section {
-		min-height: 100vh; width: 100vw; position: relative;
-		display: flex; align-items: center; justify-content: center;
+		min-height: 100vh; width: 100vw;
+		position: relative; display: flex;
+		align-items: center; justify-content: center;
 	}
 	.nature-bg {
-		position: absolute; inset: -20%; z-index: 1;
+		position: absolute; inset: -20%;
 		background-size: cover; background-position: center;
-		filter: brightness(0.35) saturate(1.3);
-		pointer-events: none;
+		filter: brightness(0.38) saturate(1.4);
+		z-index: 1; pointer-events: none;
 	}
-	.section-content { position: relative; z-index: 10; }
+	/* All real content sits above the background */
+	.section-content { position: relative; z-index: 10; width: 95%; }
 
-	/* Landing */
-	.landing-content { text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; width: 90%; max-width: 800px; }
-	.hero-logo { width: clamp(200px, 35vw, 320px); height: auto; margin-bottom: 2rem; filter: drop-shadow(0 0 30px rgba(0,0,0,0.6)); }
-	.landing-tagline { font-family: 'Bangers', cursive; font-size: clamp(2.5rem, 8vw, 5rem); margin: 0; color: #fff; text-shadow: 0 4px 20px rgba(0,0,0,0.9); }
+	/* ── LANDING ─────────────────────────────────────── */
+	.landing-content { 
+		display: flex; flex-direction: column; align-items: center;
+		text-align: center; max-width: 800px; margin: auto; padding: 2rem;
+	}
+	.hero-logo { width: clamp(180px, 35vw, 320px); height: auto; margin-bottom: 2rem; filter: drop-shadow(0 0 40px rgba(0,0,0,0.8)); }
+	.landing-tagline { font-family: 'Bangers', cursive; font-size: clamp(2.5rem, 8vw, 5.5rem); margin: 0; text-shadow: 0 4px 20px rgba(0,0,0,1); }
 	.about-rebel-box {
-		padding: 2rem; margin: 2rem 0; background: rgba(0,0,0,0.5);
-		backdrop-filter: blur(15px); border-left: 4px solid var(--gold);
-		text-align: left; line-height: 1.4; font-size: 1.2rem;
+		padding: 2rem; margin: 2rem 0;
+		background: rgba(0,0,0,0.55); backdrop-filter: blur(12px);
+		border-left: 4px solid var(--gold); text-align: left;
+		font-size: 1.2rem; line-height: 1.5;
 	}
-	.scroll-indicator { margin-top: 2rem; font-size: 1.1rem; letter-spacing: 0.3rem; color: rgba(255,255,255,0.6); }
-	.arrow { width: 1px; height: 50px; background: rgba(255,255,255,0.3); margin: 1rem auto 0; }
+	.scroll-hint { font-size: 1.1rem; letter-spacing: 0.3rem; color: rgba(255,255,255,0.5); margin-top: 1rem; }
 
-	/* Product layout */
+	/* ── PRODUCT GRID ────────────────────────────────── */
 	.product-layout {
 		display: grid; grid-template-columns: 1fr 1.6fr 1fr;
-		width: 95%; max-width: 1700px; gap: 3rem; align-items: center; padding: 3rem 0;
+		max-width: 1700px; gap: 3rem; align-items: center; padding: 3rem 0;
 	}
 	.main-interaction { display: flex; flex-direction: column; align-items: center; text-align: center; }
-	.product-hero-container { width: 100%; max-width: 500px; margin-bottom: 1.5rem; }
-	.product-pure-img { width: 100%; height: auto; max-height: 48vh; object-fit: contain; filter: drop-shadow(0 20px 80px rgba(0,0,0,0.95)); }
+	.product-pure-img { width: 100%; max-height: 48vh; object-fit: contain; filter: drop-shadow(0 20px 80px rgba(0,0,0,1)); margin-bottom: 1.5rem; }
+	.main-title { font-family: 'Bangers', cursive; font-size: 4rem; margin: 0; text-shadow: 0 4px 20px rgba(0,0,0,1); }
+	.main-price { font-family: 'Bangers', cursive; font-size: 3rem; color: var(--gold); margin: 0.5rem 0; }
 
-	.main-title { font-family: 'Bangers', cursive; font-size: 4rem; margin: 0; text-shadow: 0 4px 20px rgba(0,0,0,0.9); }
-	.main-price { font-family: 'Bangers', cursive; font-size: 3rem; color: var(--gold); margin: 0.5rem 0; text-shadow: 0 0 15px rgba(245,158,11,0.5); }
+	/* ── CONTROLS ────────────────────────────────────── */
+	.buying-tools { display: flex; gap: 1rem; align-items: stretch; margin-top: 1.5rem; position: relative; z-index: 20; }
+	.quantity-box {
+		display: flex; background: rgba(0,0,0,0.7);
+		border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; overflow: hidden;
+	}
+	.qty-dec, .qty-inc {
+		background: none; border: none; color: #fff;
+		padding: 0.8rem 1.4rem; cursor: pointer; font-size: 1.8rem;
+		transition: background 0.2s;
+	}
+	.qty-dec:hover, .qty-inc:hover { background: rgba(255,255,255,0.15); }
+	.qty-count { min-width: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--gold); font-weight: bold; }
 
-	.buying-tools { display: flex; gap: 1rem; align-items: stretch; margin-top: 1.5rem; }
-	.quantity-box { display: flex; background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.25); border-radius: 6px; overflow: hidden; backdrop-filter: blur(10px); }
-	.qty-trigger { background: none; border: none; color: #fff; padding: 0.8rem 1.4rem; cursor: pointer; font-size: 1.8rem; }
-	.qty-trigger:hover { background: rgba(255,255,255,0.1); }
-	.qty-count { min-width: 60px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--gold); font-weight: bold; }
+	.add-btn {
+		background: var(--gold); color: #000; border: none; padding: 0 2.5rem;
+		font-family: inherit; font-size: 1.5rem; font-weight: bold; cursor: pointer;
+		border-radius: 6px; position: relative; overflow: hidden; transition: transform 0.2s;
+	}
+	.add-btn:hover { transform: scale(1.05); }
+	.add-btn .add-ok { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: transform 0.3s; font-size: 1.4rem; }
+	.add-btn.added .add-ok { transform: translateY(0); }
 
-	.premium-btn { background: var(--gold); color: #000; border: none; padding: 0 3rem; font-family: inherit; font-size: 1.6rem; font-weight: bold; cursor: pointer; position: relative; overflow: hidden; border-radius: 6px; transition: transform 0.2s; }
-	.premium-btn:hover { transform: scale(1.05); }
-	.buy-success { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: 0.3s; }
-	.premium-btn.is-success .buy-success { transform: translateY(0); }
+	.ing-open {
+		margin-top: 2rem; background: rgba(255,255,255,0.05);
+		border: 1px solid rgba(255,255,255,0.25); color: #fff;
+		padding: 1rem 2.5rem; cursor: pointer; font-family: inherit;
+		font-size: 1.2rem; border-radius: 50px;
+	}
 
-	/* Side panels */
-	.side-panel { background: rgba(0,0,0,0.75); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); }
-	.bullet-item { font-size: 1.4rem; margin-bottom: 1.8rem; line-height: 1.2; color: #fff; }
+	/* ── SIDE PANELS ─────────────────────────────────── */
+	.side-panel { background: rgba(0,0,0,0.78); backdrop-filter: blur(25px); padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+	.bullet-item { font-size: 1.4rem; margin-bottom: 1.5rem; line-height: 1.2; color: #fff; }
 	.bullet-item::before { content: '• '; color: var(--gold); }
-	.ing-title { color: var(--gold); margin-top: 0; font-size: 2.5rem; font-family: 'Bangers'; letter-spacing: 2px; }
+	.ing-title { color: var(--gold); font-family: 'Bangers'; font-size: 2.5rem; margin-top: 0; letter-spacing: 2px; }
 	.ing-text { font-size: 1.2rem; line-height: 1.4; color: #ddd; }
-	.ing-extra { font-size: 1.2rem; color: #aaa; margin-top: 0.5rem; }
+	.ing-extra { font-size: 1.2rem; color: #aaa; margin-top: 0.3rem; }
 
-	/* Header */
-	.sticky-header { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; transition: opacity 0.5s; }
+	/* ── HEADER ──────────────────────────────────────── */
+	.sticky-header {
+		position: fixed; top: 0; left: 0; right: 0;
+		z-index: 1000; padding: 1.5rem 2rem;
+		display: flex; justify-content: space-between; align-items: center;
+	}
 	.sticky-logo { width: 85px; mix-blend-mode: exclusion; }
-	.top-nav { display: flex; gap: 1rem; }
-	.nav-link { color: #fff; text-decoration: none; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.3); padding: 0.6rem 1.2rem; border-radius: 50px; backdrop-filter: blur(10px); background: rgba(0,0,0,0.3); transition: 0.3s; }
+	.nav-link {
+		color: #fff; text-decoration: none; font-size: 1.1rem;
+		border: 1px solid rgba(255,255,255,0.3); padding: 0.6rem 1.2rem;
+		border-radius: 50px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+		transition: 0.3s;
+	}
 	.nav-link:hover { background: var(--gold); border-color: var(--gold); color: #000; }
 
-	/* Cart */
+	/* ── CART PILL ───────────────────────────────────── */
 	.cart-anchor { position: fixed; bottom: 2rem; right: 2rem; z-index: 2000; }
-	.cart-pill { background: var(--gold); color: #000; border: none; padding: 1.2rem 2.5rem; border-radius: 50px; font-family: inherit; font-size: 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: 0.3s; }
-	.cart-pill:hover { transform: translateY(-4px); }
+	.cart-pill {
+		background: var(--gold); color: #000; border: none; padding: 1.2rem 2.5rem;
+		border-radius: 50px; font-family: inherit; font-size: 1.5rem; font-weight: bold;
+		cursor: pointer; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: 0.2s;
+	}
+	.cart-pill:hover { transform: translateY(-3px); }
+
+	/* ── CART DRAWER ─────────────────────────────────── */
 	.cart-shield { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; opacity: 0; pointer-events: none; transition: 0.4s; }
 	.cart-shield.visible { opacity: 1; pointer-events: auto; }
-	.cart-panel { position: fixed; top: 0; right: 0; width: clamp(340px, 90vw, 480px); height: 100vh; background: #0d0d0d; z-index: 3100; transform: translateX(100%); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); display: flex; flex-direction: column; border-left: 1px solid #333; }
+	.cart-panel {
+		position: fixed; top: 0; right: 0; width: clamp(340px, 90vw, 480px); height: 100vh;
+		background: #0d0d0d; z-index: 3100; transform: translateX(100%);
+		transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+		display: flex; flex-direction: column; border-left: 1px solid #333;
+	}
 	.cart-panel.visible { transform: translateX(0); }
-	.cart-top { padding: 2.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-	.cart-top h3 { color: var(--gold); font-size: 2.5rem; font-family: 'Bangers'; margin: 0; }
+	.cart-top { padding: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+	.cart-top h3 { color: var(--gold); font-family: 'Bangers'; font-size: 2.5rem; margin: 0; }
 	.cart-body { flex: 1; overflow-y: auto; padding: 2rem; }
-	.cart-entry { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
-	.entry-row { display: flex; justify-content: space-between; font-size: 1.5rem; margin-bottom: 1rem; }
-	.entry-tweak { display: flex; align-items: center; gap: 1rem; }
-	.tweak-btn { background: #222; border: 1px solid #444; color: #fff; width: 38px; height: 38px; cursor: pointer; font-size: 1.3rem; border-radius: 4px; }
-	.tweak-val { color: var(--gold); font-size: 1.4rem; font-weight: bold; }
+	.cart-empty { color: #555; font-size: 1.3rem; text-align: center; margin-top: 3rem; }
+	.cart-row { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
+	.cart-row-top { display: flex; justify-content: space-between; font-size: 1.5rem; margin-bottom: 1rem; }
+	.cart-row-btns { display: flex; align-items: center; gap: 1rem; }
+	.cv-btn { background: #222; border: 1px solid #444; color: #fff; width: 38px; height: 38px; cursor: pointer; font-size: 1.3rem; border-radius: 4px; }
+	.cv-val { color: var(--gold); font-size: 1.4rem; font-weight: bold; }
 	.cart-bottom { padding: 2rem; border-top: 1px solid #333; background: #000; }
-	.cart-math { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 3rem; margin-bottom: 2rem; }
+	.cart-math { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 3rem; margin-bottom: 1.5rem; }
 	.checkout-btn { width: 100%; background: #22c55e; color: #fff; border: none; padding: 1.8rem; font-family: inherit; font-size: 1.6rem; font-weight: bold; cursor: pointer; border-radius: 8px; }
 	.checkout-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-	/* Mobile modal */
-	.mobile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 2rem; opacity: 0; pointer-events: none; transition: 0.3s; }
+	/* ── MOBILE MODAL ────────────────────────────────── */
+	.mobile-modal {
+		position: fixed; inset: 0; background: rgba(0,0,0,0.96);
+		z-index: 10000; display: flex; align-items: center; justify-content: center;
+		padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+	}
 	.mobile-modal.open { opacity: 1; pointer-events: auto; }
-	.modal-content { background: #111; padding: 2.5rem; border-radius: 12px; width: 100%; max-width: 550px; position: relative; border: 1px solid #333; max-height: 85vh; overflow-y: auto; }
-	.modal-close { position: absolute; top: 1rem; right: 1.5rem; font-size: 4rem; background: none; border: none; color: #fff; cursor: pointer; line-height: 0.5; }
-	.modal-trigger { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 1.2rem 2.5rem; margin-top: 2rem; font-family: inherit; cursor: pointer; border-radius: 50px; }
+	.modal-box {
+		background: #111; padding: 2.5rem; border-radius: 12px;
+		width: 100%; max-width: 550px; position: relative;
+		border: 1px solid #333; max-height: 85vh; overflow-y: auto;
+	}
+	.modal-x { position: absolute; top: 1rem; right: 1.5rem; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer; }
 
-	/* Responsive */
+	/* ── RESPONSIVE ──────────────────────────────────── */
 	@media (max-width: 1024px) {
-		.product-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; padding: 8rem 1.5rem; gap: 3rem; }
+		.product-layout {
+			grid-template-columns: 1fr;
+			display: flex; flex-direction: column;
+			padding: 8rem 1.5rem; gap: 2rem;
+		}
 		.desktop-only { display: none; }
 		.main-title { font-size: 3rem; }
 		.product-pure-img { max-height: 38vh; }
 		.buying-tools { flex-direction: column; width: 100%; max-width: 400px; }
 		.quantity-box { justify-content: center; }
-		.premium-btn { padding: 1.5rem; width: 100%; }
+		.add-btn { padding: 1.5rem; width: 100%; }
 	}
 	@media (min-width: 1025px) { .mobile-only { display: none; } }
 </style>
