@@ -25,21 +25,7 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		<section class="panel panel-logo">
 			<div class="logo-wrapper">
 				<div class="official-logo-container">
-					<div class="rebel-header">
-						<span class="rebel-brand">REBEL</span>
-					</div>
-					<div class="skull-container" id="skull-svg-container">
-						<svg viewBox="0 0 200 200" class="bull-skull-svg" id="bull-skull">
-							<path fill="currentColor" d="M100 40c-15 0-30 5-30 15s10 20 10 20l5 15s-15 5-15 15c0 10 15 15 15 15l5 25 10 15 10-15 5-25s15-5 15-15c0-10-15-15-15-15l5-15s10-10 10-20-15-15-30-15zm-25 10c10 0 20 5 20 10s-5 10-10 10-15-5-15-10 5-10 5-10zm50 0c0 0-5 5-5 10s5 10 15 10 10-5 10-10-10-10-20-10z" />
-							<path fill="currentColor" d="M100 160l-15-20-5-30c-10-5-15-15-15-25 0-15 15-20 15-20l10-25c0-10-15-15-30-15s-30 5-30 20c0 10 10 15 15 15l10 20s-15 5-15 15c0 15 15 20 15 20l5 20 20 25zm0 0l15-20 5-30c10-5 15-15 15-25 0-15-15-20-15-20l-10-25c0-10 15-15 30-15s30 5 30 20c0 10-10 15-15 15l-10 20s15 5 15 15c0 15-15 20-15 20l-5 20-20 25z" />
-						</svg>
-					</div>
-					<div class="tallow-soap-footer">
-						<div class="line"></div>
-						<div class="footer-text">TALLOW SOAP</div>
-						<div class="line"></div>
-					</div>
-					<div class="disruption-text">Handcrafted Disruption</div>
+					<img src="/logo.png" alt="REBEL Tallow Soap" class="main-logo-img" />
 				</div>
 				<div class="logo-footer accent-text" id="biome-label">
 					CHARCOAL AND TURMERIC
@@ -108,12 +94,11 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 	const biomeLabel = document.getElementById('biome-label');
 	const imgLeft = document.getElementById('img-left');
 	const imgRight = document.getElementById('img-right');
-	const bullSkull = document.getElementById('bull-skull');
 
 	// Cart & Qty Logic
 	let currentBiomeId = biomes[0].id;
 	let currentQty = 1;
-	let cart = {}; // { biomeId: { name: string, qty: number } }
+	let cart = {}; 
 
 	const qtyDisplay = document.getElementById('qty-count');
 	const qtyMinus = document.getElementById('qty-minus');
@@ -138,10 +123,22 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		cartItems.innerHTML = items.map(([id, item]) => `
 			<div class="cart-item">
 				<span>${item.qty} x ${item.name}</span>
-				<button class="remove-btn" onclick="document.dispatchEvent(new CustomEvent('remove-from-cart', { detail: '${id}' }))">×</button>
+				<div class="item-actions">
+					<button class="remove-btn" data-id="${id}">×</button>
+				</div>
 			</div>
 		`).join('');
+		
 		whatsappOrder.disabled = false;
+
+		// Re-attach remove listeners
+		document.querySelectorAll('.remove-btn').forEach(btn => {
+			btn.addEventListener('click', () => {
+				const id = btn.getAttribute('data-id');
+				delete cart[id];
+				updateCartUI();
+			});
+		});
 	}
 
 	qtyMinus.addEventListener('click', () => updateQty(-1));
@@ -170,11 +167,6 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		window.open(url, '_blank');
 	});
 
-	document.addEventListener('remove-from-cart', (e) => {
-		delete cart[e.detail];
-		updateCartUI();
-	});
-
 	function switchBiome(id) {
 		currentBiomeId = id;
 		const data = biomes.find(b => b.id === id);
@@ -197,8 +189,6 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 			imgLeft.style.backgroundImage = `url(${data.images.left})`;
 			imgRight.style.backgroundImage = `url(${data.images.right})`;
 			
-			bullSkull.style.color = data.accent;
-
 			document.querySelectorAll('.panel .content, .ingredient-block, .logo-wrapper').forEach(el => {
 				el.style.transition = 'all 0.8s ease-out';
 				el.style.opacity = '1';
@@ -263,86 +253,33 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 	}
 
 	.official-logo-container {
-		width: 400px;
-		height: 400px;
-		background: #f1ebd8;
-		border-radius: 50%;
+		width: 450px;
+		height: 450px;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		position: relative;
-		box-shadow: inset 0 0 100px rgba(0,0,0,0.1), 0 20px 50px rgba(0,0,0,0.5);
 		margin-bottom: 1.5rem;
-		color: #1a1a1a;
-		border: 8px solid rgba(0,0,0,0.05);
-		mask-image: radial-gradient(circle, white 90%, transparent 100%);
+		border-radius: 50%;
+		overflow: hidden;
+		box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 	}
 
-	.rebel-brand {
-		font-family: 'Staatliches', cursive;
-		font-size: 5.5rem;
-		color: #ef4444;
-		letter-spacing: -0.02em;
-		line-height: 1;
-		margin-bottom: -1rem;
-	}
-
-	.skull-container {
-		width: 220px;
-		height: 220px;
-		margin: -1rem 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.bull-skull-svg {
+	.main-logo-img {
 		width: 100%;
 		height: 100%;
-		filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
-		transition: color 1s ease;
-	}
-
-	.tallow-soap-footer {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		width: 80%;
-		margin-top: -1rem;
-	}
-
-	.tallow-soap-footer .line {
-		height: 2px;
-		flex-grow: 1;
-		background: #1a1a1a;
-	}
-
-	.footer-text {
-		font-family: 'Staatliches', cursive;
-		font-size: 2rem;
-		letter-spacing: 0.1em;
-	}
-
-	.disruption-text {
-		position: absolute;
-		bottom: 20px;
-		right: 35px;
-		font-family: 'Inter', sans-serif;
-		font-size: 0.7rem;
-		text-transform: uppercase;
-		letter-spacing: 0.2em;
-		color: rgba(0,0,0,0.4);
-		transform: rotate(-15deg);
+		object-fit: cover;
 	}
 
 	.logo-footer {
 		font-family: 'Bangers', cursive;
-		font-size: 2.2rem;
+		font-size: 2.5rem;
 		letter-spacing: 0.05em;
 		text-shadow: 2px 2px 0px rgba(0,0,0,1);
-		margin-bottom: 1.5rem;
+		margin-bottom: 2rem;
 	}
+
+	.accent-text { color: var(--accent); }
 
 	/* Quote UI */
 	.quote-generator {
@@ -393,12 +330,6 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
 	}
 
-	.order-btn:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
-	}
-
-	/* Cart Sidebar/Summary */
 	.cart-summary {
 		position: fixed;
 		top: 2rem;
@@ -420,13 +351,6 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		border-bottom: 1px solid rgba(255,255,255,0.1);
 		padding-bottom: 0.5rem;
 		margin-bottom: 1rem;
-		letter-spacing: 0.05em;
-	}
-
-	.cart-items {
-		max-height: 200px;
-		overflow-y: auto;
-		margin-bottom: 1.5rem;
 	}
 
 	.cart-item {
@@ -436,24 +360,6 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		font-family: 'Staatliches', cursive;
 		font-size: 1.1rem;
 		padding: 0.4rem 0;
-		border-bottom: 1px solid rgba(255,255,255,0.05);
-	}
-
-	.remove-btn {
-		background: none;
-		border: none;
-		color: rgba(255,255,255,0.4);
-		font-size: 1.2rem;
-		cursor: pointer;
-	}
-
-	.remove-btn:hover { color: #ef4444; }
-
-	.empty-msg {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.9rem;
-		color: rgba(255,255,255,0.4);
-		text-align: center;
 	}
 
 	.whatsapp-btn {
@@ -465,24 +371,13 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		border-radius: 4px;
 		font-family: 'Staatliches', cursive;
 		font-size: 1.2rem;
-		letter-spacing: 0.05em;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		transition: all 0.3s ease;
 	}
 
-	.whatsapp-btn:disabled {
-		background: #2a2a2a;
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.whatsapp-btn:not(:disabled):hover {
-		background: #128c7e;
-		transform: scale(1.02);
-	}
+	.whatsapp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 	/* Biome Selector */
 	.biome-selector {
@@ -506,7 +401,7 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 		border-radius: 50%;
 		border: 3px solid transparent;
 		background: var(--btn-color);
-		transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		transition: all 0.4s ease;
 	}
 
 	.biome-btn.active {
@@ -530,10 +425,8 @@ const pageTitle = "REBEL | Handcrafted Tallow Soap";
 
 	@media (max-width: 1024px) {
 		.rebel-layout { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
-		.panel { min-height: 450px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+		.panel { min-height: 450px; border-right: none; }
 		.official-logo-container { width: 320px; height: 320px; }
-		.rebel-brand { font-size: 4rem; }
-		.footer-text { font-size: 1.5rem; }
-		.cart-summary { position: relative; top: 0; right: 0; width: 100%; box-shadow: none; border-radius: 0; background: #000; }
+		.cart-summary { position: relative; top: 0; right: 0; width: 100%; }
 	}
 </style>
