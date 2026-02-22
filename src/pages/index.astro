@@ -4,6 +4,9 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="REBEL | Handcrafted Tallow Soap">
 	<main class="scroll-container">
+		<header class="sticky-header">
+			<img src="/logo.png" alt="REBEL Logo" class="sticky-logo" />
+		</header>
 		<!-- Section 1: REBEL Hero / Charcoal & Turmeric -->
 		<section class="page-section charcoal-biome" id="charcoal">
 			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=1920');"></div>
@@ -435,6 +438,20 @@ import Layout from '../layouts/Layout.astro';
 		transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	}
 	.nav-dot.active { background: var(--accent); transform: scale(1.6); box-shadow: 0 0 15px var(--accent); }
+
+	.sticky-header {
+		position: fixed;
+		top: 2rem;
+		left: 2rem;
+		z-index: 1000;
+		mix-blend-mode: difference;
+	}
+
+	.sticky-logo {
+		width: 80px;
+		height: auto;
+		filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+	}
 
 	@media (max-width: 1200px) {
 		.split-layout { grid-template-columns: 1fr 1.2fr; gap: 1rem; }
