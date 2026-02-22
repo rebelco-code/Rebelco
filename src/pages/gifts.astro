@@ -1,0 +1,284 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="REBEL | Laser Engraved Gifts">
+	<main class="scroll-container">
+		<!-- Header / Logo -->
+		<header class="sticky-header" id="main-header">
+            <a href="/">
+			    <img src="/logo.png" alt="REBEL Logo" class="sticky-logo" />
+            </a>
+            <nav class="top-nav">
+                <a href="/soap" class="nav-link">TALLOW SOAP</a>
+            </nav>
+		</header>
+
+		<!-- Gifts Showcase -->
+		<section class="page-section shop-header">
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="landing-content">
+				<h1 class="landing-tagline">THE LASER WORKSHOP</h1>
+				<p class="sub-text">PREMIUM. PERSONAL. DISRUPTIVE.</p>
+                <div class="about-rebel-box">
+                    <p>REBEL Laser Studio brings industrial precision to natural wood. Each piece is handcrafted and engraved with perfection in mind.</p>
+                </div>
+			</div>
+		</section>
+
+		<!-- Gift Products -->
+		{[
+			{
+				id: 'coaster',
+				name: 'Custom Wood Coaster',
+				price: 150,
+				img: 'https://images.unsplash.com/photo-1610433562725-3373735f448e?auto=format&fit=crop&q=80&w=800',
+				desc: 'Crafted from premium local wood, laser engraved with your custom legacy branding.'
+			},
+			{
+				id: 'sign',
+				name: 'Laser Wall Sign',
+				price: 450,
+				img: 'https://images.unsplash.com/photo-1542385150-efd9000782aa?auto=format&fit=crop&q=80&w=800',
+				desc: 'Make your statement bold. Industrial grade engraving on polished timber.'
+			},
+			{
+				id: 'tag',
+				name: 'Branded Key Tags',
+				price: 80,
+				img: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=800',
+				desc: 'Small tokens of disruption. Durable, high-detail engraving for daily use.'
+			}
+		].map((g) => (
+			<section class="page-section gift-biome">
+				<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1461988320302-91bde64fc8e4?auto=format&fit=crop&q=80&w=1920');"></div>
+				<div class="gift-layout">
+					<div class="main-interaction">
+						<div class="product-hero-container">
+							<img src={g.img} alt={g.name} class="product-pure-img" />
+						</div>
+						<h2 class="main-title">{g.name}</h2>
+						<p class="main-price">R{g.price}</p>
+						<p class="gift-desc">{g.desc}</p>
+						
+						<div class="buying-tools">
+							<div class="quantity-box">
+								<button class="qty-trigger dec" data-pid={g.id}>-</button>
+								<span class="qty-count" id={`qty-val-${g.id}`}>1</span>
+								<button class="qty-trigger inc" data-pid={g.id}>+</button>
+							</div>
+							<button class="buy-trigger premium-btn" data-name={g.name} data-id={g.id} data-price={g.price}>
+								ADD TO ORDER
+								<div class="buy-success">ADDED!</div>
+							</button>
+						</div>
+					</div>
+				</div>
+			</section>
+		))}
+
+		<!-- Cart Overlay & UI -->
+		<div class="cart-anchor">
+			<button id="cart-open" class="cart-pill">
+				<span id="cart-tally">0</span> ITEMS
+			</button>
+		</div>
+
+		<div class="cart-shield" id="cart-shield"></div>
+		<div class="cart-panel" id="cart-panel">
+			<div class="cart-top">
+				<h3>YOUR ORDER</h3>
+				<button id="cart-exit">CLOSE</button>
+			</div>
+			<div id="cart-scroll-area" class="cart-body">
+				<p class="cart-empty">YOUR CRATE IS EMPTY</p>
+			</div>
+			<div class="cart-bottom">
+				<div class="cart-math">
+					<span>TOTAL:</span>
+					<span id="cart-total-cash">R0</span>
+				</div>
+				<button id="wa-checkout" class="checkout-btn" disabled>
+					ORDER ON WHATSAPP
+				</button>
+			</div>
+		</div>
+	</main>
+</Layout>
+
+<script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/dist/lenis.min.js" is:inline></script>
+
+<script>
+	let orderData = {};
+	const localQtys = { coaster: 1, sign: 1, tag: 1 };
+
+	const cartPanel = document.getElementById('cart-panel');
+	const cartShield = document.getElementById('cart-shield');
+	const cartScroll = document.getElementById('cart-scroll-area');
+	const cartTally = document.getElementById('cart-tally');
+	const cartCash = document.getElementById('cart-total-cash');
+	const waBtn = document.getElementById('wa-checkout');
+
+	// @ts-ignore
+	const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
+	function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+	requestAnimationFrame(raf);
+
+	function refreshCart() {
+		const items = Object.entries(orderData);
+		let finalCount = 0;
+		let finalTotal = 0;
+		if (items.length === 0) {
+			if (cartScroll) cartScroll.innerHTML = '<p class="cart-empty">YOUR CRATE IS EMPTY</p>';
+			if (cartTally) cartTally.textContent = '0';
+			if (cartCash) cartCash.textContent = 'R0';
+			if (waBtn) (waBtn as HTMLButtonElement).disabled = true;
+			return;
+		}
+		if (cartScroll) cartScroll.innerHTML = items.map(([name, data]: [string, any]) => {
+			finalCount += data.qty;
+			finalTotal += data.qty * data.price;
+			return `
+				<div class="cart-entry">
+					<div class="entry-row">
+						<span class="entry-name">${name}</span>
+						<span class="entry-price">R${data.qty * data.price}</span>
+					</div>
+					<div class="entry-tweak">
+						<button class="tweak-btn minus" data-item="${name}">-</button>
+						<span class="tweak-val">${data.qty}</span>
+						<button class="tweak-btn plus" data-item="${name}">+</button>
+					</div>
+				</div>
+			`;
+		}).join('');
+		if (cartTally) cartTally.textContent = finalCount.toString();
+		if (cartCash) cartCash.textContent = `R${finalTotal}`;
+		if (waBtn) (waBtn as HTMLButtonElement).disabled = false;
+		document.querySelectorAll('.tweak-btn').forEach(b => {
+			b.onclick = (e) => {
+				const item = (e.currentTarget as HTMLElement).dataset.item;
+				if (!item) return;
+				if ((e.currentTarget as HTMLElement).classList.contains('plus')) orderData[item].qty++;
+				else {
+					orderData[item].qty--;
+					if (orderData[item].qty <= 0) delete orderData[item];
+				}
+				refreshCart();
+			};
+		});
+	}
+
+    document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('qty-trigger')) {
+            const pid = target.dataset.pid;
+            if (!pid) return;
+            if (target.classList.contains('inc')) localQtys[pid]++;
+            else if (localQtys[pid] > 1) localQtys[pid]--;
+            const valEl = document.getElementById(`qty-val-${pid}`);
+            if (valEl) valEl.textContent = localQtys[pid];
+        }
+        if (target.closest('.buy-trigger')) {
+            const btn = target.closest('.buy-trigger') as HTMLElement;
+            const name = btn.dataset.name;
+            const pid = btn.dataset.id;
+            const price = parseInt(btn.dataset.price || '0');
+            if (name && pid) {
+                const addAmount = localQtys[pid];
+                if (!orderData[name]) orderData[name] = { qty: 0, price: price };
+                orderData[name].qty += addAmount;
+                btn.classList.add('is-success');
+                setTimeout(() => btn.classList.remove('is-success'), 2000);
+                refreshCart();
+            }
+        }
+        if (target.id === 'cart-open' || target.closest('#cart-open')) {
+            cartPanel?.classList.add('visible');
+            cartShield?.classList.add('visible');
+        }
+        if (target.id === 'cart-exit' || target.id === 'cart-shield') {
+            cartPanel?.classList.remove('visible');
+            cartShield?.classList.remove('visible');
+        }
+        if (target.id === 'wa-checkout') {
+            const num = "27636936204";
+            let total = 0;
+            let msg = "Hi RebelCo! I'm interested in the Laser Workshop. My order:\n\n";
+            Object.entries(orderData).forEach(([n, d]: [string, any]) => {
+                msg += `• ${d.qty} x ${n} (R${d.qty * d.price})\n`;
+                total += d.qty * d.price;
+            });
+            msg += `\nTOTAL: R${total}\n\nNo Excuses.`;
+            window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+    });
+
+	lenis.on('scroll', (e) => {
+		document.querySelectorAll('.nature-bg').forEach((bg) => {
+			(bg as HTMLElement).style.transform = `translateY(${e.scroll * 0.04}px)`;
+		});
+	});
+</script>
+
+<style>
+	:root {
+		--gold: #f59e0b;
+		--dark: #000;
+		--panel: rgba(0,0,0,0.85);
+	}
+	* { box-sizing: border-box; }
+	html, body { 
+		margin: 0; padding: 0; background: var(--dark); color: #fff;
+		font-family: 'Staatliches', cursive; overflow-x: hidden;
+	}
+	.page-section { min-height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+	.nature-bg { position: absolute; inset: -15%; background-size: cover; background-position: center; filter: brightness(0.25); z-index: -1; pointer-events: none; }
+	
+    .landing-content { z-index: 10; text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+	.landing-tagline { font-family: 'Bangers', cursive; font-size: clamp(2.5rem, 8vw, 6rem); margin: 0; color: var(--gold); }
+    .sub-text { font-size: 2rem; letter-spacing: 0.5rem; margin-top: 1rem; color: #fff; }
+
+    .about-rebel-box {
+		max-width: 650px; padding: 2rem; margin: 2rem auto;
+		background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+		border-left: 4px solid var(--gold); text-align: left;
+		line-height: 1.4; font-size: 1.2rem;
+	}
+
+    .gift-layout { width: 95%; max-width: 800px; z-index: 20; padding: 4rem 0; }
+	.main-interaction { display: flex; flex-direction: column; align-items: center; text-align: center; }
+	.product-hero-container { width: 100%; max-width: 600px; margin-bottom: 2rem; }
+	.product-pure-img { width: 100%; height: auto; max-height: 50vh; object-fit: cover; border-radius: 8px; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.9)); }
+	.main-title { font-family: 'Bangers', cursive; font-size: 3.5rem; margin: 0; }
+	.main-price { font-family: 'Bangers', cursive; font-size: 2.8rem; color: var(--gold); margin: 0.5rem 0; }
+    .gift-desc { font-size: 1.3rem; margin-bottom: 2rem; color: #ccc; max-width: 500px; }
+
+	.buying-tools { display: flex; gap: 1rem; align-items: stretch; margin-top: 1rem; }
+	.quantity-box { display: flex; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+	.qty-trigger { background: none; border: none; color: #fff; padding: 0.8rem 1.2rem; cursor: pointer; font-size: 1.5rem; }
+	.qty-count { min-width: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--gold); }
+	.premium-btn { background: var(--gold); color: #000; border: none; padding: 1rem 2.5rem; font-family: inherit; font-size: 1.4rem; font-weight: bold; cursor: pointer; position: relative; overflow: hidden; }
+	.buy-success { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: 0.3s; }
+	.premium-btn.is-success .buy-success { transform: translateY(0); }
+
+	.sticky-header { position: fixed; top: 2rem; left: 2rem; right: 2rem; z-index: 100; display: flex; justify-content: space-between; align-items: center; mix-blend-mode: exclusion; }
+	.sticky-logo { width: 80px; }
+    .top-nav { display: flex; gap: 2rem; }
+    .nav-link { color: #fff; text-decoration: none; font-size: 1.2rem; border: 1px solid rgba(255,255,255,0.3); padding: 0.5rem 1rem; border-radius: 4px; transition: 0.3s; }
+    .nav-link:hover { background: #fff; color: #000; }
+
+	.cart-anchor { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+	.cart-pill { background: var(--gold); color: #000; border: none; padding: 1rem 2rem; border-radius: 50px; font-family: inherit; font-size: 1.4rem; font-weight: bold; cursor: pointer; }
+	.cart-shield { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s; }
+	.cart-panel { position: fixed; top: 0; right: 0; width: clamp(320px, 90%, 450px); height: 100vh; background: #0a0a0a; z-index: 2100; transform: translateX(100%); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); display: flex; flex-direction: column; }
+	.cart-panel.visible { transform: translateX(0); }
+	.cart-top { padding: 2rem; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
+	.cart-body { flex: 1; overflow-y: auto; padding: 2rem; }
+	.cart-entry { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
+	.entry-row { display: flex; justify-content: space-between; font-size: 1.4rem; margin-bottom: 1rem; }
+	.cart-bottom { padding: 2rem; border-top: 1px solid #222; background: #000; }
+	.cart-math { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 2.5rem; margin-bottom: 1.5rem; }
+	.checkout-btn { width: 100%; background: #25d366; color: #fff; border: none; padding: 1.5rem; font-family: inherit; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
+	@media (max-width: 1024px) { .gift-layout { padding: 6rem 1rem; } }
+</style>
