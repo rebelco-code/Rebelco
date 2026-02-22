@@ -4,15 +4,15 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="REBEL | Handcrafted Tallow Soap">
 	<main class="scroll-container">
-		<!-- Header / Logo -->
+		<!-- Header / Logo (Sticky) -->
 		<header class="sticky-header" id="main-header">
 			<img src="/logo.png" alt="REBEL Logo" class="sticky-logo" />
 		</header>
 		
-		<!-- Section 0: Landing Page -->
+		<!-- Landing Section -->
 		<section class="page-section landing-page" id="home">
 			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1920');"></div>
-			<div class="center-panel landing-content">
+			<div class="landing-content">
 				<img src="/logo.png" alt="REBEL Tallow Soap" class="hero-logo" />
 				<h1 class="landing-tagline">HANDCRAFTED DISRUPTION</h1>
 				<div class="about-rebel-box">
@@ -27,7 +27,7 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</section>
 
-		<!-- Product Biome Sections -->
+		<!-- Product Sections -->
 		{[
 			{
 				id: 'charcoal',
@@ -41,10 +41,7 @@ import Layout from '../layouts/Layout.astro';
 					'ANTIOXIDANTS BRIGHTEN SKIN OVER TIME.'
 				],
 				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC',
-				extra: [
-					'• DETOXIFIES PORES WITHOUT STRIPPING OILS.',
-					'• PROMOTES A RADIANT, EVEN SKIN TONE.'
-				]
+				extra: ['• DETOXIFIES PORES WITHOUT STRIPPING OILS.', '• PROMOTES A RADIANT, EVEN SKIN TONE.']
 			},
 			{
 				id: 'rooibos',
@@ -58,10 +55,7 @@ import Layout from '../layouts/Layout.astro';
 					'NATURALLY HYDRATING BARRIER PROTECTION.'
 				],
 				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, ROOIBOS, TEA TREE',
-				extra: [
-					'• CAFFEINE IN TEA TREE REDUCES PUFFINESS.',
-					'• ANTISEPTIC PROPERTIES TO PREVENT BREAKOUTS.'
-				]
+				extra: ['• CAFFEINE IN TEA TREE REDUCES PUFFINESS.', '• ANTISEPTIC PROPERTIES TO PREVENT BREAKOUTS.']
 			},
 			{
 				id: 'cocoa',
@@ -75,10 +69,7 @@ import Layout from '../layouts/Layout.astro';
 					'IMPROVES ELASTICITY AND MICRO-CIRCULATION.'
 				],
 				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT',
-				extra: [
-					'• INTENSE HYDRATION FOR DRY SKIN.',
-					'• PROMOTES A YOUTHFUL, FIRM APPEARANCE.'
-				]
+				extra: ['• INTENSE HYDRATION FOR DRY SKIN.', '• PROMOTES A YOUTHFUL, FIRM APPEARANCE.']
 			},
 			{
 				id: 'rainforest',
@@ -92,439 +83,384 @@ import Layout from '../layouts/Layout.astro';
 					'NATURAL CLEANSING WITHOUT STRIPPING OILS.'
 				],
 				ingredients: 'NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS',
-				extra: [
-					'• SOOTHES SENSITIVE SKIN WITH EXTRACTS.',
-					'• RESTORES NATURAL VITALITY AND BALANCE.'
-				]
+				extra: ['• SOOTHES SENSITIVE SKIN WITH EXTRACTS.', '• RESTORES NATURAL VITALITY AND BALANCE.']
 			}
 		].map((p) => (
-			<section class={`page-section product-biome ${p.id}-biome`} id={p.id}>
+			<section class="page-section product-biome" id={p.id}>
 				<div class="nature-bg" style={`background-image: url('${p.bg}');`}></div>
-				<div class="split-layout">
-					<div class="text-panel left desktop-only">
-						<div class="content-box">
-							{p.bullets.map(b => (
-								<p class="bullet">{b}</p>
-							))}
+				<div class="product-layout">
+					<!-- PC Only: Left Bullets -->
+					<div class="side-panel left desktop-only">
+						<div class="text-card">
+							{p.bullets.map(b => <p class="bullet-item">{b}</p>)}
 						</div>
 					</div>
 
-					<div class="center-panel interactive-panel">
-						<div class="hero-image-container">
-							<img src={p.hero} alt={`REBEL ${p.name}`} class="hero-img" />
+					<!-- Center: Interaction Area -->
+					<div class="main-interaction">
+						<div class="product-hero-container">
+							<img src={p.hero} alt={p.name} class="product-pure-img" />
 						</div>
-						<div class="product-identity">
-							<h2 class="product-title">{p.name}</h2>
-							<p class="price-tag">R100</p>
-						</div>
-						<div class="order-controls gold-standard">
-							<div class="qty-selector">
-								<button class="qty-btn minus" data-id={p.id}>-</button>
-								<span class="qty-value" id={`qty-${p.id}`}>1</span>
-								<button class="qty-btn plus" data-id={p.id}>+</button>
+						<h2 class="main-title">{p.name}</h2>
+						<p class="main-price">R100</p>
+						
+						<div class="buying-tools">
+							<div class="quantity-box">
+								<button class="qty-trigger dec" data-pid={p.id}>-</button>
+								<span class="qty-count" id={`qty-val-${p.id}`}>1</span>
+								<button class="qty-trigger inc" data-pid={p.id}>+</button>
 							</div>
-							<button class="add-btn premium" data-product={p.name} data-id={p.id} data-price="100">
-								<span>ADD TO ORDER</span>
-								<div class="success-check">✓</div>
+							<button class="buy-trigger premium-btn" data-name={p.name} data-id={p.id}>
+								ADD TO ORDER
+								<div class="buy-success">ADDED!</div>
 							</button>
 						</div>
-						<button class="ingredients-toggle" data-id={p.id}>SEE INGREDIENTS</button>
+						
+						<button class="modal-trigger mobile-only" data-target={p.id}>SEE INGREDIENTS</button>
 					</div>
 
-					<div class="text-panel right ingredients-panel" id={`ingredients-${p.id}`}>
-						<button class="close-panel" data-id={p.id}>×</button>
-						<div class="ingredients-box">
-							<h3 class="accent-text">INGREDIENTS</h3>
+					<!-- PC Only: Right Ingredients -->
+					<div class="side-panel right desktop-only">
+						<div class="text-card ingredients-card">
+							<h3>INGREDIENTS</h3>
 							<p>{p.ingredients}</p>
-							<div class="extra-benefits">
-								{p.extra.map(e => (
-									<p>{e}</p>
-								))}
+							<div class="benefits-thin">
+								{p.extra.map(e => <p>{e}</p>)}
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<!-- Mobile Ingredients Modal -->
+				<div class="mobile-modal" id={`modal-${p.id}`}>
+					<div class="modal-content">
+						<button class="modal-close" data-close={p.id}>&times;</button>
+						<h3>INGREDIENTS</h3>
+						<p>{p.ingredients}</p>
+						<hr />
+						{p.bullets.map(b => <p class="bullet-item">{b}</p>)}
+						<hr />
+						{p.extra.map(e => <p>{e}</p>)}
 					</div>
 				</div>
 			</section>
 		))}
 
-		<!-- Gold Standard Cart -->
-		<button id="cart-toggle" class="cart-trigger">
-			<span class="cart-count">0</span>
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
-		</button>
+		<!-- Cart Overlay & UI -->
+		<div class="cart-anchor">
+			<button id="cart-open" class="cart-pill">
+				<span id="cart-tally">0</span> ITEMS
+			</button>
+		</div>
 
-		<div class="cart-overlay" id="cart-overlay"></div>
-		<div class="cart-sidebar" id="cart-sidebar">
-			<div class="cart-header-gold">
-				<h3>YOUR REBEL ORDER</h3>
-				<button id="cart-close">CLOSE</button>
+		<div class="cart-shield" id="cart-shield"></div>
+		<div class="cart-panel" id="cart-panel">
+			<div class="cart-top">
+				<h3>YOUR ORDER</h3>
+				<button id="cart-exit">CLOSE</button>
 			</div>
-			<div id="cart-items-container" class="cart-items-scroll">
-				<p class="empty-msg">YOUR CRATE IS EMPTY</p>
+			<div id="cart-scroll-area" class="cart-body">
+				<p class="cart-empty">YOUR CRATE IS EMPTY</p>
 			</div>
-			<div class="cart-footer">
-				<div class="cart-total">
+			<div class="cart-bottom">
+				<div class="cart-math">
 					<span>TOTAL:</span>
-					<span id="cart-total-value">R0</span>
+					<span id="cart-total-cash">R0</span>
 				</div>
-				<button id="whatsapp-link" class="wa-btn-premium" disabled>
-					DISRUPT THE MARKET (ORDER VIA WHATSAPP)
+				<button id="wa-checkout" class="checkout-btn" disabled>
+					ORDER ON WHATSAPP
 				</button>
 			</div>
 		</div>
-
-		<!-- Nav Navigation (Hidden as per request) -->
-		<nav class="scroll-nav" style="display: none;">
-			<a href="#home" class="nav-dot active" title="Home"></a>
-			<a href="#charcoal" class="nav-dot" title="Charcoal"></a>
-			<a href="#rooibos" class="nav-dot" title="Rooibos"></a>
-			<a href="#cocoa" class="nav-dot" title="Cocoa"></a>
-			<a href="#rainforest" class="nav-dot" title="Rainforest"></a>
-		</nav>
 	</main>
 </Layout>
 
-<!-- Luxury Smooth Scroll Library -->
 <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/dist/lenis.min.js" is:inline></script>
 
 <script>
-	// Initialize Gold Standard Smooth Scroll
-	// @ts-ignore
-	const lenis = new Lenis({
-		duration: 1.5,
-		easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-		orientation: 'vertical',
-		gestureOrientation: 'vertical',
-		smoothWheel: true,
-		wheelMultiplier: 1,
-		touchMultiplier: 1.5,
-		infinite: false,
-	});
+    // Logic setup
+	let orderData = {};
+	const localQtys = { charcoal: 1, rooibos: 1, cocoa: 1, rainforest: 1 };
 
-	function raf(time) {
-		lenis.raf(time);
-		requestAnimationFrame(raf);
-	}
+    // DOM References
+	const cartPanel = document.getElementById('cart-panel');
+	const cartShield = document.getElementById('cart-shield');
+	const cartScroll = document.getElementById('cart-scroll-area');
+	const cartTally = document.getElementById('cart-tally');
+	const cartCash = document.getElementById('cart-total-cash');
+	const waBtn = document.getElementById('wa-checkout');
+
+    // SMOOTH SCROLL (LENIS)
+	// @ts-ignore
+	const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
+	function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
 	requestAnimationFrame(raf);
 
-	// Gentle Scroll Snapping
-	let isScrolling = false;
-	function scrollToNearest() {
-		if (isScrolling) return;
-		const scrollY = window.scrollY;
-		const viewportHeight = window.innerHeight;
-		const nearestIndex = Math.round(scrollY / viewportHeight);
-		const targetY = nearestIndex * viewportHeight;
-		
-		if (Math.abs(scrollY - targetY) > 20) {
-			isScrolling = true;
-			lenis.scrollTo(targetY, {
-				duration: 1.2,
-				onComplete: () => { isScrolling = false; }
-			});
-		}
-	}
-
-	window.addEventListener('wheel', () => {
-		clearTimeout(window['scrollTimeout']);
-		window['scrollTimeout'] = setTimeout(scrollToNearest, 400);
-	}, { passive: true });
-
-	// App Logic
-	let cart = {};
-	const itemQuantities = { charcoal: 1, rooibos: 1, cocoa: 1, rainforest: 1 };
-
-	const cartSidebar = document.getElementById('cart-sidebar');
-	const cartOverlay = document.getElementById('cart-overlay');
-	const cartToggle = document.getElementById('cart-toggle');
-	const cartClose = document.getElementById('cart-close');
-	const cartCount = document.querySelector('.cart-count');
-	const cartList = document.getElementById('cart-items-container');
-	const cartTotal = document.getElementById('cart-total-value');
-	const waBtn = document.getElementById('whatsapp-link');
-	
-	function updateCartUI() {
-		const items = Object.entries(cart);
-		let count = 0;
-		let total = 0;
-
-		if (!cartList) return;
+    // FUNCTIONS
+	function refreshCart() {
+		const items = Object.entries(orderData);
+		let finalCount = 0;
+		let finalTotal = 0;
 
 		if (items.length === 0) {
-			cartList.innerHTML = '<p class="empty-msg">YOUR CRATE IS EMPTY</p>';
-			if (cartCount) cartCount.textContent = '0';
-			if (cartTotal) cartTotal.textContent = 'R0';
+			if (cartScroll) cartScroll.innerHTML = '<p class="cart-empty">YOUR CRATE IS EMPTY</p>';
+			if (cartTally) cartTally.textContent = '0';
+			if (cartCash) cartCash.textContent = 'R0';
 			if (waBtn) (waBtn as HTMLButtonElement).disabled = true;
 			return;
 		}
 
-		cartList.innerHTML = items.map(([name, item]: [string, any]) => {
-			count += item.qty;
-			total += item.qty * 100;
+		if (cartScroll) cartScroll.innerHTML = items.map(([name, data]: [string, any]) => {
+			finalCount += data.qty;
+			finalTotal += data.qty * 100;
 			return `
-				<div class="cart-item-gold">
-					<div class="item-info">
-						<span class="item-name">${name}</span>
-						<span class="item-price">R${item.qty * 100}</span>
+				<div class="cart-entry">
+					<div class="entry-row">
+						<span class="entry-name">${name}</span>
+						<span class="entry-price">R${data.qty * 100}</span>
 					</div>
-					<div class="item-controls">
-						<button class="cart-qty-btn" data-product="${name}" data-action="dec">-</button>
-						<span class="cart-qty-val">${item.qty}</span>
-						<button class="cart-qty-btn" data-product="${name}" data-action="inc">+</button>
+					<div class="entry-tweak">
+						<button class="tweak-btn minus" data-item="${name}">-</button>
+						<span class="tweak-val">${data.qty}</span>
+						<button class="tweak-btn plus" data-item="${name}">+</button>
 					</div>
 				</div>
 			`;
 		}).join('');
 
-		if (cartCount) cartCount.textContent = count.toString();
-		if (cartTotal) cartTotal.textContent = `R${total}`;
+		if (cartTally) cartTally.textContent = finalCount.toString();
+		if (cartCash) cartCash.textContent = `R${finalTotal}`;
 		if (waBtn) (waBtn as HTMLButtonElement).disabled = false;
 
-		document.querySelectorAll('.cart-qty-btn').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const product = (e.currentTarget as HTMLElement).dataset.product;
-				const action = (e.currentTarget as HTMLElement).dataset.action;
-				if (product) {
-					if (action === 'inc') cart[product].qty++;
-					else {
-						cart[product].qty--;
-						if (cart[product].qty <= 0) delete cart[product];
-					}
-					updateCartUI();
+		// Bind inner cart buttons
+		document.querySelectorAll('.tweak-btn').forEach(b => {
+			b.onclick = (e) => {
+				const item = (e.currentTarget as HTMLElement).dataset.item;
+				if (!item) return;
+				if ((e.currentTarget as HTMLElement).classList.contains('plus')) orderData[item].qty++;
+				else {
+					orderData[item].qty--;
+					if (orderData[item].qty <= 0) delete orderData[item];
 				}
-			});
+				refreshCart();
+			};
 		});
 	}
 
-	// Quantity Control
-	document.querySelectorAll('.qty-btn').forEach(btn => {
-		btn.addEventListener('click', (e) => {
-			const bid = (e.currentTarget as HTMLElement).dataset.id;
-			const isPlus = (e.currentTarget as HTMLElement).classList.contains('plus');
-			if (bid) {
-				if (isPlus) itemQuantities[bid]++;
-				else if (itemQuantities[bid] > 1) itemQuantities[bid]--;
-				const valEl = document.getElementById(`qty-${bid}`);
-				if (valEl) valEl.textContent = itemQuantities[bid];
-			}
-		});
-	});
+    // MAIN EVENT LISTENER (Event Delegation for performance and stability)
+    document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
 
-	// Add to Order Logic (Fixed for PC)
-	document.querySelectorAll('.add-btn').forEach(btn => {
-		btn.addEventListener('click', (e) => {
-			const target = e.currentTarget as HTMLElement;
-			const product = target.dataset.product;
-			const id = target.dataset.id;
-			if (product && id) {
-				const qtyToAdd = itemQuantities[id];
-				if (!cart[product]) cart[product] = { qty: 0 };
-				cart[product].qty += qtyToAdd;
-				target.classList.add('success');
-				setTimeout(() => target.classList.remove('success'), 2000);
-				updateCartUI();
-			}
-		});
-	});
+        // QTY TRIGGERS
+        if (target.classList.contains('qty-trigger')) {
+            const pid = target.dataset.pid;
+            if (!pid) return;
+            if (target.classList.contains('inc')) localQtys[pid]++;
+            else if (localQtys[pid] > 1) localQtys[pid]--;
+            const valEl = document.getElementById(`qty-val-${pid}`);
+            if (valEl) valEl.textContent = localQtys[pid];
+        }
 
-	// Ingredients Toggle
-	function togglePanel(id, show) {
-		const panel = document.getElementById(`ingredients-${id}`);
-		if (panel) {
-			if (show) panel.classList.add('active');
-			else panel.classList.remove('active');
-		}
-	}
+        // BUY TRIGGER
+        if (target.closest('.buy-trigger')) {
+            const btn = target.closest('.buy-trigger') as HTMLElement;
+            const name = btn.dataset.name;
+            const pid = btn.dataset.id;
+            if (name && pid) {
+                const addAmount = localQtys[pid];
+                if (!orderData[name]) orderData[name] = { qty: 0 };
+                orderData[name].qty += addAmount;
+                btn.classList.add('is-success');
+                setTimeout(() => btn.classList.remove('is-success'), 2000);
+                refreshCart();
+            }
+        }
 
-	document.querySelectorAll('.ingredients-toggle').forEach(btn => {
-		btn.addEventListener('click', (e) => {
-			const id = (e.currentTarget as HTMLElement).dataset.id;
-			togglePanel(id, true);
-		});
-	});
+        // MODAL TOGGLES
+        if (target.classList.contains('modal-trigger')) {
+            const mid = target.dataset.target;
+            document.getElementById(`modal-${mid}`)?.classList.add('open');
+        }
+        if (target.classList.contains('modal-close') || target.classList.contains('mobile-modal')) {
+            const mid = target.dataset.close || target.id?.replace('modal-', '');
+            document.getElementById(`modal-${mid}`)?.classList.remove('open');
+        }
 
-	document.querySelectorAll('.close-panel').forEach(btn => {
-		btn.addEventListener('click', (e) => {
-			const id = (e.currentTarget as HTMLElement).dataset.id;
-			togglePanel(id, false);
-		});
-	});
+        // CART UI
+        if (target.id === 'cart-open' || target.closest('#cart-open')) {
+            cartPanel?.classList.add('visible');
+            cartShield?.classList.add('visible');
+        }
+        if (target.id === 'cart-exit' || target.id === 'cart-shield') {
+            cartPanel?.classList.remove('visible');
+            cartShield?.classList.remove('visible');
+        }
 
-	// Cart Trigger
-	const toggleCart = (show) => {
-		if (show) { cartSidebar?.classList.add('active'); cartOverlay?.classList.add('active'); }
-		else { cartSidebar?.classList.remove('active'); cartOverlay?.classList.remove('active'); }
-	};
+        // CHECKOUT
+        if (target.id === 'wa-checkout') {
+            const num = "27636936204";
+            let total = 0;
+            let msg = "Hi RebelCo! I'm ready to disrupt. My order:\n\n";
+            Object.entries(orderData).forEach(([n, d]: [string, any]) => {
+                msg += `• ${d.qty} x ${n} (R${d.qty * 100})\n`;
+                total += d.qty * 100;
+            });
+            msg += `\nTOTAL: R${total}\n\nNo Excuses.`;
+            window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+    });
 
-	cartToggle?.addEventListener('click', () => toggleCart(true));
-	cartClose?.addEventListener('click', () => toggleCart(false));
-	cartOverlay?.addEventListener('click', () => toggleCart(false));
-
-	waBtn?.addEventListener('click', () => {
-		const number = "27636936204";
-		let total = 0;
-		let message = "Hi RebelCo! I'm ready for the Gold Standard. My order:\n\n";
-		Object.entries(cart).forEach(([name, item]: [string, any]) => {
-			message += `• ${item.qty} x ${name} (R${item.qty * 100})\n`;
-			total += item.qty * 100;
-		});
-		message += `\nTOTAL: R${total}\n\nNo Excuses.`;
-		window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank');
-	});
-
-	// Sticky Header
-	const observer = new IntersectionObserver((entries) => {
-		entries.forEach(entry => {
-			if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
-				const id = entry.target.id;
-				const header = document.getElementById('main-header');
-				if (header) {
-					header.style.opacity = id === 'home' ? '0' : '1';
-					header.style.pointerEvents = id === 'home' ? 'none' : 'auto';
-				}
-			}
-		});
-	}, { threshold: [0.4] });
-	document.querySelectorAll('.page-section').forEach(section => observer.observe(section));
-
-	// Background Parallax
+    // SCROLL PARALLAX
 	lenis.on('scroll', (e) => {
 		document.querySelectorAll('.nature-bg').forEach((bg) => {
-			(bg as HTMLElement).style.transform = `translateY(${e.scroll * 0.05}px)`;
+			(bg as HTMLElement).style.transform = `translateY(${e.scroll * 0.04}px)`;
 		});
 	});
+
+    // STICKY HEADER FADE
+	const headerObs = new IntersectionObserver((entries) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				const head = document.getElementById('main-header');
+				if (head) head.style.opacity = entry.target.id === 'home' ? '0' : '1';
+			}
+		});
+	}, { threshold: 0.5 });
+	document.querySelectorAll('.page-section').forEach(s => headerObs.observe(s));
 </script>
 
 <style>
 	:root {
-		--accent-gold: #f59e0b;
-		--panel-bg: rgba(0, 0, 0, 0.85);
+		--gold: #f59e0b;
+		--dark: #000;
+		--panel: rgba(0,0,0,0.85);
 	}
 
-	html, body {
-		overflow-x: hidden;
-		width: 100%;
-		margin: 0;
-		padding: 0;
-		background: #000;
+	* { box-sizing: border-box; }
+	html, body { 
+		margin: 0; padding: 0; background: var(--dark); color: #fff;
+		font-family: 'Staatliches', cursive; overflow-x: hidden;
 	}
 
+	/* Layout Basics */
 	.page-section {
-		height: 100vh;
-		width: 100vw;
-		position: relative;
+		min-height: 100vh; width: 100vw; position: relative;
+		display: flex; align-items: center; justify-content: center;
 		overflow: hidden;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.nature-bg {
-		position: absolute;
-		inset: -15%;
-		background-size: cover;
-		background-position: center;
-		filter: brightness(0.25);
-		z-index: 1;
-		pointer-events: none;
+		position: absolute; inset: -15%; background-size: cover;
+		background-position: center; filter: brightness(0.25);
+		z-index: -1; pointer-events: none;
 	}
 
-	.landing-content { z-index: 10; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; }
-
-	.split-layout {
-		display: grid;
-		grid-template-columns: 1fr 1.5fr 1fr;
-		align-items: center;
-		width: 95%;
-		max-width: 1600px;
-		height: 85vh;
-		position: relative;
-		z-index: 10;
-		gap: 2rem;
-		pointer-events: auto;
-	}
-
-	.interactive-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; position: relative; pointer-events: auto; }
-
-	.hero-image-container { width: 100%; max-width: 450px; margin-bottom: 2rem; display: flex; justify-content: center; pointer-events: none; }
-	.hero-img { width: auto; height: auto; max-width: 100%; max-height: 45vh; object-fit: contain; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.8)); }
-
-	.product-title { font-family: 'Bangers', cursive; font-size: 3.5rem; color: #fff; margin: 0; }
-	.price-tag { font-family: 'Bangers', cursive; font-size: 2.5rem; color: var(--accent-gold); margin: 0.5rem 0; }
-
-	.hero-logo { width: 320px; height: auto; margin: 0 auto 2rem; display: block; filter: drop-shadow(0 0 30px rgba(0,0,0,0.5)); }
-
+	/* Landing Section */
+	.landing-content { z-index: 10; text-align: center; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+	.hero-logo { width: clamp(220px, 40vw, 320px); height: auto; margin-bottom: 2rem; }
+	.landing-tagline { font-family: 'Bangers', cursive; font-size: clamp(2.5rem, 8vw, 6rem); margin: 0; }
+	
 	.about-rebel-box {
-		width: 90%;
-		max-width: 600px;
-		margin: 2rem auto;
-		padding: 2rem;
-		background: rgba(0,0,0,0.5);
-		backdrop-filter: blur(15px);
-		border-left: 3px solid var(--accent-gold);
-		font-family: 'Staatliches', cursive;
-		font-size: 1.25rem;
-		color: #fff;
-		text-align: left;
+		max-width: 650px; padding: 2rem; margin: 2rem auto;
+		background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
+		border-left: 4px solid var(--gold); text-align: left;
+		line-height: 1.4; font-size: 1.2rem;
 	}
 
-	.gold-standard { display: flex; gap: 1rem; align-items: center; margin-top: 1rem; pointer-events: auto; }
-	.qty-selector { display: flex; align-items: center; background: rgba(255,255,255,0.1); border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); }
-	.qty-btn { background: none; border: none; color: #fff; padding: 0.8rem 1.2rem; font-family: 'Staatliches'; font-size: 1.5rem; cursor: pointer; }
-	.qty-value { min-width: 40px; text-align: center; font-family: 'Staatliches'; font-size: 1.5rem; color: var(--accent-gold); }
+	/* Product Grid Hardware (Stable PC) */
+	.product-layout {
+		display: grid; grid-template-columns: 1fr 1.5fr 1fr;
+		width: 95%; max-width: 1700px; gap: 2rem; z-index: 20;
+		align-items: center; padding: 4rem 0;
+	}
 
-	.add-btn.premium { background: var(--accent-gold); color: #000; border: none; padding: 1rem 3rem; font-family: 'Staatliches'; font-size: 1.5rem; cursor: pointer; position: relative; overflow: hidden; font-weight: bold; transition: transform 0.2s; }
-	.add-btn.premium:hover { transform: scale(1.05); }
-	.success-check { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: transform 0.3s; }
-	.add-btn.success .success-check { transform: translateY(0); }
+	.main-interaction { display: flex; flex-direction: column; align-items: center; text-align: center; }
+	.product-hero-container { width: 100%; max-width: 480px; margin-bottom: 1.5rem; }
+	.product-pure-img { width: 100%; height: auto; max-height: 45vh; object-fit: contain; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.9)); }
 
-	.ingredients-toggle { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 0.8rem 1.5rem; margin-top: 1.5rem; font-family: 'Staatliches'; cursor: pointer; }
+	.main-title { font-family: 'Bangers', cursive; font-size: 3.5rem; margin: 0; line-height: 1; }
+	.main-price { font-family: 'Bangers', cursive; font-size: 2.8rem; color: var(--gold); margin: 0.5rem 0; }
 
-	.text-panel { background: var(--panel-bg); backdrop-filter: blur(30px); padding: 2.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: center; height: fit-content; align-self: center; }
-	.bullet { font-family: 'Staatliches', cursive; font-size: 1.35rem; color: #fff; margin-bottom: 1.5rem; padding-left: 1.5rem; position: relative; }
-	.bullet::before { content: '•'; color: var(--accent-gold); position: absolute; left: 0; }
+	/* Controls */
+	.buying-tools { display: flex; gap: 1rem; align-items: stretch; margin-top: 1rem; }
+	.quantity-box { display: flex; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+	.qty-trigger { background: none; border: none; color: #fff; padding: 0.8rem 1.2rem; cursor: pointer; font-size: 1.5rem; transition: background 0.2s; }
+	.qty-trigger:hover { background: rgba(255,255,255,0.1); }
+	.qty-count { min-width: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--gold); }
 
-	.cart-trigger { position: fixed; bottom: 2rem; right: 2rem; width: 65px; height: 65px; background: var(--accent-gold); border-radius: 50%; border: none; cursor: pointer; z-index: 2000; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-	.cart-count { position: absolute; top: 0; right: 0; background: #000; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent-gold); font-family: 'Staatliches'; }
+	.premium-btn {
+		background: var(--gold); color: #000; border: none; padding: 0 2.5rem;
+		font-family: inherit; font-size: 1.4rem; font-weight: bold; cursor: pointer;
+		position: relative; overflow: hidden; transition: transform 0.2s;
+	}
+	.premium-btn:hover { transform: scale(1.05); }
+	.buy-success { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: 0.3s; }
+	.premium-btn.is-success .buy-success { transform: translateY(0); }
 
-	.cart-sidebar { position: fixed; top: 0; right: 0; width: 400px; height: 100vh; background: #0a0a0a; z-index: 3000; transform: translateX(100%); transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); display: flex; flex-direction: column; }
-	.cart-sidebar.active { transform: translateX(0); }
-	.cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2900; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
-	.cart-overlay.active { opacity: 1; pointer-events: auto; }
+	/* Side Panels */
+	.side-panel { background: var(--panel); backdrop-filter: blur(20px); padding: 2.5rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+	.bullet-item { font-size: 1.35rem; margin-bottom: 1.5rem; line-height: 1.1; color: #fff; }
+	.bullet-item::before { content: '• '; color: var(--gold); }
+	.ingredients-card h3 { color: var(--gold); margin-top: 0; font-size: 2rem; font-family: 'Bangers'; }
 
-	.cart-header-gold { padding: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-	.cart-items-scroll { flex: 1; overflow-y: auto; padding: 2rem; }
-	.cart-item-gold { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
-	.item-info { display: flex; justify-content: space-between; font-family: 'Staatliches'; font-size: 1.3rem; margin-bottom: 0.5rem; }
-	.item-controls { display: flex; align-items: center; gap: 1rem; }
-	.cart-qty-btn { background: none; border: 1px solid #333; color: #fff; width: 30px; height: 30px; cursor: pointer; }
-	.cart-qty-val { font-family: 'Staatliches'; color: var(--accent-gold); }
+	/* Sticky Elements */
+	.sticky-header { position: fixed; top: 2rem; left: 2rem; z-index: 100; transition: 0.5s; mix-blend-mode: exclusion; }
+	.sticky-logo { width: 80px; }
 
-	.cart-footer { padding: 2rem; background: #000; border-top: 1px solid #222; }
-	.cart-total { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 2rem; color: #fff; margin-bottom: 1rem; }
-	.wa-btn-premium { width: 100%; background: #25d366; color: #fff; border: none; padding: 1.5rem; font-family: 'Staatliches'; font-size: 1.4rem; cursor: pointer; font-weight: bold; }
+	.cart-anchor { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+	.cart-pill { 
+		background: var(--gold); color: #000; border: none; padding: 1rem 2rem;
+		border-radius: 50px; font-family: inherit; font-size: 1.4rem; font-weight: bold;
+		cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+	}
 
-	.sticky-header { position: fixed; top: 2rem; left: 2rem; mix-blend-mode: exclusion; z-index: 1500; transition: opacity 0.5s; opacity: 0; pointer-events: none; }
-	.sticky-logo { width: 85px; }
+	/* Cart Drawer */
+	.cart-shield { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.4s; }
+	.cart-shield.visible { opacity: 1; pointer-events: auto; }
+	.cart-panel {
+		position: fixed; top: 0; right: 0; width: clamp(320px, 90%, 450px); height: 100vh;
+		background: #0a0a0a; z-index: 2100; transform: translateX(100%);
+		transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); display: flex; flex-direction: column;
+	}
+	.cart-panel.visible { transform: translateX(0); }
+	
+	.cart-top { padding: 2rem; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
+	.cart-top h3 { color: var(--gold); font-size: 2rem; margin: 0; font-family: 'Bangers'; }
+	.cart-body { flex: 1; overflow-y: auto; padding: 2rem; }
+	.cart-entry { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
+	.entry-row { display: flex; justify-content: space-between; font-size: 1.4rem; margin-bottom: 1rem; }
+	.entry-tweak { display: flex; align-items: center; gap: 1rem; }
+	.tweak-btn { background: none; border: 1px solid #444; color: #fff; width: 35px; height: 35px; cursor: pointer; font-size: 1.2rem; }
+	.tweak-val { color: var(--gold); font-size: 1.3rem; }
+
+	.cart-bottom { padding: 2rem; border-top: 1px solid #222; background: #000; }
+	.cart-math { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 2.5rem; margin-bottom: 1.5rem; }
+	.checkout-btn { width: 100%; background: #25d366; color: #fff; border: none; padding: 1.5rem; font-family: inherit; font-size: 1.5rem; font-weight: bold; cursor: pointer; }
+	.checkout-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+	/* MOBILE MODALS (PROPER FIX) */
+	.mobile-modal {
+		position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000;
+		display: flex; align-items: center; justify-content: center;
+		padding: 2rem; opacity: 0; pointer-events: none; transition: 0.3s;
+	}
+	.mobile-modal.open { opacity: 1; pointer-events: auto; }
+	.modal-content { 
+		background: #111; padding: 2rem; border-radius: 8px; width: 100%; max-width: 500px;
+		position: relative; border: 1px solid #333; max-height: 80vh; overflow-y: auto;
+	}
+	.modal-close { position: absolute; top: 1rem; right: 1rem; font-size: 3rem; background: none; border: none; color: #fff; cursor: pointer; }
+	.modal-trigger { background: none; border: 1px solid rgba(255,255,255,0.2); color: #888; padding: 1rem 2rem; margin-top: 2rem; font-family: inherit; cursor: pointer; }
+
+	/* RESPONSIVE */
+	@media (max-width: 1024px) {
+		.product-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; padding: 6rem 1rem; }
+		.desktop-only { display: none; }
+		.main-title { font-size: 2.5rem; }
+		.hero-img { max-height: 35vh; }
+	}
 
 	@media (min-width: 1025px) {
-		.ingredients-panel { opacity: 1; pointer-events: auto; position: static; }
-		.ingredients-toggle { display: none; }
-	}
-
-	@media (max-width: 1024px) {
-		.split-layout { width: 95%; display: flex; flex-direction: column; height: auto; padding: 6rem 0; gap: 3rem; }
-		.hero-img { max-height: 35vh; }
-		.desktop-only { display: none; }
-		.ingredients-panel { position: fixed; inset: 0; z-index: 5000; transform: translateY(100%); transition: transform 0.5s ease; background: #000; padding: 4rem 1.5rem; opacity: 1; display: flex; align-items: center; justify-content: center; }
-		.ingredients-panel.active { transform: translateY(0); }
-		.close-panel { display: block; position: absolute; top: 1rem; right: 1.5rem; font-size: 3rem; background: none; border: none; color: #fff; cursor: pointer; }
-	}
-
-	@media (max-width: 768px) {
-		.hero-logo { width: 240px; }
-		.about-rebel-box { font-size: 1.1rem; padding: 1.5rem; }
-		.cart-sidebar { width: 100%; }
-		.sticky-logo { width: 60px; }
+		.mobile-only { display: none; }
 	}
 </style>
