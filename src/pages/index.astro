@@ -7,9 +7,10 @@ import Layout from '../layouts/Layout.astro';
 		<header class="sticky-header">
 			<img src="/logo.png" alt="REBEL Logo" class="sticky-logo" />
 		</header>
+		
 		<!-- Section 1: REBEL Hero / Charcoal & Turmeric -->
 		<section class="page-section charcoal-biome" id="charcoal">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -27,14 +28,14 @@ import Layout from '../layouts/Layout.astro';
 				</div>
 				<div class="text-panel right">
 					<div class="ingredients-box">
-						<h3 class="accent-text">INGREDIENTS</h3>
+						<h3 class="accent-text charcoal-accent">INGREDIENTS</h3>
 						<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC</p>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- Desert of Turmeric Transition / Secondary Charcoal Info -->
+		<!-- Desert of Turmeric Transition -->
 		<section class="page-section turmeric-desert" id="turmeric-info">
 			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout reverse">
@@ -45,15 +46,14 @@ import Layout from '../layouts/Layout.astro';
 					</div>
 				</div>
 				<div class="center-panel transparent">
-					<!-- Empty or subtle visual -->
 					<h2 class="desert-title">DESERT OF TURMERIC</h2>
 				</div>
 			</div>
 		</section>
 
-		<!-- Section 3: Rooibos & Tea Tree -->
+		<!-- Section 3: Rooibos & Tea Tree (Sunset Fields) -->
 		<section class="page-section rooibos-biome" id="rooibos">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1551366531-628d6215ca94?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -84,9 +84,9 @@ import Layout from '../layouts/Layout.astro';
 			</div>
 		</section>
 
-		<!-- Section 4: Cocoa Coconut -->
+		<!-- Section 4: Cocoa Coconut (Pods & Palms) -->
 		<section class="page-section cocoa-biome" id="cocoa">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1590004953392-5aba2e785a3c?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -106,16 +106,16 @@ import Layout from '../layouts/Layout.astro';
 				</div>
 				<div class="text-panel right">
 					<div class="ingredients-box">
-						<h3 class="accent-text">INGREDIENTS</h3>
+						<h3 class="accent-text cocoa-accent">INGREDIENTS</h3>
 						<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT</p>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- Section 5: Rainforest Herbs -->
+		<!-- Section 5: Rainforest Herbs (Knysna Forest) -->
 		<section class="page-section rainforest-biome" id="rainforest">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=1920');"></div>
+			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1920');"></div>
 			<div class="split-layout">
 				<div class="text-panel left">
 					<div class="content-box">
@@ -135,7 +135,7 @@ import Layout from '../layouts/Layout.astro';
 				</div>
 				<div class="text-panel right">
 					<div class="ingredients-box">
-						<h3 class="accent-text">INGREDIENTS</h3>
+						<h3 class="accent-text rainforest-accent">INGREDIENTS</h3>
 						<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS</p>
 					</div>
 				</div>
@@ -215,7 +215,6 @@ import Layout from '../layouts/Layout.astro';
 		window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank');
 	});
 
-	// Intersection Observer for Nav Dots & Parallax
 	const observer = new IntersectionObserver((entries) => {
 		entries.forEach(entry => {
 			if (entry.isIntersecting) {
@@ -228,12 +227,11 @@ import Layout from '../layouts/Layout.astro';
 
 	document.querySelectorAll('.page-section').forEach(section => observer.observe(section));
 
-	// Subtle Parallax Scroll
 	scrollContainer?.addEventListener('scroll', () => {
 		const scrolled = scrollContainer.scrollTop;
 		document.querySelectorAll('.nature-bg').forEach((bg) => {
 			const bgEl = bg as HTMLElement;
-			bgEl.style.transform = `translateY(${scrolled * 0.15}px)`;
+			bgEl.style.transform = `translateY(${scrolled * 0.1}px)`;
 		});
 	});
 </script>
@@ -269,7 +267,7 @@ import Layout from '../layouts/Layout.astro';
 		inset: -10% -10% -10% -10%;
 		background-size: cover;
 		background-position: center;
-		filter: brightness(0.4) grayscale(0.2);
+		filter: brightness(0.35) grayscale(0.2);
 		z-index: 1;
 		transition: transform 0.1s linear;
 	}
@@ -289,16 +287,16 @@ import Layout from '../layouts/Layout.astro';
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		padding: 2rem;
+		padding: 2.5rem;
 		background: var(--panel-bg);
-		backdrop-filter: blur(15px);
-		border: 1px solid rgba(255,255,255,0.05);
-		border-radius: 8px;
+		backdrop-filter: blur(20px);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: 4px;
 	}
 
 	.content-box p.bullet {
 		font-family: 'Staatliches', cursive;
-		font-size: clamp(1.1rem, 2vw, 1.6rem);
+		font-size: clamp(1.1rem, 1.8vw, 1.5rem);
 		margin-bottom: 2rem;
 		text-transform: uppercase;
 		line-height: 1.2;
@@ -326,26 +324,26 @@ import Layout from '../layouts/Layout.astro';
 
 	.hero-image-container {
 		width: 100%;
-		max-width: 450px;
+		max-width: 480px;
 		margin-bottom: 2rem;
 	}
 
 	.hero-img {
 		width: 100%;
-		filter: drop-shadow(0 20px 50px rgba(0,0,0,0.8));
+		filter: drop-shadow(0 30px 60px rgba(0,0,0,0.9));
 	}
 
 	.ingredients-box h3 {
 		font-family: 'Bangers', cursive;
 		font-size: 2.5rem;
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
 		letter-spacing: 0.1em;
 	}
 
 	.ingredients-box p {
 		font-family: 'Staatliches', cursive;
-		font-size: clamp(1rem, 1.5vw, 1.3rem);
-		color: #ccc;
+		font-size: clamp(1rem, 1.4vw, 1.25rem);
+		color: #ddd;
 		text-transform: uppercase;
 		line-height: 1.4;
 	}
@@ -353,7 +351,7 @@ import Layout from '../layouts/Layout.astro';
 	.extra-benefits {
 		margin-top: 2rem;
 		padding-top: 2rem;
-		border-top: 1px solid rgba(255,255,255,0.1);
+		border-top: 1px solid rgba(255,255,255,0.15);
 	}
 
 	.extra-benefits p {
@@ -361,65 +359,65 @@ import Layout from '../layouts/Layout.astro';
 		color: #fff;
 		font-size: 1.1rem;
 		margin-bottom: 1rem;
-		opacity: 0.8;
+		opacity: 0.9;
 	}
 
 	.accent-text { color: var(--accent); }
+	.charcoal-accent { color: #f59e0b; } /* Restore orange/gold for Charcoal */
+	.cocoa-accent { color: #8d6e63; }
+	.rainforest-accent { color: #81c784; }
 
 	.desert-title {
 		font-family: 'Bangers', cursive;
 		font-size: 8vw;
-		color: #fff;
-		text-shadow: 0 0 50px rgba(0,0,0,1);
+		color: #f59e0b;
+		text-shadow: 0 0 40px rgba(0,0,0,1);
 		letter-spacing: 0.1em;
 	}
 
 	/* Controls */
-	.order-controls { margin-top: 1rem; }
+	.order-controls { margin-top: 1.5rem; }
 	.add-btn {
 		background: var(--accent);
 		color: #fff;
 		border: none;
-		padding: 1rem 3rem;
+		padding: 1rem 3.5rem;
 		font-family: 'Staatliches', cursive;
-		font-size: 1.5rem;
+		font-size: 1.6rem;
 		cursor: pointer;
-		transition: all 0.3s ease;
-		box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+		transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 	}
-	.add-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(239, 68, 68, 0.4); }
+	.add-btn:hover { transform: translateY(-5px) scale(1.05); background: #fff; color: #000; }
 
 	/* Cart Sidebar */
 	.cart-floating {
 		position: fixed;
 		top: 2rem;
 		right: 2rem;
-		width: 280px;
-		background: rgba(0,0,0,0.9);
-		border: 1px solid rgba(255,255,255,0.1);
-		padding: 1.5rem;
-		backdrop-filter: blur(20px);
+		width: 300px;
+		background: rgba(0,0,0,0.92);
+		border: 1px solid rgba(255,255,255,0.15);
+		padding: 2rem;
+		backdrop-filter: blur(25px);
 		z-index: 1000;
-		border-radius: 4px;
 	}
-	.cart-header { font-family: 'Staatliches', cursive; color: var(--accent); font-size: 1.2rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.2); }
-	.cart-item { display: flex; justify-content: space-between; font-family: 'Staatliches', cursive; margin-bottom: 0.5rem; align-items: center; font-size: 1.1rem; }
-	.remove-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
+	.cart-header { font-family: 'Staatliches', cursive; color: var(--accent); font-size: 1.4rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.2); }
+	.cart-item { display: flex; justify-content: space-between; font-family: 'Staatliches', cursive; margin-bottom: 0.8rem; align-items: center; font-size: 1.2rem; }
+	.remove-btn { background: none; border: none; color: var(--accent); font-size: 1.8rem; cursor: pointer; line-height: 1; }
 	.wa-btn {
 		width: 100%;
 		background: #25d366;
 		color: #fff;
 		border: none;
-		padding: 1rem;
+		padding: 1.2rem;
 		font-family: 'Staatliches', cursive;
-		font-size: 1.1rem;
-		margin-top: 1rem;
+		font-size: 1.3rem;
+		margin-top: 1.5rem;
 		cursor: pointer;
-		border-radius: 4px;
 	}
-	.wa-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+	.wa-btn:disabled { opacity: 0.3; }
 
-	/* Nav Dots */
 	.scroll-nav {
 		position: fixed;
 		left: 2rem;
@@ -427,45 +425,41 @@ import Layout from '../layouts/Layout.astro';
 		transform: translateY(-50%);
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 2.5rem;
 		z-index: 1000;
 	}
 	.nav-dot {
-		width: 14px;
-		height: 14px;
+		width: 16px;
+		height: 16px;
 		border-radius: 50%;
-		background: rgba(255,255,255,0.2);
-		transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		background: rgba(255,255,255,0.15);
+		transition: all 0.5s ease;
 	}
-	.nav-dot.active { background: var(--accent); transform: scale(1.6); box-shadow: 0 0 15px var(--accent); }
+	.nav-dot.active { background: var(--accent); transform: scale(1.8); box-shadow: 0 0 20px var(--accent); }
 
 	.sticky-header {
 		position: fixed;
 		top: 2rem;
 		left: 2rem;
-		z-index: 1000;
-		mix-blend-mode: difference;
+		z-index: 1100;
+		mix-blend-mode: exclusion;
 	}
-
-	.sticky-logo {
-		width: 80px;
-		height: auto;
-		filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
-	}
+	.sticky-logo { width: 90px; height: auto; }
 
 	@media (max-width: 1200px) {
-		.split-layout { grid-template-columns: 1fr 1.2fr; gap: 1rem; }
+		.split-layout { grid-template-columns: 1fr 1.2fr; }
 		.text-panel.right { display: none; }
 	}
 
 	@media (max-width: 768px) {
-		.split-layout { grid-template-columns: 1fr; height: auto; max-height: none; gap: 2rem; }
-		.page-section { height: auto; min-height: 100vh; padding: 4rem 1rem; }
+		.split-layout { grid-template-columns: 1fr; height: auto; padding-top: 6rem; }
+		.page-section { height: auto; min-height: 100vh; padding: 2rem 1.5rem; }
 		.scroll-container { scroll-snap-type: none; }
-		.text-panel { padding: 1.5rem; }
-		.hero-image-container { max-width: 280px; }
+		.text-panel { padding: 2rem; }
+		.hero-image-container { max-width: 320px; }
 		.scroll-nav { display: none; }
-		.cart-floating { position: static; width: 100%; margin-top: 2rem; }
-		.desert-title { font-size: 12vw; }
+		.cart-floating { position: static; width: 100%; margin-top: 3rem; }
+		.desert-title { font-size: 14vw; }
+		.sticky-header { position: absolute; }
 	}
 </style>
