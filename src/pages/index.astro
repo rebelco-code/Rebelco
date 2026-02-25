@@ -75,7 +75,6 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-                                <!-- Replaced with a more generic skincare jar that works. -->
 								<img src="https://images.unsplash.com/photo-1608248593842-8021f11c7fb8?auto=format&fit=crop&q=80&w=400" alt="Pure Tallow Jar"/>
 							</div>
 							<div class="card-bottom">
@@ -90,57 +89,183 @@ import Layout from '../layouts/Layout.astro';
 							</div>
 						</div>
 
-						<!-- CHARCOAL SOAP -->
+						<!-- CHARCOAL & TURMERIC SOAP -->
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="/charcoal_turmeric_hero.png" alt="Charcoal Soap"/>
+								<img src="https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&q=80&w=400" alt="Charcoal Turmeric Soap"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title">Charcoal Soap</h3>
+								<h3 class="prod-title">Charcoal & Turmeric</h3>
 								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-charcoal').innerText = Math.max(1, parseInt(document.getElementById('q-charcoal').innerText)-1)">-</button>
 									<span id="q-charcoal">1</span>
 									<button onclick="document.getElementById('q-charcoal').innerText = parseInt(document.getElementById('q-charcoal').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="charcoal" data-name="Charcoal Soap" data-price="100">Add to Crate</button>
+								<button class="add-crate-btn" data-id="charcoal" data-name="Charcoal & Turmeric Soap" data-price="100">Add to Crate</button>
 							</div>
 						</div>
 
-						<!-- ROOIBOS SOAP -->
+						<!-- ROOIBOS & TEA TREE SOAP -->
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="/rooibos_hero.png" alt="Rooibos Soap"/>
+								<img src="https://images.unsplash.com/photo-1607006411066-58bf592afbb1?auto=format&fit=crop&q=80&w=400" alt="Rooibos Soap"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title">Rooibos Soap</h3>
+								<h3 class="prod-title">Rooibos & Tea Tree</h3>
 								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-rooibos').innerText = Math.max(1, parseInt(document.getElementById('q-rooibos').innerText)-1)">-</button>
 									<span id="q-rooibos">1</span>
 									<button onclick="document.getElementById('q-rooibos').innerText = parseInt(document.getElementById('q-rooibos').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="rooibos" data-name="Rooibos Soap" data-price="100">Add to Crate</button>
+								<button class="add-crate-btn" data-id="rooibos" data-name="Rooibos & Tea Tree Soap" data-price="100">Add to Crate</button>
 							</div>
 						</div>
 
-						<!-- SKILLET -->
+						<!-- COCOA COCONUT SOAP -->
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fit=crop&q=80&w=400" alt="Cast Iron Skillet"/>
+								<img src="https://images.unsplash.com/photo-1548610761-0985dd5b6026?auto=format&fit=crop&q=80&w=400" alt="Cocoa Coconut Soap"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title">Seasoned Skillet</h3>
-								<p class="price">R180</p>
+								<h3 class="prod-title">Cocoa Coconut</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
-									<button onclick="document.getElementById('q-skillet').innerText = Math.max(1, parseInt(document.getElementById('q-skillet').innerText)-1)">-</button>
-									<span id="q-skillet">1</span>
-									<button onclick="document.getElementById('q-skillet').innerText = parseInt(document.getElementById('q-skillet').innerText)+1">+</button>
+									<button onclick="document.getElementById('q-cocoa').innerText = Math.max(1, parseInt(document.getElementById('q-cocoa').innerText)-1)">-</button>
+									<span id="q-cocoa">1</span>
+									<button onclick="document.getElementById('q-cocoa').innerText = parseInt(document.getElementById('q-cocoa').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="skillet" data-name="Cast Iron Skillet" data-price="180">Add to Crate</button>
+								<button class="add-crate-btn" data-id="cocoa" data-name="Cocoa Coconut Soap" data-price="100">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- RAINFOREST HERBS SOAP -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=400" alt="Rainforest Herbs Soap"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Rainforest Herbs</h3>
+								<p class="price">R100</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-rainforest').innerText = Math.max(1, parseInt(document.getElementById('q-rainforest').innerText)-1)">-</button>
+									<span id="q-rainforest">1</span>
+									<button onclick="document.getElementById('q-rainforest').innerText = parseInt(document.getElementById('q-rainforest').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="rainforest" data-name="Rainforest Herbs Soap" data-price="100">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- OATS & HONEY SOAP -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1620942316410-b74709bedb78?auto=format&fit=crop&q=80&w=400" alt="Oats and Honey Soap"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Oats & Honey</h3>
+								<p class="price">R100</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-oats').innerText = Math.max(1, parseInt(document.getElementById('q-oats').innerText)-1)">-</button>
+									<span id="q-oats">1</span>
+									<button onclick="document.getElementById('q-oats').innerText = parseInt(document.getElementById('q-oats').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="oats" data-name="Oats & Honey Soap" data-price="100">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- OCEAN BLUE SOAP -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1559131668-b7d609bd8eb6?auto=format&fit=crop&q=80&w=400" alt="Ocean Blue Soap"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Ocean Blue</h3>
+								<p class="price">R100</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-ocean').innerText = Math.max(1, parseInt(document.getElementById('q-ocean').innerText)-1)">-</button>
+									<span id="q-ocean">1</span>
+									<button onclick="document.getElementById('q-ocean').innerText = parseInt(document.getElementById('q-ocean').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="ocean" data-name="Ocean Blue Soap" data-price="100">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- ALOE & ROSEMARY SOAP -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1595180637175-15a0172e259e?auto=format&fit=crop&q=80&w=400" alt="Aloe and Rosemary Soap"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Aloe & Rosemary</h3>
+								<p class="price">R100</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-aloe').innerText = Math.max(1, parseInt(document.getElementById('q-aloe').innerText)-1)">-</button>
+									<span id="q-aloe">1</span>
+									<button onclick="document.getElementById('q-aloe').innerText = parseInt(document.getElementById('q-aloe').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="aloe" data-name="Aloe & Rosemary Soap" data-price="100">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- GROTMAN ALL-IN-ONE SOAP -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1626352936928-111108aff7af?auto=format&fit=crop&q=80&w=400" alt="Grotman Barb Soap"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Grotman Soap</h3>
+								<p class="price">R120</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-grotman').innerText = Math.max(1, parseInt(document.getElementById('q-grotman').innerText)-1)">-</button>
+									<span id="q-grotman">1</span>
+									<button onclick="document.getElementById('q-grotman').innerText = parseInt(document.getElementById('q-grotman').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="grotman" data-name="Grotman All-in-One Soap" data-price="120">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- SHAMPOO & CONDITIONER BAR -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1631214500515-b4618a8b1397?auto=format&fit=crop&q=80&w=400" alt="Shampoo and Conditioner Bar"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Shampoo Bar</h3>
+								<p class="price">R120</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-shampoo').innerText = Math.max(1, parseInt(document.getElementById('q-shampoo').innerText)-1)">-</button>
+									<span id="q-shampoo">1</span>
+									<button onclick="document.getElementById('q-shampoo').innerText = parseInt(document.getElementById('q-shampoo').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="shampoo" data-name="Shampoo & Conditioner Bar" data-price="120">Add to Crate</button>
+							</div>
+						</div>
+
+						<!-- HIMALAYAN SALT SOAP -->
+						<div class="product-card">
+							<div class="rebel-stamp">Rebel</div>
+							<div class="card-img-wrap">
+								<img src="https://images.unsplash.com/photo-1616866299863-1d01f9c0c1b7?auto=format&fit=crop&q=80&w=400" alt="Himalayan Salt Soap"/>
+							</div>
+							<div class="card-bottom">
+								<h3 class="prod-title">Himalayan Salt</h3>
+								<p class="price">R100</p>
+								<div class="qty-control">
+									<button onclick="document.getElementById('q-salt').innerText = Math.max(1, parseInt(document.getElementById('q-salt').innerText)-1)">-</button>
+									<span id="q-salt">1</span>
+									<button onclick="document.getElementById('q-salt').innerText = parseInt(document.getElementById('q-salt').innerText)+1">+</button>
+								</div>
+								<button class="add-crate-btn" data-id="salt" data-name="Himalayan Salt Soap" data-price="100">Add to Crate</button>
 							</div>
 						</div>
 
