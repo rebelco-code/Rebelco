@@ -2,249 +2,195 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="REBEL | Handcrafted Tallow Soap">
+<Layout title="REBEL TALLOW CO. | Natural Rebellion">
+	<!-- Film Grain Overlay -->
+	<div class="film-grain"></div>
+
+	<!-- Header Nav -->
+	<header class="main-header" id="main-header">
+		<div class="header-inner">
+			<a href="/" class="logo-text">REBEL TALLOW CO.</a>
+			<nav class="desktop-nav">
+				<a href="#shop">SHOP</a>
+				<a href="#rebellion">THE REBELLION</a>
+				<a href="#markets">MARKETS</a>
+			</nav>
+			<div class="cart-anchor">
+				<button id="cart-open" class="wa-btn">
+					<span class="wa-icon">🛒</span> <span id="cart-tally">0</span> ITEMS
+				</button>
+			</div>
+		</div>
+	</header>
+
 	<main class="scroll-container">
-
-		<!-- Sticky Header -->
-		<header class="sticky-header" id="main-header">
-			<a href="/"><img src="/logo.png" alt="REBEL Logo" class="sticky-logo" /></a>
-		</header>
-
-		<!-- Landing Section -->
-		<section class="page-section landing-page" id="home">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80&w=1920');"></div>
-			<div class="section-content landing-content">
-				<img src="/logo.png" alt="REBEL Tallow Soap" class="hero-logo" />
-				<h1 class="landing-tagline">HANDCRAFTED DISRUPTION</h1>
-				<div class="about-rebel-box">
-					<p>REBEL is family owned, all natural, soap and skin care product manufacturer.</p>
-					<p>We rebel against harsh chemicals in our carefully-handcrafted disruption against the norm of modern skincare.</p>
-					<p>Old techniques. Modern approach. Every age.</p>
+		<!-- HERO SECTION -->
+		<section class="hero-section" id="home">
+			<div class="hero-bg"></div>
+			<div class="smoke-overlay"></div>
+			<div class="hero-content">
+				<h1 class="distressed-gold title-main">REBEL TALLOW CO.</h1>
+				<h2 class="hero-slogan">NATURAL REBELLION</h2>
+				<div class="hero-actions">
+					<a href="#shop" class="gold-btn">SHOP NOW</a>
+					<a href="#rebellion" class="ghost-btn">EXPLORE THE REBELLION</a>
 				</div>
-				<p class="scroll-hint">↓ SCROLL TO DISRUPT ↓</p>
 			</div>
 		</section>
 
-		<!-- Charcoal & Turmeric -->
-		<section class="page-section product-biome" id="charcoal">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&q=80&w=1920');"></div>
-			<div class="section-content product-layout">
-				<div class="side-panel desktop-only">
-					<p class="bullet-item">CHARCOAL ACTS LIKE A MAGNET, DRAWING OUT IMPURITIES.</p>
-					<p class="bullet-item">GENTLE PHYSICAL EXFOLIATION FOR SMOOTHER TEXTURE.</p>
-					<p class="bullet-item">TURMERIC REDUCES REDNESS AND BREAKOUTS.</p>
-					<p class="bullet-item">ANTIOXIDANTS BRIGHTEN SKIN OVER TIME.</p>
+		<!-- THE REBELLION / MANIFESTO -->
+		<section class="rebellion-section" id="rebellion">
+			<div class="rebellion-content">
+				<img src="https://images.unsplash.com/photo-1629853381617-6d601dff7244?auto=format&fit=crop&q=80&w=400" alt="Cracked Skull" class="small-skull"/>
+				<h2 class="distressed-gold section-title">THE REBELLION</h2>
+				<div class="manifesto">
+					<p>WE REJECT THE CHEMICAL NORM. WE RETURN TO THE ANCESTRAL, THE RAW, THE PURE.</p>
+					<p>Our skincare is a defiant act against synthetic modern industry. Rendered by hand, sourced ethically, and crafted for those who demand uncompromising quality.</p>
+					<p>No synthetic fragrances. No seed oils. Just sheer, powerful natural resilience.</p>
 				</div>
-				<div class="main-interaction">
-					<img src="/charcoal_turmeric_hero.png" alt="Charcoal & Turmeric" class="product-pure-img" />
-					<h2 class="main-title">Charcoal & Turmeric</h2>
-					<p class="main-price">R100</p>
-					<div class="buying-tools">
-						<div class="quantity-box">
-							<button class="qty-dec" data-pid="charcoal">-</button>
-							<span class="qty-count" id="qty-val-charcoal">1</span>
-							<button class="qty-inc" data-pid="charcoal">+</button>
+			</div>
+		</section>
+
+		<!-- SHOP / COLLECTION PAGE -->
+		<section class="shop-section" id="shop">
+			<div class="shop-content">
+				<h2 class="distressed-gold section-title">Shop the Natural Rebellion</h2>
+				
+				<div class="rustic-grid">
+					<!-- PURE BEEF TALLOW -->
+					<div class="product-card">
+						<div class="card-img-wrap">
+							<img src="https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&q=80&w=800" alt="Pure Tallow Jar"/>
 						</div>
-						<button class="add-btn" data-name="Charcoal & Turmeric" data-pid="charcoal">
-							<span class="add-label">ADD TO ORDER</span>
-							<span class="add-ok">✓ ADDED</span>
-						</button>
-					</div>
-					<button class="ing-open mobile-only" data-modal="modal-charcoal">SEE INGREDIENTS</button>
-				</div>
-				<div class="side-panel desktop-only">
-					<h3 class="ing-title">INGREDIENTS</h3>
-					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC</p>
-					<p class="ing-extra">• DETOXIFIES PORES WITHOUT STRIPPING OILS.</p>
-					<p class="ing-extra">• PROMOTES A RADIANT, EVEN SKIN TONE.</p>
-				</div>
-			</div>
-		</section>
-		<div class="mobile-modal" id="modal-charcoal">
-			<div class="modal-box">
-				<button class="modal-x" data-close="modal-charcoal">✕</button>
-				<h3>INGREDIENTS</h3>
-				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, CHARCOAL, TURMERIC</p>
-				<hr/>
-				<p class="bullet-item">CHARCOAL ACTS LIKE A MAGNET, DRAWING OUT IMPURITIES.</p>
-				<p class="bullet-item">GENTLE PHYSICAL EXFOLIATION FOR SMOOTHER TEXTURE.</p>
-				<p class="bullet-item">TURMERIC REDUCES REDNESS AND BREAKOUTS.</p>
-			</div>
-		</div>
-
-		<!-- Rooibos & Tea Tree -->
-		<section class="page-section product-biome" id="rooibos">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1920');"></div>
-			<div class="section-content product-layout">
-				<div class="side-panel desktop-only">
-					<p class="bullet-item">RICH IN ANTIOXIDANTS FOR CELLULAR REPAIR.</p>
-					<p class="bullet-item">GENTLE EXFOLIATION PROMOTING RADIANT SKIN.</p>
-					<p class="bullet-item">ANTI-INFLAMMATORY HELPS SOOTHE ECZEMA.</p>
-					<p class="bullet-item">NATURALLY HYDRATING BARRIER PROTECTION.</p>
-				</div>
-				<div class="main-interaction">
-					<img src="/rooibos_hero.png" alt="Rooibos & Tea Tree" class="product-pure-img" />
-					<h2 class="main-title">Rooibos & Tea Tree</h2>
-					<p class="main-price">R100</p>
-					<div class="buying-tools">
-						<div class="quantity-box">
-							<button class="qty-dec" data-pid="rooibos">-</button>
-							<span class="qty-count" id="qty-val-rooibos">1</span>
-							<button class="qty-inc" data-pid="rooibos">+</button>
+						<div class="card-info">
+							<h3>Pure Beef Tallow (500ml Jar)</h3>
+							<p class="price">R180</p>
+							<div class="card-actions">
+								<div class="qty-selector">
+									<button class="qty-btn" onclick="document.getElementById('q-tallow').innerText = Math.max(1, parseInt(document.getElementById('q-tallow').innerText)-1)">-</button>
+									<span id="q-tallow" class="qty-val">1</span>
+									<button class="qty-btn" onclick="document.getElementById('q-tallow').innerText = parseInt(document.getElementById('q-tallow').innerText)+1">+</button>
+								</div>
+								<button class="gold-btn add-to-crate" data-id="tallow" data-name="Pure Beef Tallow 500ml" data-price="180">ADD TO CRATE</button>
+							</div>
 						</div>
-						<button class="add-btn" data-name="Rooibos & Tea Tree" data-pid="rooibos">
-							<span class="add-label">ADD TO ORDER</span>
-							<span class="add-ok">✓ ADDED</span>
-						</button>
 					</div>
-					<button class="ing-open mobile-only" data-modal="modal-rooibos">SEE INGREDIENTS</button>
-				</div>
-				<div class="side-panel desktop-only">
-					<h3 class="ing-title">INGREDIENTS</h3>
-					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, ROOIBOS, TEA TREE</p>
-					<p class="ing-extra">• CAFFEINE IN TEA TREE REDUCES PUFFINESS.</p>
-					<p class="ing-extra">• ANTISEPTIC PROPERTIES TO PREVENT BREAKOUTS.</p>
-				</div>
-			</div>
-		</section>
-		<div class="mobile-modal" id="modal-rooibos">
-			<div class="modal-box">
-				<button class="modal-x" data-close="modal-rooibos">✕</button>
-				<h3>INGREDIENTS</h3>
-				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, ROOIBOS, TEA TREE</p>
-				<hr/>
-				<p class="bullet-item">RICH IN ANTIOXIDANTS FOR CELLULAR REPAIR.</p>
-				<p class="bullet-item">ANTI-INFLAMMATORY HELPS SOOTHE ECZEMA.</p>
-			</div>
-		</div>
 
-		<!-- Cocoa Coconut -->
-		<section class="page-section product-biome" id="cocoa">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1920');"></div>
-			<div class="section-content product-layout">
-				<div class="side-panel desktop-only">
-					<p class="bullet-item">COCONUT OIL DEEPLY MOISTURIZES SKIN.</p>
-					<p class="bullet-item">ANTIBACTERIAL PROPERTIES FIGHT ACNE.</p>
-					<p class="bullet-item">CACAO PACKED WITH ANTIOXIDANTS FOR GLOW.</p>
-					<p class="bullet-item">IMPROVES ELASTICITY AND MICRO-CIRCULATION.</p>
-				</div>
-				<div class="main-interaction">
-					<img src="/cocoa_hero.png" alt="Cocoa Coconut" class="product-pure-img" />
-					<h2 class="main-title">Cocoa Coconut</h2>
-					<p class="main-price">R100</p>
-					<div class="buying-tools">
-						<div class="quantity-box">
-							<button class="qty-dec" data-pid="cocoa">-</button>
-							<span class="qty-count" id="qty-val-cocoa">1</span>
-							<button class="qty-inc" data-pid="cocoa">+</button>
+					<!-- CHARCOAL SOAP -->
+					<div class="product-card">
+						<div class="card-img-wrap">
+							<img src="/charcoal_turmeric_hero.png" alt="Charcoal Soap"/>
 						</div>
-						<button class="add-btn" data-name="Cocoa Coconut" data-pid="cocoa">
-							<span class="add-label">ADD TO ORDER</span>
-							<span class="add-ok">✓ ADDED</span>
-						</button>
-					</div>
-					<button class="ing-open mobile-only" data-modal="modal-cocoa">SEE INGREDIENTS</button>
-				</div>
-				<div class="side-panel desktop-only">
-					<h3 class="ing-title">INGREDIENTS</h3>
-					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT</p>
-					<p class="ing-extra">• INTENSE HYDRATION FOR DRY SKIN.</p>
-					<p class="ing-extra">• PROMOTES A YOUTHFUL, FIRM APPEARANCE.</p>
-				</div>
-			</div>
-		</section>
-		<div class="mobile-modal" id="modal-cocoa">
-			<div class="modal-box">
-				<button class="modal-x" data-close="modal-cocoa">✕</button>
-				<h3>INGREDIENTS</h3>
-				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, COCOA, COCONUT</p>
-				<hr/>
-				<p class="bullet-item">COCONUT OIL DEEPLY MOISTURIZES SKIN.</p>
-				<p class="bullet-item">CACAO PACKED WITH ANTIOXIDANTS FOR GLOW.</p>
-			</div>
-		</div>
-
-		<!-- Rainforest Herbs -->
-		<section class="page-section product-biome" id="rainforest">
-			<div class="nature-bg" style="background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1920');"></div>
-			<div class="section-content product-layout">
-				<div class="side-panel desktop-only">
-					<p class="bullet-item">TALLOW IS BIO-IDENTICAL TO SEBUM.</p>
-					<p class="bullet-item">RICH IN VITAMINS A, D, E, AND K.</p>
-					<p class="bullet-item">MIXED HERBS PROVIDE BOTANICAL ANTIOXIDANTS.</p>
-					<p class="bullet-item">NATURAL CLEANSING WITHOUT STRIPPING OILS.</p>
-				</div>
-				<div class="main-interaction">
-					<img src="/rainforest_hero.png" alt="Rainforest Herbs" class="product-pure-img" />
-					<h2 class="main-title">Rainforest Herbs</h2>
-					<p class="main-price">R100</p>
-					<div class="buying-tools">
-						<div class="quantity-box">
-							<button class="qty-dec" data-pid="rainforest">-</button>
-							<span class="qty-count" id="qty-val-rainforest">1</span>
-							<button class="qty-inc" data-pid="rainforest">+</button>
+						<div class="card-info">
+							<h3>Charcoal & Turmeric Soap</h3>
+							<p class="price">R180</p>
+							<div class="card-actions">
+								<div class="qty-selector">
+									<button class="qty-btn" onclick="document.getElementById('q-charcoal').innerText = Math.max(1, parseInt(document.getElementById('q-charcoal').innerText)-1)">-</button>
+									<span id="q-charcoal" class="qty-val">1</span>
+									<button class="qty-btn" onclick="document.getElementById('q-charcoal').innerText = parseInt(document.getElementById('q-charcoal').innerText)+1">+</button>
+								</div>
+								<button class="gold-btn add-to-crate" data-id="charcoal" data-name="Charcoal & Turmeric Soap" data-price="180">ADD TO CRATE</button>
+							</div>
 						</div>
-						<button class="add-btn" data-name="Rainforest Herbs" data-pid="rainforest">
-							<span class="add-label">ADD TO ORDER</span>
-							<span class="add-ok">✓ ADDED</span>
-						</button>
 					</div>
-					<button class="ing-open mobile-only" data-modal="modal-rainforest">SEE INGREDIENTS</button>
-				</div>
-				<div class="side-panel desktop-only">
-					<h3 class="ing-title">INGREDIENTS</h3>
-					<p class="ing-text">NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS</p>
-					<p class="ing-extra">• SOOTHES SENSITIVE SKIN WITH EXTRACTS.</p>
-					<p class="ing-extra">• RESTORES NATURAL VITALITY AND BALANCE.</p>
+
+					<!-- ROOIBOS SOAP -->
+					<div class="product-card">
+						<div class="card-img-wrap">
+							<img src="/rooibos_hero.png" alt="Rooibos Soap"/>
+						</div>
+						<div class="card-info">
+							<h3>Rooibos & Tea Tree Soap</h3>
+							<p class="price">R180</p>
+							<div class="card-actions">
+								<div class="qty-selector">
+									<button class="qty-btn" onclick="document.getElementById('q-rooibos').innerText = Math.max(1, parseInt(document.getElementById('q-rooibos').innerText)-1)">-</button>
+									<span id="q-rooibos" class="qty-val">1</span>
+									<button class="qty-btn" onclick="document.getElementById('q-rooibos').innerText = parseInt(document.getElementById('q-rooibos').innerText)+1">+</button>
+								</div>
+								<button class="gold-btn add-to-crate" data-id="rooibos" data-name="Rooibos & Tea Tree Soap" data-price="180">ADD TO CRATE</button>
+							</div>
+						</div>
+					</div>
+
+					<!-- SKILLET -->
+					<div class="product-card">
+						<div class="card-img-wrap">
+							<!-- Using a sizzling skillet Unsplash image -->
+							<img src="https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fit=crop&q=80&w=800" alt="Sizzling Skillet"/>
+						</div>
+						<div class="card-info">
+							<h3>Cast Iron Skillet (Seasoned)</h3>
+							<p class="price">R450</p>
+							<div class="card-actions">
+								<div class="qty-selector">
+									<button class="qty-btn" onclick="document.getElementById('q-skillet').innerText = Math.max(1, parseInt(document.getElementById('q-skillet').innerText)-1)">-</button>
+									<span id="q-skillet" class="qty-val">1</span>
+									<button class="qty-btn" onclick="document.getElementById('q-skillet').innerText = parseInt(document.getElementById('q-skillet').innerText)+1">+</button>
+								</div>
+								<button class="gold-btn add-to-crate" data-id="skillet" data-name="Cast Iron Skillet" data-price="450">ADD TO CRATE</button>
+							</div>
+						</div>
+					</div>
+
 				</div>
 			</div>
 		</section>
-		<div class="mobile-modal" id="modal-rainforest">
-			<div class="modal-box">
-				<button class="modal-x" data-close="modal-rainforest">✕</button>
-				<h3>INGREDIENTS</h3>
-				<p>NATURAL TALLOW, PALM OIL, COCONUT OIL, ESSENTIAL OILS, NATURAL CLAYS, EXFOLIATING SEEDS, MIXED HERBS</p>
-				<hr/>
-				<p class="bullet-item">TALLOW IS BIO-IDENTICAL TO SEBUM.</p>
-				<p class="bullet-item">RICH IN VITAMINS A, D, E, AND K.</p>
-			</div>
-		</div>
 
-		<!-- Cart Button & Panel -->
-		<div class="cart-anchor">
-			<button id="cart-open" class="cart-pill"><span id="cart-tally">0</span> ITEMS</button>
-		</div>
+		<!-- MARKETS / FIND US PAGE -->
+		<section class="markets-section" id="markets">
+			<div class="markets-bg"></div>
+			<div class="markets-content">
+				<h2 class="distressed-gold section-title">FIND US AT THE MARKETS</h2>
+				<ul class="market-list">
+					<li>★ THE OLD BISCUIT MILL - CAPE TOWN ★</li>
+					<li>★ ORANJEZICHT CITY FARM MARKET ★</li>
+					<li>★ ROOT44 MARKET - STELLENBOSCH ★</li>
+					<li>★ SHONGWENI FARMERS MARKET - KZN ★</li>
+				</ul>
+				<div class="crate-visuals">
+					<img src="https://images.unsplash.com/photo-1596733430284-f743727546a6?auto=format&fit=crop&q=80&w=600" alt="Wooden Crates" class="crate-img" />
+				</div>
+			</div>
+		</section>
+
+		<!-- FOOTER -->
+		<footer class="main-footer">
+			<div class="footer-content">
+				<img src="https://images.unsplash.com/photo-1629853381617-6d601dff7244?auto=format&fit=crop&q=80&w=400" alt="Big Skull" class="footer-skull"/>
+				<h2 class="distressed-gold footer-slogan">NATURAL REBELLION</h2>
+				<p class="footer-copy">&copy; 2026 REBEL TALLOW CO. SOUTH AFRICA 🇿🇦</p>
+			</div>
+		</footer>
+
+		<!-- CART SHIELD AND DRAWER -->
 		<div class="cart-shield" id="cart-shield"></div>
 		<div class="cart-panel" id="cart-panel">
 			<div class="cart-top">
-				<h3>YOUR ORDER</h3>
-				<button id="cart-exit" style="background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer;font-family:inherit;">CLOSE ✕</button>
+				<h3>YOUR CRATE</h3>
+				<button id="cart-exit" class="close-cart-btn">✕</button>
 			</div>
 			<div id="cart-body" class="cart-body">
 				<p class="cart-empty">YOUR CRATE IS EMPTY</p>
 			</div>
 			<div class="cart-bottom">
 				<div class="cart-math"><span>TOTAL</span><span id="cart-total">R0</span></div>
-				<button id="wa-btn" class="checkout-btn" disabled>ORDER ON WHATSAPP</button>
+				<button id="checkout-btn" class="checkout-btn" disabled>ORDER ON WHATSAPP</button>
 			</div>
 		</div>
-
 	</main>
 </Layout>
 
 <script is:inline>
-// Wrapped in IIFE — runs immediately, no fragile imports
 (function() {
 	var cart = {};
-	var qtys = { charcoal: 1, rooibos: 1, cocoa: 1, rainforest: 1 };
-
-	function getQtyEl(pid) { return document.getElementById('qty-val-' + pid); }
 
 	function drawCart() {
 		var body = document.getElementById('cart-body');
 		var tally = document.getElementById('cart-tally');
 		var total = document.getElementById('cart-total');
-		var wa = document.getElementById('wa-btn');
+		var waBtn = document.getElementById('checkout-btn');
 		var keys = Object.keys(cart);
 
 		if (!body) return;
@@ -253,314 +199,347 @@ import Layout from '../layouts/Layout.astro';
 			body.innerHTML = '<p class="cart-empty">YOUR CRATE IS EMPTY</p>';
 			if (tally) tally.textContent = '0';
 			if (total) total.textContent = 'R0';
-			if (wa) wa.disabled = true;
+			if (waBtn) waBtn.disabled = true;
 			return;
 		}
 
 		var count = 0, sum = 0;
 		var html = '';
-		keys.forEach(function(name) {
-			var qty = cart[name];
-			count += qty;
-			sum += qty * 100;
+		keys.forEach(function(pid) {
+			var item = cart[pid];
+			count += item.qty;
+			var lineTotal = item.qty * item.price;
+			sum += lineTotal;
 			html += '<div class="cart-row">' +
-				'<div class="cart-row-top"><span>' + name + '</span><span>R' + (qty * 100) + '</span></div>' +
+				'<div class="cart-row-top"><span>' + item.name + '</span><span class="row-price">R' + lineTotal + '</span></div>' +
 				'<div class="cart-row-btns">' +
-				'<button onclick="rebelCartDec(\'' + name + '\')" class="cv-btn">-</button>' +
-				'<span class="cv-val">' + qty + '</span>' +
-				'<button onclick="rebelCartInc(\'' + name + '\')" class="cv-btn">+</button>' +
+				'<button onclick="rebelCartDec(\'' + pid + '\')" class="cv-btn">-</button>' +
+				'<span class="cv-val">' + item.qty + '</span>' +
+				'<button onclick="rebelCartInc(\'' + pid + '\')" class="cv-btn">+</button>' +
 				'</div></div>';
 		});
 
 		body.innerHTML = html;
 		if (tally) tally.textContent = count.toString();
 		if (total) total.textContent = 'R' + sum;
-		if (wa) wa.disabled = false;
+		if (waBtn) waBtn.disabled = false;
 	}
 
-	// Expose cart helpers globally so onclick in injected HTML works
-	window.rebelCartInc = function(name) { if (cart[name] !== undefined) { cart[name]++; drawCart(); } };
-	window.rebelCartDec = function(name) {
-		if (cart[name] !== undefined) {
-			cart[name]--;
-			if (cart[name] <= 0) delete cart[name];
+	window.rebelCartInc = function(pid) { if (cart[pid]) { cart[pid].qty++; drawCart(); } };
+	window.rebelCartDec = function(pid) {
+		if (cart[pid]) {
+			cart[pid].qty--;
+			if (cart[pid].qty <= 0) delete cart[pid];
 			drawCart();
 		}
 	};
 
 	document.addEventListener('DOMContentLoaded', function() {
-
-		// --- QTY BUTTONS ---
-		document.querySelectorAll('.qty-dec').forEach(function(btn) {
+		// ADD TO CRATE
+		document.querySelectorAll('.add-to-crate').forEach(function(btn) {
 			btn.addEventListener('click', function() {
-				var pid = btn.getAttribute('data-pid');
-				if (!pid) return;
-				if (!qtys[pid]) qtys[pid] = 1;
-				if (qtys[pid] > 1) qtys[pid]--;
-				var el = getQtyEl(pid);
-				if (el) el.textContent = qtys[pid];
-			});
-		});
-		document.querySelectorAll('.qty-inc').forEach(function(btn) {
-			btn.addEventListener('click', function() {
-				var pid = btn.getAttribute('data-pid');
-				if (!pid) return;
-				if (!qtys[pid]) qtys[pid] = 1;
-				qtys[pid]++;
-				var el = getQtyEl(pid);
-				if (el) el.textContent = qtys[pid];
-			});
-		});
-
-		// --- ADD TO ORDER BUTTONS ---
-		document.querySelectorAll('.add-btn').forEach(function(btn) {
-			btn.addEventListener('click', function() {
+				var id = btn.getAttribute('data-id');
 				var name = btn.getAttribute('data-name');
-				var pid = btn.getAttribute('data-pid');
-				if (!name || !pid) return;
-				var q = qtys[pid] || 1;
-				if (!cart[name]) cart[name] = 0;
-				cart[name] += q;
+				var price = parseInt(btn.getAttribute('data-price'), 10);
+				var qtyEl = document.getElementById('q-' + id);
+				var q = qtyEl ? parseInt(qtyEl.innerText) : 1;
+				
+				if (!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
+				cart[id].qty += q;
+				
+				// Feedback
+				var originalText = btn.innerText;
+				btn.innerText = "✓ ADDED";
 				btn.classList.add('added');
-				setTimeout(function() { btn.classList.remove('added'); }, 2000);
+				setTimeout(function() { 
+					btn.innerText = originalText; 
+					btn.classList.remove('added'); 
+				}, 1500);
+				
+				// Reset qty to 1
+				if (qtyEl) qtyEl.innerText = '1';
+				
 				drawCart();
 			});
 		});
 
-		// --- INGREDIENTS MODALS ---
-		document.querySelectorAll('.ing-open').forEach(function(btn) {
-			btn.addEventListener('click', function() {
-				var mid = btn.getAttribute('data-modal');
-				if (mid) {
-					var el = document.getElementById(mid);
-					if (el) el.classList.add('open');
-				}
-			});
-		});
-		document.querySelectorAll('.modal-x').forEach(function(btn) {
-			btn.addEventListener('click', function() {
-				var mid = btn.getAttribute('data-close');
-				if (mid) {
-					var el = document.getElementById(mid);
-					if (el) el.classList.remove('open');
-				}
-			});
-		});
-		// Close modal on backdrop click
-		document.querySelectorAll('.mobile-modal').forEach(function(modal) {
-			modal.addEventListener('click', function(e) {
-				if (e.target === modal) modal.classList.remove('open');
-			});
-		});
-
-		// --- CART PANEL ---
+		// CART PANEL LOGIC
 		var cartPanel = document.getElementById('cart-panel');
 		var cartShield = document.getElementById('cart-shield');
 		var cartOpen = document.getElementById('cart-open');
 		var cartExit = document.getElementById('cart-exit');
 
-		if (cartOpen) cartOpen.addEventListener('click', function() {
+		function openCart() {
 			if (cartPanel) cartPanel.classList.add('visible');
 			if (cartShield) cartShield.classList.add('visible');
-		});
-		if (cartExit) cartExit.addEventListener('click', function() {
+		}
+		function closeCart() {
 			if (cartPanel) cartPanel.classList.remove('visible');
 			if (cartShield) cartShield.classList.remove('visible');
-		});
-		if (cartShield) cartShield.addEventListener('click', function() {
-			if (cartPanel) cartPanel.classList.remove('visible');
-			cartShield.classList.remove('visible');
-		});
+		}
 
-		// --- WHATSAPP CHECKOUT ---
-		var waBtn = document.getElementById('wa-btn');
+		if (cartOpen) cartOpen.addEventListener('click', openCart);
+		if (cartExit) cartExit.addEventListener('click', closeCart);
+		if (cartShield) cartShield.addEventListener('click', closeCart);
+
+		// WHATSAPP CHECKOUT
+		var waBtn = document.getElementById('checkout-btn');
 		if (waBtn) waBtn.addEventListener('click', function() {
 			var num = "27636936204";
 			var total = 0;
-			var msg = "Hi RebelCo! My soap order:\n\n";
-			Object.keys(cart).forEach(function(name) {
-				msg += '• ' + cart[name] + ' x ' + name + ' (R' + (cart[name] * 100) + ')\n';
-				total += cart[name] * 100;
+			var msg = "Hi RebelCo! My Natural Rebellion crate order:\n\n";
+			Object.keys(cart).forEach(function(pid) {
+				var item = cart[pid];
+				var lineTotal = item.qty * item.price;
+				msg += '• ' + item.qty + ' x ' + item.name + ' (R' + lineTotal + ')\n';
+				total += lineTotal;
 			});
-			msg += '\nTOTAL: R' + total + '\n\nNo Excuses.';
+			msg += '\nTOTAL: R' + total + '\n\nI am ready for the pure rebellion.';
 			window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
 		});
 
-		// --- SMOOTH SCROLL (native, no library needed) ---
-		document.documentElement.style.scrollBehavior = 'smooth';
-
-		// --- PARALLAX ---
-		window.addEventListener('scroll', function() {
-			var scrollY = window.scrollY;
-			document.querySelectorAll('.nature-bg').forEach(function(bg) {
-				bg.style.transform = 'translateY(' + (scrollY * 0.05) + 'px)';
+		// SMOOTH SCROLL FOR NAV LINKS
+		document.querySelectorAll('.desktop-nav a').forEach(anchor => {
+			anchor.addEventListener('click', function (e) {
+				e.preventDefault();
+				document.querySelector(this.getAttribute('href')).scrollIntoView({
+					behavior: 'smooth'
+				});
 			});
-		}, { passive: true });
+		});
+
+		// SCROLL EFFECTS
+		var header = document.getElementById('main-header');
+		window.addEventListener('scroll', function() {
+			if (window.scrollY > 50) {
+				header.classList.add('scrolled');
+			} else {
+				header.classList.remove('scrolled');
+			}
+		});
 	});
 
 })();
 </script>
 
 <style>
-	:root { --gold: #f59e0b; }
+	@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rye&family=IM+Fell+English+SC&family=Inter:wght@400;600&display=swap');
+
+	:root { 
+		--gold: #d4af37;
+		--gold-dark: #b5952f;
+		--black:#050505;
+		--dark-wood: #110c08;
+		--text-light: #e5e5e5;
+		--text-muted: #a0a0a0;
+	}
 	* { box-sizing: border-box; }
-	html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: 'Staatliches', cursive; overflow-x: hidden; }
-
-	/* ── BACKGROUNDS ─────────────────────────────────── */
-	/* z-index: 1 so overflow:hidden doesn't clip it;    */
-	/* pointer-events:none so it never blocks clicks     */
-	.page-section {
-		min-height: 100vh; width: 100vw;
-		position: relative; display: flex;
-		align-items: center; justify-content: center;
-	}
-	.nature-bg {
-		position: absolute; inset: -20%;
-		background-size: cover; background-position: center;
-		filter: brightness(0.38) saturate(1.4);
-		z-index: 1; pointer-events: none;
-	}
-	/* All real content sits above the background */
-	.section-content { position: relative; z-index: 10; width: 95%; }
-
-	/* ── LANDING ─────────────────────────────────────── */
-	.landing-content { 
-		display: flex; flex-direction: column; align-items: center;
-		text-align: center; max-width: 800px; margin: auto; padding: 2rem;
-	}
-	.hero-logo { width: clamp(180px, 35vw, 320px); height: auto; margin-bottom: 2rem; filter: drop-shadow(0 0 40px rgba(0,0,0,0.8)); }
-	.landing-tagline { font-family: 'Bangers', cursive; font-size: clamp(2.5rem, 8vw, 5.5rem); margin: 0; text-shadow: 0 4px 20px rgba(0,0,0,1); }
-	.about-rebel-box {
-		padding: 2rem; margin: 2rem 0;
-		background: rgba(0,0,0,0.55); backdrop-filter: blur(12px);
-		border-left: 4px solid var(--gold); text-align: left;
-		font-size: 1.2rem; line-height: 1.5;
-	}
-	.scroll-hint { font-size: 1.1rem; letter-spacing: 0.3rem; color: rgba(255,255,255,0.5); margin-top: 1rem; }
-
-	/* ── PRODUCT GRID ────────────────────────────────── */
-	.product-layout {
-		display: grid; grid-template-columns: 1fr 1.6fr 1fr;
-		max-width: 1700px; gap: 3rem; align-items: center; padding: 3rem 0;
-	}
-	.main-interaction { display: flex; flex-direction: column; align-items: center; text-align: center; }
-	.product-pure-img { width: 100%; max-height: 48vh; object-fit: contain; filter: drop-shadow(0 20px 80px rgba(0,0,0,1)); margin-bottom: 1.5rem; }
-	.main-title { font-family: 'Bangers', cursive; font-size: 4rem; margin: 0; text-shadow: 0 4px 20px rgba(0,0,0,1); }
-	.main-price { font-family: 'Bangers', cursive; font-size: 3rem; color: var(--gold); margin: 0.5rem 0; }
-
-	/* ── CONTROLS ────────────────────────────────────── */
-	.buying-tools { display: flex; gap: 1rem; align-items: stretch; margin-top: 1.5rem; position: relative; z-index: 20; }
-	.quantity-box {
-		display: flex; background: rgba(0,0,0,0.7);
-		border: 2px solid rgba(255,255,255,0.2); border-radius: 6px; overflow: hidden;
-	}
-	.qty-dec, .qty-inc {
-		background: none; border: none; color: #fff;
-		padding: 0.8rem 1.4rem; cursor: pointer; font-size: 1.8rem;
-		transition: background 0.2s;
-	}
-	.qty-dec:hover, .qty-inc:hover { background: rgba(255,255,255,0.15); }
-	.qty-count { min-width: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--gold); font-weight: bold; }
-
-	.add-btn {
-		background: var(--gold); color: #000; border: none; padding: 0 2.5rem;
-		font-family: inherit; font-size: 1.5rem; font-weight: bold; cursor: pointer;
-		border-radius: 6px; position: relative; overflow: hidden; transition: transform 0.2s;
-	}
-	.add-btn:hover { transform: scale(1.05); }
-	.add-btn .add-ok { position: absolute; inset: 0; background: #22c55e; color: #fff; display: flex; align-items: center; justify-content: center; transform: translateY(100%); transition: transform 0.3s; font-size: 1.4rem; }
-	.add-btn.added .add-ok { transform: translateY(0); }
-
-	.ing-open {
-		margin-top: 2rem; background: rgba(255,255,255,0.05);
-		border: 1px solid rgba(255,255,255,0.25); color: #fff;
-		padding: 1rem 2.5rem; cursor: pointer; font-family: inherit;
-		font-size: 1.2rem; border-radius: 50px;
+	html, body {
+		margin: 0; padding: 0; background: var(--black); color: var(--text-light);
+		font-family: 'Inter', sans-serif; overflow-x: hidden;
 	}
 
-	/* ── SIDE PANELS ─────────────────────────────────── */
-	.side-panel { background: rgba(0,0,0,0.78); backdrop-filter: blur(25px); padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
-	.bullet-item { font-size: 1.4rem; margin-bottom: 1.5rem; line-height: 1.2; color: #fff; }
-	.bullet-item::before { content: '• '; color: var(--gold); }
-	.ing-title { color: var(--gold); font-family: 'Bangers'; font-size: 2.5rem; margin-top: 0; letter-spacing: 2px; }
-	.ing-text { font-size: 1.2rem; line-height: 1.4; color: #ddd; }
-	.ing-extra { font-size: 1.2rem; color: #aaa; margin-top: 0.3rem; }
+	/* ── FILM GRAIN OVERLAY ──────────────────────────── */
+	.film-grain {
+		position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+		pointer-events: none; z-index: 9999;
+		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E");
+		opacity: 0.15;
+		mix-blend-mode: overlay;
+	}
+
+	/* ── TYPOGRAPHY ──────────────────────────────────── */
+	.distressed-gold {
+		font-family: 'Rye', cursive;
+		color: var(--gold);
+		text-shadow: 2px 2px 0px rgba(0,0,0,0.8), 0 0 15px rgba(212,175,55,0.3);
+		letter-spacing: 2px;
+	}
 
 	/* ── HEADER ──────────────────────────────────────── */
-	.sticky-header {
-		position: fixed; top: 0; left: 0; right: 0;
-		z-index: 1000; padding: 1.5rem 2rem;
-		display: flex; justify-content: space-between; align-items: center;
+	.main-header {
+		position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+		padding: 1.5rem 2rem; transition: background 0.3s, padding 0.3s;
+		background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
 	}
-	.sticky-logo { width: 85px; mix-blend-mode: exclusion; }
-	.nav-link {
-		color: #fff; text-decoration: none; font-size: 1.1rem;
-		border: 1px solid rgba(255,255,255,0.3); padding: 0.6rem 1.2rem;
-		border-radius: 50px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);
-		transition: 0.3s;
+	.main-header.scrolled {
+		background: rgba(5,5,5,0.95);
+		border-bottom: 2px solid rgba(212,175,55,0.2);
+		padding: 1rem 2rem;
+		backdrop-filter: blur(10px);
 	}
-	.nav-link:hover { background: var(--gold); border-color: var(--gold); color: #000; }
+	.header-inner { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+	.logo-text {
+		font-family: 'Cinzel Decorative', serif; font-size: 1.8rem; font-weight: 900;
+		color: var(--gold); text-decoration: none; text-shadow: 2px 2px 5px #000;
+	}
+	.desktop-nav a {
+		font-family: 'IM Fell English SC', serif; color: var(--gold); text-decoration: none;
+		margin: 0 1.5rem; font-size: 1.4rem; letter-spacing: 1px; transition: color 0.3s;
+		text-shadow: 1px 1px 3px #000;
+	}
+	.desktop-nav a:hover { color: #fff; }
+	.wa-btn {
+		background: transparent; border: 2px solid var(--gold); color: var(--gold);
+		padding: 0.6rem 1.2rem; cursor: pointer; font-family: 'IM Fell English SC', serif;
+		font-size: 1.2rem; font-weight: bold; transition: all 0.3s; border-radius: 4px;
+	}
+	.wa-btn:hover { background: var(--gold); color: #000; }
+	.wa-icon { font-size: 1.2rem; }
 
-	/* ── CART PILL ───────────────────────────────────── */
-	.cart-anchor { position: fixed; bottom: 2rem; right: 2rem; z-index: 2000; }
-	.cart-pill {
-		background: var(--gold); color: #000; border: none; padding: 1.2rem 2.5rem;
-		border-radius: 50px; font-family: inherit; font-size: 1.5rem; font-weight: bold;
-		cursor: pointer; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: 0.2s;
+	/* ── BUTTONS ─────────────────────────────────────── */
+	.gold-btn {
+		display: inline-block; background: var(--gold); color: #000;
+		padding: 1rem 2.5rem; font-family: 'Inter', sans-serif; font-weight: 700;
+		font-size: 1.2rem; text-decoration: none; border: 2px solid var(--gold);
+		text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.3s;
 	}
-	.cart-pill:hover { transform: translateY(-3px); }
+	.gold-btn:hover { background: #000; color: var(--gold); box-shadow: 0 0 15px rgba(212,175,55,0.4); }
+	.ghost-btn {
+		display: inline-block; background: transparent; color: var(--gold);
+		padding: 1rem 2.5rem; font-family: 'Inter', sans-serif; font-weight: 700;
+		font-size: 1.2rem; text-decoration: none; border: 2px solid var(--gold);
+		text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.3s;
+	}
+	.ghost-btn:hover { background: var(--gold); color: #000; }
+
+	/* ── SECTIONS BASE ───────────────────────────────── */
+	section { position: relative; width: 100vw; overflow: hidden; }
+
+	/* ── HERO SECTION ────────────────────────────────── */
+	.hero-section {
+		height: 100vh; display: flex; align-items: center; justify-content: center;
+		text-align: center; background-color: #050505;
+	}
+	.hero-bg {
+		position: absolute; inset: 0;
+		background: url('https://images.unsplash.com/photo-1542382257-80ddbfc7478d?auto=format&fit=crop&q=80&w=2000') center/cover;
+		opacity: 0.4; filter: contrast(1.2) grayscale(0.2);
+	}
+	.smoke-overlay {
+		position: absolute; inset: 0;
+		background: radial-gradient(circle at center, rgba(5,5,5,0.2) 0%, rgba(5,5,5,1) 85%);
+	}
+	.hero-content { position: relative; z-index: 10; padding: 2rem; max-width: 900px; }
+	.title-main { font-size: clamp(3rem, 8vw, 6rem); margin: 0 0 1rem 0; line-height: 1.1; }
+	.hero-slogan {
+		font-family: 'IM Fell English SC', serif; color: var(--text-light);
+		font-size: clamp(1.5rem, 4vw, 3rem); margin: 0 0 3rem 0; text-shadow: 2px 2px 10px #000;
+	}
+	.hero-actions { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+
+	/* ── THE REBELLION ───────────────────────────────── */
+	.rebellion-section {
+		background: var(--black); padding: 8rem 2rem; text-align: center;
+		border-top: 1px solid rgba(212,175,55,0.2);
+		border-bottom: 1px solid rgba(212,175,55,0.2);
+	}
+	.rebellion-content { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+	.small-skull { width: 120px; filter: grayscale(1) contrast(1.5) brightness(0.8); margin-bottom: 1rem; mix-blend-mode: lighten; }
+	.section-title { font-size: 3rem; margin: 0 0 2rem 0; }
+	.manifesto p {
+		font-family: 'IM Fell English SC', serif; font-size: 1.4rem; line-height: 1.6;
+		margin-bottom: 1.5rem; color: var(--text-light); text-shadow: 1px 1px 2px #000;
+	}
+	.manifesto p:first-child { font-size: 1.8rem; color: var(--gold); }
+
+	/* ── SHOP SECTION ────────────────────────────────── */
+	.shop-section {
+		background: #0d0d0d; padding: 6rem 2rem;
+		background-image: radial-gradient(circle at center, rgba(26,17,10,0.5) 0%, #0d0d0d 100%);
+	}
+	.shop-content { max-width: 1400px; margin: 0 auto; }
+	.shop-content .section-title { text-align: center; margin-bottom: 4rem; }
+	.rustic-grid {
+		display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 3rem;
+	}
+	.product-card {
+		background: var(--dark-wood);
+		border: 1px solid rgba(212,175,55,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+		display: flex; flex-direction: column; transition: transform 0.3s, border-color 0.3s;
+	}
+	.product-card:hover { transform: translateY(-5px); border-color: rgba(212,175,55,0.5); }
+	.card-img-wrap {
+		width: 100%; height: 280px; overflow: hidden; background: #000;
+		display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(212,175,55,0.15);
+	}
+	.card-img-wrap img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.8) contrast(1.2); transition: 0.3s; }
+	.product-card:hover .card-img-wrap img { filter: brightness(1) contrast(1.1); transform: scale(1.05); }
+	.card-info { padding: 2rem; display: flex; flex-direction: column; flex: 1; text-align: center; }
+	.card-info h3 { font-family: 'IM Fell English SC', serif; font-size: 1.6rem; color: #fff; margin: 0 0 0.5rem 0; }
+	.card-info .price { font-family: 'Rye', cursive; font-size: 2rem; color: var(--gold); margin: 0 0 1.5rem 0; }
+	.card-actions { margin-top: auto; display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+	
+	.qty-selector { display: flex; align-items: center; border: 1px solid #444; border-radius: 4px; overflow: hidden; background: #000; }
+	.qty-btn { background: none; border: none; color: var(--gold); font-size: 1.2rem; padding: 0.5rem 1rem; cursor: pointer; transition: 0.2s; }
+	.qty-btn:hover { background: #222; }
+	.qty-val { color: #fff; font-weight: bold; width: 40px; text-align: center; font-size: 1.2rem; }
+	
+	.add-to-crate { width: 100%; }
+
+	/* ── MARKETS SECTION ─────────────────────────────── */
+	.markets-section {
+		padding: 6rem 2rem; position: relative; text-align: center; background: #080808;
+	}
+	.markets-bg {
+		position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1542382257-80ddbfc7478d?auto=format&fit=crop&q=80&w=2000') center/cover;
+		opacity: 0.15; mix-blend-mode: luminosity;
+	}
+	.markets-content { position: relative; z-index: 10; max-width: 800px; margin: 0 auto; }
+	.market-list { list-style: none; padding: 0; margin: 3rem 0; }
+	.market-list li {
+		font-family: 'IM Fell English SC', serif; font-size: 1.6rem; color: var(--gold);
+		margin-bottom: 1.5rem; letter-spacing: 2px; text-shadow: 1px 1px 5px #000;
+	}
+	.crate-visuals { margin-top: 3rem; }
+	.crate-img { width: 100%; max-width: 500px; filter: grayscale(0.5) contrast(1.2); border: 2px solid #222; }
+
+	/* ── FOOTER ──────────────────────────────────────── */
+	.main-footer {
+		background: #000; padding: 4rem 2rem 2rem; text-align: center; border-top: 2px solid #111;
+	}
+	.footer-content { display: flex; flex-direction: column; align-items: center; }
+	.footer-skull { width: 180px; filter: grayscale(1) brightness(0.7); margin-bottom: 2rem; }
+	.footer-slogan { font-size: 2.5rem; margin: 0 0 2rem 0; }
+	.footer-copy { color: #555; font-size: 1rem; letter-spacing: 1px; }
 
 	/* ── CART DRAWER ─────────────────────────────────── */
 	.cart-shield { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; opacity: 0; pointer-events: none; transition: 0.4s; }
 	.cart-shield.visible { opacity: 1; pointer-events: auto; }
 	.cart-panel {
 		position: fixed; top: 0; right: 0; width: clamp(340px, 90vw, 480px); height: 100vh;
-		background: #0d0d0d; z-index: 3100; transform: translateX(100%);
+		background: var(--dark-wood); z-index: 3100; transform: translateX(100%);
 		transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-		display: flex; flex-direction: column; border-left: 1px solid #333;
+		display: flex; flex-direction: column; border-left: 2px solid var(--gold);
 	}
 	.cart-panel.visible { transform: translateX(0); }
 	.cart-top { padding: 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-	.cart-top h3 { color: var(--gold); font-family: 'Bangers'; font-size: 2.5rem; margin: 0; }
+	.cart-top h3 { color: var(--gold); font-family: 'Rye', cursive; font-size: 2rem; margin: 0; }
+	.close-cart-btn { background: none; border: none; color: #888; font-size: 1.8rem; cursor: pointer; }
+	.close-cart-btn:hover { color: #fff; }
 	.cart-body { flex: 1; overflow-y: auto; padding: 2rem; }
-	.cart-empty { color: #555; font-size: 1.3rem; text-align: center; margin-top: 3rem; }
-	.cart-row { padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
-	.cart-row-top { display: flex; justify-content: space-between; font-size: 1.5rem; margin-bottom: 1rem; }
+	.cart-empty { color: #555; text-align: center; font-size: 1.2rem; margin-top: 3rem; font-family: 'IM Fell English SC', serif; }
+	.cart-row { padding-bottom: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #222; }
+	.cart-row-top { display: flex; justify-content: space-between; font-family: 'IM Fell English SC', serif; font-size: 1.2rem; margin-bottom: 1rem; color: #fff; }
+	.row-price { color: var(--gold); }
 	.cart-row-btns { display: flex; align-items: center; gap: 1rem; }
-	.cv-btn { background: #222; border: 1px solid #444; color: #fff; width: 38px; height: 38px; cursor: pointer; font-size: 1.3rem; border-radius: 4px; }
-	.cv-val { color: var(--gold); font-size: 1.4rem; font-weight: bold; }
+	.cv-btn { background: #000; border: 1px solid #444; color: var(--gold); width: 30px; height: 30px; cursor: pointer; border-radius: 4px; }
+	.cv-btn:hover { background: #222; border-color: var(--gold); }
+	.cv-val { color: #fff; font-weight: bold; width: 20px; text-align: center; }
 	.cart-bottom { padding: 2rem; border-top: 1px solid #333; background: #000; }
-	.cart-math { display: flex; justify-content: space-between; font-family: 'Bangers'; font-size: 3rem; margin-bottom: 1.5rem; }
-	.checkout-btn { width: 100%; background: #22c55e; color: #fff; border: none; padding: 1.8rem; font-family: inherit; font-size: 1.6rem; font-weight: bold; cursor: pointer; border-radius: 8px; }
+	.cart-math { display: flex; justify-content: space-between; font-family: 'Rye', cursive; font-size: 2rem; margin-bottom: 1.5rem; color: var(--text-light); }
+	.cart-math span:last-child { color: var(--gold); }
+	.checkout-btn { width: 100%; background: var(--gold); color: #000; border: none; padding: 1.5rem; font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
 	.checkout-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-	/* ── MOBILE MODAL ────────────────────────────────── */
-	.mobile-modal {
-		position: fixed; inset: 0; background: rgba(0,0,0,0.96);
-		z-index: 10000; display: flex; align-items: center; justify-content: center;
-		padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-	}
-	.mobile-modal.open { opacity: 1; pointer-events: auto; }
-	.modal-box {
-		background: #111; padding: 2.5rem; border-radius: 12px;
-		width: 100%; max-width: 550px; position: relative;
-		border: 1px solid #333; max-height: 85vh; overflow-y: auto;
-	}
-	.modal-x { position: absolute; top: 1rem; right: 1.5rem; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer; }
+	.checkout-btn:hover:not(:disabled) { background: #fff; }
 
 	/* ── RESPONSIVE ──────────────────────────────────── */
-	@media (max-width: 1024px) {
-		.product-layout {
-			grid-template-columns: 1fr;
-			display: flex; flex-direction: column;
-			padding: 8rem 1.5rem; gap: 2rem;
-		}
-		.desktop-only { display: none; }
-		.main-title { font-size: 3rem; }
-		.product-pure-img { max-height: 38vh; }
-		.buying-tools { flex-direction: column; width: 100%; max-width: 400px; }
-		.quantity-box { justify-content: center; }
-		.add-btn { padding: 1.5rem; width: 100%; }
+	@media (max-width: 768px) {
+		.header-inner { flex-direction: column; gap: 1rem; }
+		.desktop-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+		.desktop-nav a { margin: 0; font-size: 1.2rem; }
+		.hero-actions { flex-direction: column; width: 100%; }
+		.gold-btn, .ghost-btn { width: 100%; text-align: center; }
 	}
-	@media (min-width: 1025px) { .mobile-only { display: none; } }
 </style>
