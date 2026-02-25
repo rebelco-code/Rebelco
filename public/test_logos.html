@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+  body { background: #111; color: white; display: flex; gap: 2rem; padding: 2rem; }
+  
+  .card-generated-logo {
+      width: 300px; height: 300px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 2px solid #333;
+      position: relative;
+      /* Ex: Rainforrest Herbs base color */
+      background-color: #17361a;
+  }
+  
+  .logo-badge-container {
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      position: relative;
+      background: #000;
+      margin-bottom: 20px;
+  }
+  
+  .badge-crop {
+      /* We need to scale the 1920x1080 screenshot so the center beige circle fits 180px */
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      transform: scale(3.2); /* Dial this in! */
+      filter: contrast(1.1) brightness(1.05);
+  }
+
+  .logo-product-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+      /* Outlined text effect mimicking the Canva label's product name */
+      color: #17361a;
+      -webkit-text-stroke: 1px #e6c589;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+      text-align: center;
+      line-height: 1;
+      padding: 0 10px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="card-generated-logo" style="background-color: #17361a;">
+    <div class="logo-badge-container">
+        <!-- Using slide 1 (Charcoal) since it has the skull and badge perfectly placed -->
+        <img src="/canva_slide_1.png" class="badge-crop" alt="Badge"/>
+    </div>
+    <div class="logo-product-name" style="color: #17361a;">RAINFOREST<br/>HERBS</div>
+</div>
+
+<div class="card-generated-logo" style="background-color: #551b1b;">
+    <div class="logo-badge-container">
+        <img src="/canva_slide_1.png" class="badge-crop" alt="Badge"/>
+    </div>
+    <div class="logo-product-name" style="color: #551b1b;">ROOIBOS &<br/>TEA TREE</div>
+</div>
+
+</body>
+</html>
