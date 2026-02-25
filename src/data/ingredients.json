@@ -1,0 +1,50 @@
+{
+    "tallow": {
+        "name": "Pure Beef Tallow 500ml",
+        "ingredients": "100% Pure rendered beef fat. Trace amounts of Vitamin D and natural resilience."
+    },
+    "charcoal": {
+        "name": "Charcoal & Turmeric Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Charcoal, Turmeric"
+    },
+    "rooibos": {
+        "name": "Rooibos & Tea Tree Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Rooibos, Tee Tree"
+    },
+    "cocoa": {
+        "name": "Cocoa Coconut Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Cocoa, Coconut"
+    },
+    "rainforest": {
+        "name": "Rainforest Herbs Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Mixed Herbs"
+    },
+    "oats": {
+        "name": "Oats & Honey Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Oats, Honey"
+    },
+    "ocean": {
+        "name": "Ocean Blue Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Sea Sand, Jasmine Oil"
+    },
+    "aloe": {
+        "name": "Aloe & Rosemary Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Aloe, Rosemary"
+    },
+    "grotman": {
+        "name": "Grotman All-in-One Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds"
+    },
+    "shampoo": {
+        "name": "Shampoo & Conditioner Bar",
+        "ingredients": "Tallow, Jojoba Oil, Palm Oil, Coconut Oil, Caster Oil, Essential Oils, Natural Clays"
+    },
+    "salt": {
+        "name": "Himalayan Salt Soap",
+        "ingredients": "Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Himalayan Salt"
+    },
+    "skillet": {
+        "name": "Cast Iron Skillet",
+        "ingredients": "100% Seasoned Cast Iron. Built for rebellion."
+    }
+}

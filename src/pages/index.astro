@@ -3,7 +3,8 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="REBEL TALLOW CO. | Natural Rebellion">
-	<!-- Film Grain Overlay -->
+	<!-- Fixed Smoke Background & Film Grain Overlay -->
+	<div class="smoke-site-bg"></div>
 	<div class="film-grain"></div>
 
 	<!-- Header Nav -->
@@ -11,10 +12,8 @@ import Layout from '../layouts/Layout.astro';
 		<div class="header-inner">
 			<div class="header-left">
 				<a href="/" class="skull-logo-link">
-					<!-- SVG Skull Logo placeholder to match mockup -->
-					<svg class="skull-logo" viewBox="0 0 100 100" fill="var(--gold-light)">
-						<path d="M50 8C35 8 20 18 10 30c0 0 15-5 30-2 0 0-5 20-5 35 0 0 5 15 15 25 10-10 15-25 15-25 0-15-5-35-5-35 15-3 30 2 30 2-10-12-25-22-40-22zm-5 45c-2 0-3-2-3-4s1-4 3-4 3 2 3 4-1 4-3 4zm10 0c-2 0-3-2-3-4s1-4 3-4 3 2 3 4-1 4-3 4z"/>
-					</svg>
+					<!-- Skull from the label designs used directly from slide screenshot -->
+					<div class="skull-logo-img"></div>
 				</a>
 			</div>
 			<div class="header-center">
@@ -39,12 +38,11 @@ import Layout from '../layouts/Layout.astro';
 	<main class="scroll-container">
 		<!-- HERO SECTION -->
 		<section class="hero-section" id="home">
-			<div class="hero-bg"></div>
 			<div class="smoke-overlay"></div>
 			<div class="hero-content">
 				<div class="hero-skull-wrapper">
-					<!-- You would ideally use a transparent skull graphic here, using standard unsplash for now tinted -->
-					<img src="https://images.unsplash.com/photo-1542382257-80ddbfc7478d?auto=format&fit=crop&q=80&w=1000" alt="Massive Skull" class="hero-skull-img" />
+					<!-- Extremely prominent brand skull extracted dynamically from the canva label! -->
+					<div class="hero-giant-skull"></div>
 				</div>
 				<h1 class="logo-text-huge">REBEL TALLOW CO.</h1>
 				<h2 class="hero-slogan">Rebel Against the Processed.<br/>Return to Pure South African Roots.</h2>
@@ -61,7 +59,7 @@ import Layout from '../layouts/Layout.astro';
 				<div class="rebellion-content">
 					<h2 class="section-title logo-text-large">The Rebellion</h2>
 					<p class="rebellion-sub">REBEL AGAINST THE PROCESSED. RETURN<br/>TO PURE SOUTH AFRICAN ROOTS.</p>
-					<img src="https://images.unsplash.com/photo-1629853381617-6d601dff7244?auto=format&fit=crop&q=80&w=600" alt="Skull" class="rebellion-skull"/>
+					<div class="rebellion-medium-skull"></div>
 				</div>
 			</div>
 
@@ -85,7 +83,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-tallow">1</span>
 									<button onclick="document.getElementById('q-tallow').innerText = parseInt(document.getElementById('q-tallow').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="tallow" data-name="Pure Beef Tallow 500ml" data-price="180">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="tallow" data-name="Pure Beef Tallow 500ml" data-price="180">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('tallow')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -93,7 +94,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&q=80&w=400" alt="Charcoal Turmeric Soap"/>
+								<img src="/canva_slide_2.png" alt="Charcoal Turmeric Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Charcoal & Turmeric</h3>
@@ -103,7 +104,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-charcoal">1</span>
 									<button onclick="document.getElementById('q-charcoal').innerText = parseInt(document.getElementById('q-charcoal').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="charcoal" data-name="Charcoal & Turmeric Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="charcoal" data-name="Charcoal & Turmeric Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('charcoal')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -111,7 +115,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1607006411066-58bf592afbb1?auto=format&fit=crop&q=80&w=400" alt="Rooibos Soap"/>
+								<img src="/canva_slide_3.png" alt="Rooibos Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Rooibos & Tea Tree</h3>
@@ -121,7 +125,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-rooibos">1</span>
 									<button onclick="document.getElementById('q-rooibos').innerText = parseInt(document.getElementById('q-rooibos').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="rooibos" data-name="Rooibos & Tea Tree Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="rooibos" data-name="Rooibos & Tea Tree Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('rooibos')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -129,7 +136,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1548610761-0985dd5b6026?auto=format&fit=crop&q=80&w=400" alt="Cocoa Coconut Soap"/>
+								<img src="/canva_slide_4.png" alt="Cocoa Coconut Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Cocoa Coconut</h3>
@@ -139,7 +146,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-cocoa">1</span>
 									<button onclick="document.getElementById('q-cocoa').innerText = parseInt(document.getElementById('q-cocoa').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="cocoa" data-name="Cocoa Coconut Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="cocoa" data-name="Cocoa Coconut Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('cocoa')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -147,7 +157,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=400" alt="Rainforest Herbs Soap"/>
+								<img src="/canva_slide_5.png" alt="Rainforest Herbs Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Rainforest Herbs</h3>
@@ -157,7 +167,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-rainforest">1</span>
 									<button onclick="document.getElementById('q-rainforest').innerText = parseInt(document.getElementById('q-rainforest').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="rainforest" data-name="Rainforest Herbs Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="rainforest" data-name="Rainforest Herbs Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('rainforest')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -165,7 +178,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1620942316410-b74709bedb78?auto=format&fit=crop&q=80&w=400" alt="Oats and Honey Soap"/>
+								<img src="/canva_slide_6.png" alt="Oats and Honey Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Oats & Honey</h3>
@@ -175,7 +188,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-oats">1</span>
 									<button onclick="document.getElementById('q-oats').innerText = parseInt(document.getElementById('q-oats').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="oats" data-name="Oats & Honey Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="oats" data-name="Oats & Honey Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('oats')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -183,7 +199,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1559131668-b7d609bd8eb6?auto=format&fit=crop&q=80&w=400" alt="Ocean Blue Soap"/>
+								<img src="/canva_slide_7.png" alt="Ocean Blue Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Ocean Blue</h3>
@@ -193,7 +209,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-ocean">1</span>
 									<button onclick="document.getElementById('q-ocean').innerText = parseInt(document.getElementById('q-ocean').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="ocean" data-name="Ocean Blue Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="ocean" data-name="Ocean Blue Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('ocean')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -201,7 +220,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1595180637175-15a0172e259e?auto=format&fit=crop&q=80&w=400" alt="Aloe and Rosemary Soap"/>
+								<img src="/canva_slide_8.png" alt="Aloe and Rosemary Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Aloe & Rosemary</h3>
@@ -211,7 +230,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-aloe">1</span>
 									<button onclick="document.getElementById('q-aloe').innerText = parseInt(document.getElementById('q-aloe').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="aloe" data-name="Aloe & Rosemary Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="aloe" data-name="Aloe & Rosemary Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('aloe')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -219,7 +241,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1626352936928-111108aff7af?auto=format&fit=crop&q=80&w=400" alt="Grotman Barb Soap"/>
+								<img src="/canva_slide_9.png" alt="Grotman Barb Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Grotman Soap</h3>
@@ -229,7 +251,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-grotman">1</span>
 									<button onclick="document.getElementById('q-grotman').innerText = parseInt(document.getElementById('q-grotman').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="grotman" data-name="Grotman All-in-One Soap" data-price="120">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="grotman" data-name="Grotman All-in-One Soap" data-price="120">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('grotman')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -237,7 +262,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1631214500515-b4618a8b1397?auto=format&fit=crop&q=80&w=400" alt="Shampoo and Conditioner Bar"/>
+								<img src="/canva_slide_10.png" alt="Shampoo and Conditioner Bar" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Shampoo Bar</h3>
@@ -247,7 +272,10 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-shampoo">1</span>
 									<button onclick="document.getElementById('q-shampoo').innerText = parseInt(document.getElementById('q-shampoo').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="shampoo" data-name="Shampoo & Conditioner Bar" data-price="120">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="shampoo" data-name="Shampoo & Conditioner Bar" data-price="120">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('shampoo')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
@@ -255,7 +283,7 @@ import Layout from '../layouts/Layout.astro';
 						<div class="product-card">
 							<div class="rebel-stamp">Rebel</div>
 							<div class="card-img-wrap">
-								<img src="https://images.unsplash.com/photo-1616866299863-1d01f9c0c1b7?auto=format&fit=crop&q=80&w=400" alt="Himalayan Salt Soap"/>
+								<img src="/canva_slide_11.png" alt="Himalayan Salt Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
 								<h3 class="prod-title">Himalayan Salt</h3>
@@ -265,13 +293,16 @@ import Layout from '../layouts/Layout.astro';
 									<span id="q-salt">1</span>
 									<button onclick="document.getElementById('q-salt').innerText = parseInt(document.getElementById('q-salt').innerText)+1">+</button>
 								</div>
-								<button class="add-crate-btn" data-id="salt" data-name="Himalayan Salt Soap" data-price="100">Add to Crate</button>
+								<div class="action-buttons">
+									<button class="add-crate-btn" data-id="salt" data-name="Himalayan Salt Soap" data-price="100">Add to Crate</button>
+									<button class="ing-btn" onclick="openIngredientModal('salt')">View Ingredients</button>
+								</div>
 							</div>
 						</div>
 
 					</div>
 
-					<!-- MARKETS SUBSECTION INSIDE SHOP PANE (like mockup) -->
+					<!-- MARKETS SUBSECTION -->
 					<div class="markets-banner" id="markets">
 						<div class="markets-banner-text">
 							<h2>Find Us at<br/>These Markets</h2>
@@ -289,6 +320,16 @@ import Layout from '../layouts/Layout.astro';
 				<p class="footer-copy">&copy; 2026 REBEL TALLOW CO. SOUTH AFRICA 🇿🇦 <br/><br/> NO EXCUSES. JUST PURE REBELLION.</p>
 			</div>
 		</footer>
+
+		<!-- MODAL: INGREDIENTS -->
+		<div class="ingredients-modal" id="ingredients-modal">
+			<div class="ingredients-modal-box">
+				<button class="close-modal-btn" onclick="closeIngredientModal()">✕</button>
+				<div class="skull-logo-img modal-skull-stamp"></div>
+				<h3 id="modal-title" class="logo-text-large">Ingredients</h3>
+				<p id="modal-text" class="modal-content-text">Loading...</p>
+			</div>
+		</div>
 
 		<!-- CART SHIELD AND DRAWER -->
 		<div class="cart-shield" id="cart-shield"></div>
@@ -311,6 +352,33 @@ import Layout from '../layouts/Layout.astro';
 <script is:inline>
 (function() {
 	var cart = {};
+
+	// DYNAMIC INGREDIENT MAP FROM CANVA EXTRACTION
+	var INGREDIENTS = {
+		'tallow': { title: 'Pure Beef Tallow', text: '100% Pure rendered beef fat. Sourced from grass-fed, ethically raised cattle. Contains trace amounts of Vitamin D.' },
+		'charcoal': { title: 'Charcoal & Turmeric', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Charcoal, Turmeric' },
+		'rooibos': { title: 'Rooibos & Tea Tree', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Rooibos, Tee Tree' },
+		'cocoa': { title: 'Cocoa Coconut Soap', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Cocoa, Coconut' },
+		'rainforest': { title: 'Rainforest Herbs', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Mixed Herbs' },
+		'oats': { title: 'Oats & Honey', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Oats, Honey' },
+		'ocean': { title: 'Ocean Blue Soap', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Sea Sand, Jasmine Oil' },
+		'aloe': { title: 'Aloe & Rosemary', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Aloe, Rosemary' },
+		'grotman': { title: 'Grotman All-in-One', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds' },
+		'shampoo': { title: 'Shampoo & Conditioner', text: 'Tallow, Jojoba Oil, Palm Oil, Coconut Oil, Caster Oil, Essential Oils, Natural Clays' },
+		'salt': { title: 'Himalayan Salt Soap', text: 'Natural Tallow, Palm Oil, Coconut Oil, Essential Oils, Natural Clays, Exfoliating Seeds, Himalayan Salt' }
+	};
+
+	window.openIngredientModal = function(id) {
+		var mod = document.getElementById('ingredients-modal');
+		if(INGREDIENTS[id]) {
+			document.getElementById('modal-title').innerText = INGREDIENTS[id].title;
+			document.getElementById('modal-text').innerText = INGREDIENTS[id].text;
+			mod.classList.add('visible');
+		}
+	};
+	window.closeIngredientModal = function() {
+		document.getElementById('ingredients-modal').classList.remove('visible');
+	};
 
 	function drawCart() {
 		var body = document.getElementById('cart-body');
@@ -408,6 +476,14 @@ import Layout from '../layouts/Layout.astro';
 		if (cartExit) cartExit.addEventListener('click', closeCart);
 		if (cartShield) cartShield.addEventListener('click', closeCart);
 
+		// CLOSE INGREDIENTS ON BACKGROUND CLICK
+		var bgClick = document.getElementById('ingredients-modal');
+		if(bgClick) {
+			bgClick.addEventListener('click', function(e) {
+				if(e.target === bgClick) closeIngredientModal();
+			});
+		}
+
 		// WHATSAPP CHECKOUT
 		var waBtn = document.getElementById('checkout-btn');
 		if (waBtn) waBtn.addEventListener('click', function() {
@@ -444,7 +520,6 @@ import Layout from '../layouts/Layout.astro';
 </script>
 
 <style>
-	/* Use strong, bold sans-serifs for headers to match mockups, and a readable serif/sans for body */
 	@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
 	:root { 
@@ -462,19 +537,38 @@ import Layout from '../layouts/Layout.astro';
 		font-family: 'Libre Baskerville', serif; overflow-x: hidden;
 	}
 
+	/* ── FIXED SMOKE BACKGROUND ──────────────────────── */
+	/* Replaces the old plain black background with the immersive smoke */
+	.smoke-site-bg {
+		position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+		background: url('https://images.unsplash.com/photo-1542382257-80ddbfc7478d?auto=format&fit=crop&q=80&w=2000') no-repeat center center fixed;
+		background-size: cover; filter: contrast(1.1) brightness(0.3) saturate(0.8);
+		z-index: -2; pointer-events: none;
+	}
+
 	/* ── FILM GRAIN & ATMOSPHERE ─────────────────────── */
 	.film-grain {
 		position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
 		pointer-events: none; z-index: 9999;
 		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.35'/%3E%3C/svg%3E");
-		opacity: 0.12;
-		mix-blend-mode: overlay;
+		opacity: 0.12; mix-blend-mode: overlay;
 	}
 
 	/* ── UTILS ───────────────────────────────────────── */
-	.logo-text { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; color: var(--gold-light); }
+	.logo-text { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; color: var(--gold-light); text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
 	.logo-text-large { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; color: var(--gold-light); font-size: 4rem; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
 	.logo-text-huge { font-family: 'Bebas Neue', sans-serif; letter-spacing: 3px; color: var(--gold-light); font-size: clamp(4rem, 10vw, 8rem); margin: 0; line-height: 1; text-shadow: 2px 2px 20px rgba(0,0,0,0.9); text-align: center;}
+
+	/* ── SKULL LOGO (EXTRACTED FROM CANVA SLIDE 1) ──── */
+	.skull-logo-img {
+		width: 70px; height: 70px;
+		background-image: url('/canva_slide_1.png');
+		/* Zooming in substantially onto the skull placed in the center of the Canva Slide */
+		background-size: 700%;
+		background-position: center; border-radius: 50%;
+		filter: drop-shadow(0 4px 6px rgba(0,0,0,0.9)) contrast(1.2);
+		border: 1px solid rgba(192, 157, 90, 0.4);
+	}
 
 	/* ── HEADER ──────────────────────────────────────── */
 	.main-header {
@@ -485,7 +579,6 @@ import Layout from '../layouts/Layout.astro';
 	.header-inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 1600px; margin: 0 auto; }
 	.header-left { display: flex; align-items: center; justify-content: flex-start; }
 	.skull-logo-link { display: flex; align-items: center; text-decoration: none; }
-	.skull-logo { width: 50px; height: 50px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); }
 	.header-center { display: flex; justify-content: center; }
 	.header-center .logo-text { font-size: 2.2rem; text-decoration: none; margin-top: 5px; }
 	
@@ -512,13 +605,7 @@ import Layout from '../layouts/Layout.astro';
 	/* ── HERO SECTION ────────────────────────────────── */
 	.hero-section {
 		height: 100vh; position: relative; display: flex; align-items: center; justify-content: center;
-		overflow: hidden;
-	}
-	.hero-bg {
-		position: absolute; inset: 0;
-		/* Use a smokey background */
-		background: url('https://images.unsplash.com/photo-1542382257-80ddbfc7478d?auto=format&fit=crop&q=80&w=2000') center/cover;
-		filter: contrast(1.1) brightness(0.4) saturate(0.8);
+		overflow: hidden; background: transparent; /* Changed to let global smoke show */
 	}
 	.smoke-overlay {
 		position: absolute; inset: 0;
@@ -526,8 +613,12 @@ import Layout from '../layouts/Layout.astro';
 	}
 	.hero-content { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; padding: 0 2rem; width: 100%;}
 	
-	.hero-skull-wrapper { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: -1; width: 80%; max-width: 1200px; opacity: 0.5; mix-blend-mode: screen;}
-	.hero-skull-img { width: 100%; height: auto; object-fit: contain; filter: contrast(1.5) brightness(1.2) drop-shadow(0 0 50px #000); }
+	.hero-skull-wrapper { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: -1; width: 80%; max-width: 600px; opacity: 0.45; mix-blend-mode: screen;}
+	.hero-giant-skull {
+		width: 100%; aspect-ratio: 1/1; border-radius: 50%;
+		background-image: url('/canva_slide_1.png'); background-size: 350%; background-position: center;
+		filter: contrast(1.5) brightness(1.2) drop-shadow(0 0 50px #000);
+	}
 
 	.hero-slogan {
 		font-family: 'Playfair Display', serif; color: var(--text-light);
@@ -554,18 +645,24 @@ import Layout from '../layouts/Layout.astro';
 	.gold-btn.btn-outline:hover { background: rgba(193, 155, 81, 0.1); }
 
 	/* ── SPLIT SECTION (Mockup layout) ───────────────── */
-	.split-section { display: flex; width: 100vw; min-height: 100vh; background: var(--black); }
+	.split-section { display: flex; width: 100vw; min-height: 100vh; background: transparent; }
 	
 	.split-left {
 		width: 40%; padding: 4rem; display: flex; flex-direction: column; align-items: center;
-		border-right: 1px solid #222; position: relative; overflow: hidden;
+		border-right: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden;
+		background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
 	}
 	.rebellion-content { position: sticky; top: 4rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
-	.rebellion-sub { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: #888; letter-spacing: 1px; margin-top: -1rem; margin-bottom: 3rem; }
-	.rebellion-skull { width: 100%; max-width: 400px; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.9)) contrast(1.2); }
+	.rebellion-sub { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--gold-mid); letter-spacing: 1px; margin-top: -1rem; margin-bottom: 3rem; }
+	.rebellion-medium-skull {
+		width: 300px; height: 300px; border-radius: 50%; border: 2px solid rgba(192, 157, 90, 0.1);
+		background-image: url('/canva_slide_1.png'); background-size: 400%; background-position: center;
+		filter: drop-shadow(0 20px 30px rgba(0,0,0,0.9)) contrast(1.2); mix-blend-mode: luminosity;
+	}
 
 	.split-right {
-		width: 60%; position: relative; padding: 4rem; background: #0f0f0f;
+		width: 60%; position: relative; padding: 4rem; background: rgba(15, 15, 15, 0.85);
+		backdrop-filter: blur(5px);
 	}
 	.shop-wood-bg {
 		position: absolute; inset: 0;
@@ -575,17 +672,17 @@ import Layout from '../layouts/Layout.astro';
 	.shop-content { position: relative; z-index: 10; padding-bottom: 4rem; }
 	
 	.shop-grid {
-		display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 		gap: 2rem; margin-top: 2rem;
 	}
 	
 	.product-card {
-		background: rgba(15, 15, 15, 0.6); backdrop-filter: blur(10px);
-		border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem;
+		background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(10px);
+		border: 1px solid rgba(255,255,255,0.1); padding: 1.5rem;
 		display: flex; flex-direction: column; align-items: center; position: relative;
-		transition: transform 0.3s;
+		transition: transform 0.3s, border-color 0.3s;
 	}
-	.product-card:hover { transform: translateY(-5px); border-color: rgba(192, 157, 90, 0.3); }
+	.product-card:hover { transform: translateY(-5px); border-color: rgba(192, 157, 90, 0.4); box-shadow: 0 15px 30px rgba(0,0,0,0.8); }
 	
 	.rebel-stamp {
 		position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px;
@@ -594,29 +691,62 @@ import Layout from '../layouts/Layout.astro';
 		transform: rotate(15deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); z-index: 5;
 	}
 	
-	.card-img-wrap { width: 100%; aspect-ratio: 4/5; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; overflow: hidden;}
+	/* The core mechanism handling exactly the center of the Canva Slide labels */
+	.card-img-wrap { width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; overflow: hidden; border-radius: 4px; border: 1px solid #222;}
 	.card-img-wrap img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9) contrast(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: 0.3s; }
+	.label-photo { object-position: center center; }
 	.product-card:hover .card-img-wrap img { transform: scale(1.05); filter: brightness(1) contrast(1.2); }
 	
 	.card-bottom { width: 100%; display: flex; flex-direction: column; align-items: center; }
-	.prod-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; margin: 0 0 0.5rem 0; color: #fff; letter-spacing: 1px;}
-	.price { font-family: 'Libre Baskerville', serif; font-weight: bold; font-size: 1.2rem; color: #fff; margin: 0 0 1rem 0; background: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=200') center/cover; -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: sepia(1) hue-rotate(10deg) saturate(2); }
+	.prod-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; margin: 0 0 0.5rem 0; color: #fff; letter-spacing: 1px; text-align: center;}
+	.price { font-family: 'Libre Baskerville', serif; font-weight: bold; font-size: 1.3rem; color: #fff; margin: 0 0 1rem 0; background: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=200') center/cover; -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: sepia(1) hue-rotate(10deg) saturate(2); }
 	
 	.qty-control {
 		display: flex; align-items: center; justify-content: space-between; width: 100%;
-		border: 1px solid #333; margin-bottom: 1rem; padding: 0.2rem;
+		border: 1px solid #333; margin-bottom: 1rem; padding: 0.2rem; background: rgba(0,0,0,0.5);
 	}
 	.qty-control button { background: none; border: none; color: #fff; font-size: 1.2rem; padding: 0.2rem 1rem; cursor: pointer; }
 	.qty-control button:hover { color: var(--gold-light); }
-	.qty-control span { font-family: sans-serif; font-size: 1rem; font-weight: bold; }
+	.qty-control span { font-family: sans-serif; font-size: 1.2rem; font-weight: bold; }
 	
+	.action-buttons { display: flex; flex-direction: column; width: 100%; gap: 0.5rem; }
+
 	.add-crate-btn {
 		width: 100%; background: linear-gradient(to bottom, #dabe83 0%, #aa853c 100%);
-		color: #000; border: none; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1px;
-		padding: 0.8rem; cursor: pointer; border-radius: 2px; transition: filter 0.2s;
+		color: #000; border: none; font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px;
+		padding: 0.8rem; cursor: pointer; border-radius: 2px; transition: filter 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 	}
 	.add-crate-btn:hover { filter: brightness(1.1); }
-	
+
+	/* Stylish Ingredients Button for every product */
+	.ing-btn {
+		width: 100%; background: transparent;
+		color: var(--gold-light); border: 1px solid var(--gold-dark); font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1px;
+		padding: 0.6rem; cursor: pointer; border-radius: 2px; transition: all 0.2s;
+	}
+	.ing-btn:hover { background: rgba(192, 157, 90, 0.1); color: #fff; border-color: var(--gold-light); }
+
+	/* MODAL ARCHITECTURE */
+	.ingredients-modal {
+		position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+		background: rgba(0,0,0,0.9); z-index: 5000;
+		display: flex; align-items: center; justify-content: center;
+		opacity: 0; pointer-events: none; transition: opacity 0.3s;
+	}
+	.ingredients-modal.visible { opacity: 1; pointer-events: auto; }
+	.ingredients-modal-box {
+		background: #0f0a05; border: 2px solid var(--gold-dark); padding: 3rem;
+		max-width: 500px; width: 90%; text-align: center; position: relative;
+		border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+	}
+	.close-modal-btn {
+		position: absolute; top: 1rem; right: 1.5rem; background: none; border: none;
+		color: #888; font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+	}
+	.close-modal-btn:hover { color: #fff; }
+	.modal-skull-stamp { margin: 0 auto 1.5rem; border: none; width: 80px; height: 80px; filter: grayscale(1) opacity(0.5); }
+	.modal-content-text { font-family: 'Libre Baskerville', serif; font-size: 1.1rem; line-height: 1.6; color: #ddd; }
+
 	/* MARKETS BANNERS */
 	.markets-banner { margin-top: 4rem; display: flex; border: 1px solid #333; background: #0a0a0a; position: relative; overflow: hidden; }
 	.markets-banner-text { padding: 3rem; display: flex; align-items: center; justify-content: center; width: 50%; z-index: 2; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
@@ -625,7 +755,7 @@ import Layout from '../layouts/Layout.astro';
 
 	/* ── FOOTER ──────────────────────────────────────── */
 	.main-footer {
-		background: #000; padding: 4rem 2rem; text-align: center; border-top: 1px solid #111;
+		background: rgba(0,0,0,0.9); padding: 4rem 2rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 10;
 	}
 	.footer-copy { color: #555; font-size: 0.9rem; letter-spacing: 1px; margin-top: 1rem; font-family: sans-serif; text-transform: uppercase;}
 
@@ -662,7 +792,7 @@ import Layout from '../layouts/Layout.astro';
 	/* ── RESPONSIVE ──────────────────────────────────── */
 	@media (max-width: 1024px) {
 		.split-section { flex-direction: column; }
-		.split-left { width: 100%; border-right: none; border-bottom: 1px solid #222; padding: 3rem 1rem; }
+		.split-left { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 3rem 1rem; }
 		.rebellion-content { position: static; }
 		.split-right { width: 100%; padding: 3rem 1rem; }
 		.logo-text-huge { font-size: 4rem; }
@@ -670,7 +800,7 @@ import Layout from '../layouts/Layout.astro';
 	@media (max-width: 768px) {
 		.header-inner { flex-direction: column; gap: 1rem; }
 		.header-center { order: -1; }
-		.desktop-nav { display: none; } /* Hide mostly on mobile for now, just keep cart */
+		.desktop-nav { display: none; }
 		.hero-actions { flex-direction: column; width: 100%; }
 		.gold-btn { width: 100%; }
 		.markets-banner { flex-direction: column; }
