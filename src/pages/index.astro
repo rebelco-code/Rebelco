@@ -70,13 +70,13 @@ import Layout from '../layouts/Layout.astro';
 					
 					<div class="shop-grid">
 						<!-- PURE TALLOW -->
-						<div class="product-card" style="background-color: #e1d7cc; --text-color: #e1d7cc; --stroke-color: #111;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Pure Tallow Jar" class="label-photo"/>
+								<img src="https://images.unsplash.com/photo-1608248593842-8021f11c7fb8?auto=format&fit=crop&q=80&w=400" alt="Pure Tallow Jar" class="label-photo" style="transform: scale(1);"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">PURE TALLOW</h3>
-								<p class="price badge-price">R180</p>
+								<h3 class="prod-title">PURE TALLOW</h3>
+								<p class="price">R180</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-tallow').innerText = Math.max(1, parseInt(document.getElementById('q-tallow').innerText)-1)">-</button>
 									<span id="q-tallow">1</span>
@@ -90,13 +90,13 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- CHARCOAL & TURMERIC SOAP -->
-						<div class="product-card" style="background-color: #1a1a1a; --text-color: #1a1a1a; --stroke-color: #d4af37;">
+						<div class="product-card">
 							<div class="card-img-wrap">
 								<img src="/canva_slide_1.png" alt="Charcoal Turmeric Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">CHARCOAL & TURMERIC</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">CHARCOAL & TURMERIC</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-charcoal').innerText = Math.max(1, parseInt(document.getElementById('q-charcoal').innerText)-1)">-</button>
 									<span id="q-charcoal">1</span>
@@ -110,13 +110,14 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- ROOIBOS & TEA TREE SOAP -->
-						<div class="product-card" style="background-color: #4a1c1c; --text-color: #4a1c1c; --stroke-color: #f7d5a8;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Rooibos Soap" class="label-photo"/>
+								<!-- slide 2 corresponds to Rooibos -->
+								<img src="/canva_slide_2.png" alt="Rooibos Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">ROOIBOS & TEA TREE</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">ROOIBOS & TEA TREE</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-rooibos').innerText = Math.max(1, parseInt(document.getElementById('q-rooibos').innerText)-1)">-</button>
 									<span id="q-rooibos">1</span>
@@ -130,13 +131,14 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- COCOA COCONUT SOAP -->
-						<div class="product-card" style="background-color: #2b1b11; --text-color: #2b1b11; --stroke-color: #edd3b2;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Cocoa Coconut Soap" class="label-photo"/>
+								<!-- slide 3 corresponds to Cocoa -->
+								<img src="/canva_slide_3.png" alt="Cocoa Coconut Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">COCOA COCONUT</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">COCOA COCONUT</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-cocoa').innerText = Math.max(1, parseInt(document.getElementById('q-cocoa').innerText)-1)">-</button>
 									<span id="q-cocoa">1</span>
@@ -150,13 +152,14 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- RAINFOREST HERBS SOAP -->
-						<div class="product-card" style="background-color: #0E3615; --text-color: #0E3615; --stroke-color: #ffffff;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Rainforest Herbs Soap" class="label-photo"/>
+								<!-- slide 4 corresponds to Rainforest -->
+								<img src="/canva_slide_4.png" alt="Rainforest Herbs Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">RAINFOREST HERBS</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">RAINFOREST HERBS</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-rainforest').innerText = Math.max(1, parseInt(document.getElementById('q-rainforest').innerText)-1)">-</button>
 									<span id="q-rainforest">1</span>
@@ -170,13 +173,14 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- OATS & HONEY SOAP -->
-						<div class="product-card" style="background-color: #63452b; --text-color: #63452b; --stroke-color: #fce6a9;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Oats and Honey Soap" class="label-photo"/>
+								<!-- slide 5 corresponds to Oats & Honey -->
+								<img src="/canva_slide_5.png" alt="Oats and Honey Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">OATS & HONEY</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">OATS & HONEY</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-oats').innerText = Math.max(1, parseInt(document.getElementById('q-oats').innerText)-1)">-</button>
 									<span id="q-oats">1</span>
@@ -190,13 +194,13 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- OCEAN BLUE SOAP -->
-						<div class="product-card" style="background-color: #0c2b47; --text-color: #0c2b47; --stroke-color: #92dcf0;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Ocean Blue Soap" class="label-photo"/>
+								<img src="/canva_slide_6.png" alt="Ocean Blue Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">OCEAN BLUE</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">OCEAN BLUE</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-ocean').innerText = Math.max(1, parseInt(document.getElementById('q-ocean').innerText)-1)">-</button>
 									<span id="q-ocean">1</span>
@@ -210,13 +214,13 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- ALOE & ROSEMARY SOAP -->
-						<div class="product-card" style="background-color: #1d4229; --text-color: #1d4229; --stroke-color: #9cedb5;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Aloe and Rosemary Soap" class="label-photo"/>
+								<img src="/canva_slide_7.png" alt="Aloe and Rosemary Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">ALOE & ROSEMARY</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">ALOE & ROSEMARY</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-aloe').innerText = Math.max(1, parseInt(document.getElementById('q-aloe').innerText)-1)">-</button>
 									<span id="q-aloe">1</span>
@@ -230,13 +234,13 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- GROTMAN ALL-IN-ONE SOAP -->
-						<div class="product-card" style="background-color: #383029; --text-color: #383029; --stroke-color: #c4aca3;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Grotman Barb Soap" class="label-photo"/>
+								<img src="/canva_slide_8.png" alt="Grotman Barb Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">GROTMAN SALT SOAP</h3>
-								<p class="price badge-price">R120</p>
+								<h3 class="prod-title">GROTMAN SALT SOAP</h3>
+								<p class="price">R120</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-grotman').innerText = Math.max(1, parseInt(document.getElementById('q-grotman').innerText)-1)">-</button>
 									<span id="q-grotman">1</span>
@@ -250,13 +254,13 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- SHAMPOO & CONDITIONER BAR -->
-						<div class="product-card" style="background-color: #1f3d3d; --text-color: #1f3d3d; --stroke-color: #aeebe3;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Shampoo and Conditioner Bar" class="label-photo"/>
+								<img src="/canva_slide_9.png" alt="Shampoo and Conditioner Bar" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">SHAMPOO BAR</h3>
-								<p class="price badge-price">R120</p>
+								<h3 class="prod-title">SHAMPOO BAR</h3>
+								<p class="price">R120</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-shampoo').innerText = Math.max(1, parseInt(document.getElementById('q-shampoo').innerText)-1)">-</button>
 									<span id="q-shampoo">1</span>
@@ -270,13 +274,13 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 
 						<!-- HIMALAYAN SALT SOAP -->
-						<div class="product-card" style="background-color: #5e2632; --text-color: #5e2632; --stroke-color: #f7aab7;">
+						<div class="product-card">
 							<div class="card-img-wrap">
-								<img src="/canva_slide_1.png" alt="Himalayan Salt Soap" class="label-photo"/>
+								<img src="/canva_slide_10.png" alt="Himalayan Salt Soap" class="label-photo"/>
 							</div>
 							<div class="card-bottom">
-								<h3 class="prod-title hollow-text">HIMALAYAN SALT</h3>
-								<p class="price badge-price">R100</p>
+								<h3 class="prod-title">HIMALAYAN SALT</h3>
+								<p class="price">R100</p>
 								<div class="qty-control">
 									<button onclick="document.getElementById('q-salt').innerText = Math.max(1, parseInt(document.getElementById('q-salt').innerText)-1)">-</button>
 									<span id="q-salt">1</span>
@@ -680,48 +684,35 @@ import Layout from '../layouts/Layout.astro';
 		transform: rotate(15deg); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); z-index: 5;
 	}
 	
-	/* GENERATED BRANDED PRODUCT CARDS TO MATCH CANVA PROMPT */
+	/* EXACT SQUARE CROP OF CANVA LABEL AS PRODUCT PHOTO */
 	.card-img-wrap { 
-		width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; 
-		margin: -3rem auto 1.5rem auto; overflow: hidden; border-radius: 50%; 
-		border: 6px solid rgba(0,0,0,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+		width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; 
+		margin-bottom: 1.5rem; overflow: hidden; border-radius: 2px; 
+		border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 		background: #000; position: relative; z-index: 2;
 	}
 	.card-img-wrap img { 
 		width: 100%; height: 100%; object-fit: cover; 
-		filter: brightness(1.05) contrast(1.3) saturate(1.1); 
+		filter: brightness(1.05) contrast(1.1) saturate(1.1); 
 		transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
 	}
 	.label-photo { 
-		object-position: center 84%; 
-		transform: scale(2.4); /* Perfect center zoom on the skull badge */
+		object-position: center center; 
+		/* Using scale(1.8) targets the central third column of the Canva slide precisely */
+		transform: scale(1.8); 
 	}
 	.product-card {
-		background: #111; /* Fallback */
-		border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; padding-top: 3.5rem;
+		background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(8px);
+		border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem;
 		display: flex; flex-direction: column; align-items: center; position: relative;
 		transition: transform 0.3s, box-shadow 0.3s;
-		/* Base variables for dynamic hollow text */
-		--text-color: #111;
-		--stroke-color: #ffffff;
 	}
-	.product-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.9); }
-	.product-card:hover .card-img-wrap img { transform: scale(2.55); filter: brightness(1.15) contrast(1.35); }
+	.product-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.9); }
+	.product-card:hover .card-img-wrap img { transform: scale(1.9); filter: brightness(1.15) contrast(1.2); }
 	
 	.card-bottom { width: 100%; display: flex; flex-direction: column; align-items: center; }
-	.prod-title { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; margin: 0 0 0.5rem 0; color: var(--text-color, #fff); letter-spacing: 2px; text-align: center; }
-	.hollow-text {
-		color: var(--text-color, #000);
-		-webkit-text-stroke: 1.5px var(--stroke-color, #fff);
-		text-shadow: 2px 2px 10px rgba(0,0,0,0.4); 
-		font-weight: bold;
-	}
-	.badge-price {
-		background: none !important;
-		color: #fff !important;
-		-webkit-text-fill-color: #fff !important; 
-		text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-	}
+	.prod-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin: 0 0 0.5rem 0; color: #fff; letter-spacing: 2px; text-align: center; }
+	.price { font-family: 'Libre Baskerville', serif; font-weight: bold; font-size: 1.3rem; margin: 0 0 1rem 0; color: #d4af37; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
 	
 	.qty-control {
 		display: flex; align-items: center; justify-content: space-between; width: 100%;
