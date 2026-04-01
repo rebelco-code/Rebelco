@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;600&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
 @font-face {
@@ -9,17 +10,17 @@
 }
 
 :root {
-  background: #ede0cb;
-  color: #24160f;
+  background: #111111;
+  color: #f3f3f3;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at top, rgba(255, 244, 226, 0.75), transparent 42%),
-    linear-gradient(180deg, #f4ead9 0%, #e2cfb0 100%);
-  color: #24160f;
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 38%),
+    linear-gradient(180deg, #111111 0%, #1b1b1b 100%);
+  color: #f3f3f3;
   font-family: Georgia, "Times New Roman", serif;
 }
 
