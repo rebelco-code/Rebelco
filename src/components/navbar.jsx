@@ -24,7 +24,7 @@ const Navbar = ({ className = "" }) => {
   }, [location.pathname]);
 
   return (
-    <nav className={`text-[#f3e8d6] ${className}`}>
+    <nav className={`relative z-50 text-[#f3e8d6] ${className}`}>
       <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
         <div className="flex items-center gap-3">
           <img
@@ -65,7 +65,7 @@ const Navbar = ({ className = "" }) => {
       </div>
 
       {isOpen ? (
-        <div className="border-t border-white/10 bg-[#0f0f10]/96 px-4 py-4 backdrop-blur md:hidden">
+        <div className="absolute inset-x-0 top-full z-50 border-t border-white/10 bg-[#0f0f10]/96 px-4 py-4 backdrop-blur md:hidden">
           <ul
             className="grid gap-2"
             style={{ fontFamily: '"Cinzel", Georgia, serif' }}
