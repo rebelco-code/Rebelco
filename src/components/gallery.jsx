@@ -57,20 +57,20 @@ export default function Gallery() {
   };
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden bg-[#141518]">
+    <section className="relative min-h-[100svh] w-full overflow-hidden bg-[#141518]">
       <div
-        className="flex min-h-screen transition-transform duration-1000 ease-out"
+        className="flex min-h-[100svh] transition-transform duration-1000 ease-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {slides.map((slide, index) => (
           <div
             key={`${slide.heading}-${index}`}
-            className="relative min-h-screen min-w-full overflow-hidden bg-[#141518]"
+            className="relative min-h-[100svh] min-w-full overflow-hidden bg-[#141518]"
           >
             <img
               src={slide.src}
               alt={`Rebelco gallery slide ${index + 1}`}
-              className={`h-screen w-full object-cover object-center transition-transform duration-[5000ms] ease-linear ${
+              className={`h-[100svh] w-full object-cover object-center transition-transform duration-[5000ms] ease-linear ${
                 index === currentIndex ? "scale-105" : "scale-100"
               }`}
             />
@@ -82,13 +82,14 @@ export default function Gallery() {
       </div>
 
       <div className="absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-black/45 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-b from-transparent via-[#0f0f10]/70 to-[#0f0f10] sm:h-44 lg:h-56" />
 
-      <div className="absolute inset-x-0 top-1/2 z-20 flex -translate-y-1/2 items-center justify-between px-4 sm:px-6">
+      <div className="absolute inset-x-0 top-1/2 z-20 flex -translate-y-1/2 items-center justify-between px-3 sm:px-6">
         <button
           type="button"
           onClick={goToPrevious}
           aria-label="Previous slide"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/25 text-2xl text-white backdrop-blur-md transition hover:bg-black/45"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/25 text-xl text-white backdrop-blur-md transition hover:bg-black/45 sm:h-12 sm:w-12 sm:text-2xl"
         >
           &#8249;
         </button>
@@ -96,34 +97,34 @@ export default function Gallery() {
           type="button"
           onClick={goToNext}
           aria-label="Next slide"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/25 text-2xl text-white backdrop-blur-md transition hover:bg-black/45"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/25 text-xl text-white backdrop-blur-md transition hover:bg-black/45 sm:h-12 sm:w-12 sm:text-2xl"
         >
           &#8250;
         </button>
       </div>
 
       <div className="pointer-events-none absolute inset-0 z-20 flex items-center">
-        <div className="flex w-full items-end px-6 pb-24 sm:px-10 sm:pb-28 lg:px-16 lg:pb-32">
-          <div className="max-w-3xl sm:ml-6 lg:ml-12">
+        <div className="flex w-full items-end px-4 pb-20 sm:px-8 sm:pb-24 lg:px-16 lg:pb-32">
+          <div className="max-w-3xl sm:ml-4 lg:ml-12">
             <div
               key={currentIndex}
-              className="pointer-events-auto max-w-[44rem] border border-white/12 bg-[linear-gradient(180deg,rgba(8,8,10,0.28),rgba(8,8,10,0.54))] px-7 py-7 text-[#f6ead6] shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur-md sm:px-10 sm:py-9 lg:px-12 lg:py-10"
+              className="pointer-events-auto max-w-[44rem] border border-white/12 bg-[linear-gradient(180deg,rgba(8,8,10,0.28),rgba(8,8,10,0.54))] px-5 py-5 text-[#f6ead6] shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur-md sm:px-8 sm:py-8 lg:px-12 lg:py-10"
             >
-              <div className="mb-6 h-px w-24 bg-white/60" />
+              <div className="mb-4 h-px w-16 bg-white/60 sm:mb-6 sm:w-24" />
               <div
-                className="text-xs uppercase tracking-[0.32em] text-white/75 sm:text-sm"
+                className="text-[10px] uppercase tracking-[0.28em] text-white/75 sm:text-sm"
                 style={{ fontFamily: '"Cinzel", Georgia, serif' }}
               >
                 {slides[currentIndex].eyebrow}
               </div>
               <h1
-                className="mt-4 max-w-2xl text-5xl leading-[0.92] tracking-[0.01em] text-[#fff7eb] sm:text-6xl lg:text-7xl"
+                className="mt-3 max-w-2xl text-3xl leading-[0.94] tracking-[0.01em] text-[#fff7eb] sm:mt-4 sm:text-5xl lg:text-7xl"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
               >
                 {slides[currentIndex].heading}
               </h1>
               <p
-                className="mt-5 max-w-2xl text-[17px] leading-8 text-[#eee1cf] sm:text-xl sm:leading-9"
+                className="mt-4 max-w-2xl text-[15px] leading-6 text-[#eee1cf] sm:text-lg sm:leading-8 lg:text-xl lg:leading-9"
                 style={{ fontFamily: '"Alegreya", Georgia, serif' }}
               >
                 {slides[currentIndex].body}
@@ -132,7 +133,7 @@ export default function Gallery() {
               {slides[currentIndex].ctaHref ? (
                 <a
                   href={slides[currentIndex].ctaHref}
-                  className="mt-8 inline-flex items-center justify-center border border-white/18 bg-black px-10 py-4 text-sm uppercase tracking-[0.22em] text-white transition duration-200 hover:border-white hover:bg-white hover:text-black sm:px-12 sm:py-5"
+                  className="mt-6 inline-flex items-center justify-center border border-white/18 bg-black px-6 py-3 text-xs uppercase tracking-[0.2em] text-white transition duration-200 hover:border-white hover:bg-white hover:text-black sm:mt-8 sm:px-10 sm:py-4 sm:text-sm lg:px-12 lg:py-5"
                   style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                 >
                   {slides[currentIndex].ctaLabel}
@@ -143,17 +144,17 @@ export default function Gallery() {
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-6 z-20 flex justify-center gap-2 sm:bottom-8">
+      <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center gap-2 sm:bottom-8">
         {slides.map((slide, index) => (
           <button
             key={`${slide.heading}-${index}`}
             type="button"
             onClick={() => setCurrentIndex(index)}
             aria-label={`Go to slide ${index + 1}`}
-            className={`h-2.5 rounded-full transition-all ${
+            className={`h-2 rounded-full transition-all sm:h-2.5 ${
               index === currentIndex
-                ? "w-10 bg-white"
-                : "w-2.5 bg-white/40 hover:bg-white/65"
+                ? "w-8 bg-white sm:w-10"
+                : "w-2 bg-white/40 hover:bg-white/65 sm:w-2.5"
             }`}
           />
         ))}

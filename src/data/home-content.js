@@ -7,6 +7,76 @@ export const contactLinks = {
   whatsappCatalogueHref: "https://wa.me/c/27636936204",
 };
 
+export const contactActions = [
+  {
+    id: "whatsapp",
+    label: "WhatsApp Catalogue",
+    description: "Browse the catalogue or start a product enquiry on WhatsApp.",
+    href: contactLinks.whatsappCatalogueHref,
+  },
+  {
+    id: "facebook",
+    label: "Facebook",
+    description: "See updates, posts, and community-facing Rebelco activity.",
+    href: contactLinks.facebookHref,
+  },
+  {
+    id: "email",
+    label: "Email",
+    description: contactLinks.email,
+    href: contactLinks.emailHref,
+  },
+  {
+    id: "call",
+    label: "Call",
+    description: contactLinks.phoneDisplay,
+    href: contactLinks.phoneHref,
+  },
+];
+
+export const contactPageContent = {
+  eyebrow: "Contact Rebelco",
+  title: "Reach out the way that feels easiest.",
+  body:
+    "Whether you want to place an order, ask about availability, browse the catalogue, or get help choosing the right product, Rebelco can be reached directly through call, WhatsApp, email, or Facebook.",
+  guidance: [
+    "Call for immediate help with orders or product questions.",
+    "Use WhatsApp to browse the catalogue and continue the conversation in one place.",
+    "Email for custom requests, gifting enquiries, or anything that needs more detail.",
+  ],
+};
+
+export const aboutPageContent = {
+  eyebrow: "About Rebelco",
+  title: "Grounded products with a handmade point of view.",
+  intro:
+    "Rebelco is built around practical, small-batch products that feel honest in the hand and useful in daily life. The catalogue moves across grooming, soaps, creams, home goods, candles, and gift-ready pieces, but the underlying idea stays the same: make things that feel considered, straightforward, and worth returning to.",
+  story: [
+    "What stands out in the catalogue is its range. It is not only about one hero item or one category. There are shaving products, bath bars, creams, lip balm, household washing staples, natural candles, and custom gift pieces. That makes Rebelco feel less like a narrow product line and more like a carefully built lifestyle range.",
+    "The appeal is in the balance between rustic character and practical usefulness. The names, textures, and formats feel handmade, but the products are still easy to understand and easy to use. It is a catalogue with personality, without becoming too precious or too complicated.",
+  ],
+  principles: [
+    {
+      title: "Small-batch by nature",
+      body:
+        "The range reads as carefully made rather than mass-produced, which gives the brand a more personal and believable identity.",
+    },
+    {
+      title: "Useful before flashy",
+      body:
+        "From washing bars to beard care and cream variants, the products are shaped around regular use and practical value.",
+    },
+    {
+      title: "Broad but coherent",
+      body:
+        "Even with multiple categories, the catalogue still feels connected by a handmade, grounded, giftable point of view.",
+    },
+  ],
+  closingTitle: "A catalogue meant to feel personal.",
+  closingBody:
+    "The best version of Rebelco is not overly polished or overly formal. It should feel direct, tactile, and quietly premium, with enough warmth to feel personal and enough structure to feel trustworthy.",
+};
+
 export const heroSlides = [
   {
     id: "contact",

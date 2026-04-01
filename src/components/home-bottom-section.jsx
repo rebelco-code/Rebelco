@@ -1,38 +1,16 @@
 import Footer from "./footer";
 import {
-  contactLinks,
+  contactActions,
   homeCollections,
   homeIntro,
 } from "../data/home-content";
 
-const contactActions = [
-  {
-    label: "WhatsApp Catalogue",
-    description: "Browse the catalogue or start a product enquiry on WhatsApp.",
-    href: contactLinks.whatsappCatalogueHref,
-  },
-  {
-    label: "Facebook",
-    description: "See updates, posts, and community-facing Rebelco activity.",
-    href: contactLinks.facebookHref,
-  },
-  {
-    label: "Email",
-    description: contactLinks.email,
-    href: contactLinks.emailHref,
-  },
-  {
-    label: "Call",
-    description: contactLinks.phoneDisplay,
-    href: contactLinks.phoneHref,
-  },
-];
-
 export default function HomeBottomSection() {
   return (
-    <section className="bg-[#0f0f10] px-5 py-16 text-[#f3f3f3] sm:px-8 lg:px-12 lg:py-20">
+    <section className="relative bg-[#0f0f10] px-4 py-14 text-[#f3f3f3] sm:px-6 sm:py-16 lg:px-12 lg:py-20">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#0f0f10]/0 via-[#0f0f10]/78 to-[#0f0f10] sm:h-20 lg:h-24" />
       <div className="mx-auto max-w-7xl">
-        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+        <div className="grid gap-10 pt-6 sm:pt-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:pt-10">
           <div>
             <p
               className="text-sm uppercase tracking-[0.32em] text-white/55"
@@ -41,20 +19,20 @@ export default function HomeBottomSection() {
               {homeIntro.eyebrow}
             </p>
             <h2
-              className="mt-4 max-w-3xl text-4xl leading-[0.95] sm:text-5xl lg:text-6xl"
+              className="mt-4 max-w-3xl text-3xl leading-[0.98] sm:text-5xl lg:text-6xl"
               style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
             >
               {homeIntro.title}
             </h2>
             <p
-              className="mt-5 max-w-3xl text-lg leading-8 text-white/72"
+              className="mt-5 max-w-3xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8"
               style={{ fontFamily: '"Alegreya", Georgia, serif' }}
             >
               {homeIntro.body}
             </p>
           </div>
 
-          <div className="border border-white/12 bg-[#171718] p-6 sm:p-8">
+          <div className="border border-white/12 bg-[#171718] p-5 sm:p-8">
             <p
               className="text-sm uppercase tracking-[0.3em] text-white/55"
               style={{ fontFamily: '"Cinzel", Georgia, serif' }}
@@ -62,13 +40,13 @@ export default function HomeBottomSection() {
               Quick Contact
             </p>
             <h3
-              className="mt-3 text-3xl text-white sm:text-4xl"
+              className="mt-3 text-2xl text-white sm:text-4xl"
               style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
             >
               Catalogue browsing should feel simple.
             </h3>
             <p
-              className="mt-4 text-lg leading-8 text-white/72"
+              className="mt-4 text-base leading-7 text-white/72 sm:text-lg sm:leading-8"
               style={{ fontFamily: '"Alegreya", Georgia, serif' }}
             >
               Use WhatsApp for quick catalogue access, call for direct help, or
@@ -100,11 +78,11 @@ export default function HomeBottomSection() {
           </div>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {homeCollections.map((collection) => (
             <article
               key={collection.id}
-              className="border border-white/12 bg-[#171718] p-6"
+              className="border border-white/12 bg-[#171718] p-5 sm:p-6"
             >
               <p
                 className="text-xs uppercase tracking-[0.28em] text-white/55"
@@ -113,7 +91,7 @@ export default function HomeBottomSection() {
                 {collection.subtitle}
               </p>
               <h3
-                className="mt-3 text-3xl leading-none text-white"
+                className="mt-3 text-2xl leading-none text-white sm:text-3xl"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
               >
                 {collection.title}
