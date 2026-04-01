@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Arthur Morgan";
+  src: url("./fonts/arthurmorgancursivehandwriting-cufonfonts-webfont/arthurs writing.woff")
+    format("woff");
+  font-style: normal;
+  font-weight: 400;
+}
+
+:root {
+  background: #ede0cb;
+  color: #24160f;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top, rgba(255, 244, 226, 0.75), transparent 42%),
+    linear-gradient(180deg, #f4ead9 0%, #e2cfb0 100%);
+  color: #24160f;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

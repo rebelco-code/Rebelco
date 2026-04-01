@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Placeholder logo</title>
+  <desc id="desc">A temporary logo placeholder with a western badge style.</desc>
+  <rect width="240" height="240" rx="28" fill="#e5d1b3"/>
+  <rect x="18" y="18" width="204" height="204" rx="20" fill="none" stroke="#40261a" stroke-width="8"/>
+  <path d="M62 162 120 56l58 106-58-30-58 30Z" fill="#7d4b30"/>
+  <circle cx="120" cy="120" r="18" fill="#40261a"/>
+  <path d="M74 188h92" stroke="#40261a" stroke-width="10" stroke-linecap="round"/>
+</svg>
