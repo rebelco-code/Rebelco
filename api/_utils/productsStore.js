@@ -60,15 +60,15 @@ function parseStockAmount(value) {
   return stockAmount;
 }
 
-function normalizeProduct(product) {
-  const imageUrls = Array.isArray(product.imageUrls)
-    ? product.imageUrls.map(String).filter(Boolean)
-    : [];
-
-  if (!imageUrls.length && product.imageUrl) {
-    imageUrls.push(String(product.imageUrl));
+function getPrivateImageUrl(pathname) {
+  if (!pathname) {
+    return "";
   }
 
+  return `/api/blob/image?pathname=${encodeURIComponent(pathname)}`;
+}
+
+function normalizeProduct(product) {
   const imagePathnames = Array.isArray(product.imagePathnames)
     ? product.imagePathnames.map(String).filter(Boolean)
     : [];
@@ -76,6 +76,18 @@ function normalizeProduct(product) {
   if (!imagePathnames.length && product.imagePathname) {
     imagePathnames.push(String(product.imagePathname));
   }
+
+  const rawImageUrls = Array.isArray(product.imageUrls)
+    ? product.imageUrls.map(String).filter(Boolean)
+    : [];
+
+  if (!rawImageUrls.length && product.imageUrl) {
+    rawImageUrls.push(String(product.imageUrl));
+  }
+
+  const imageUrls = imagePathnames.length
+    ? imagePathnames.map(getPrivateImageUrl)
+    : rawImageUrls;
 
   return {
     id: String(product.id || ""),
