@@ -1,15 +1,69 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
 
+const initialOrderForm = {
+  quantity: "1",
+  locationText: "",
+  locationLatitude: "",
+  locationLongitude: "",
+};
+
+function getProductImages(product) {
+  if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
+    return product.imageUrls;
+  }
+
+  if (product.imageUrl) {
+    return [product.imageUrl];
+  }
+
+  return [];
+}
+
+function parseCoordinate(value, min, max) {
+  const parsedValue = Number.parseFloat(String(value || "").trim());
+
+  if (!Number.isFinite(parsedValue)) {
+    return null;
+  }
+
+  if (parsedValue < min || parsedValue > max) {
+    return null;
+  }
+
+  return parsedValue;
+}
+
+function buildMapEmbedUrl(latitude, longitude) {
+  const zoomOffset = 0.01;
+  const left = longitude - zoomOffset;
+  const bottom = latitude - zoomOffset;
+  const right = longitude + zoomOffset;
+  const top = latitude + zoomOffset;
+  const bbox = encodeURIComponent(`${left},${bottom},${right},${top}`);
+  const marker = encodeURIComponent(`${latitude},${longitude}`);
+
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`;
+}
+
 export default function ProductsPage() {
+  const orderSectionRef = useRef(null);
+
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [openCategories, setOpenCategories] = useState({});
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [orderForm, setOrderForm] = useState(initialOrderForm);
+  const [orderStatus, setOrderStatus] = useState("idle");
+  const [locationStatus, setLocationStatus] = useState("idle");
+  const [orderMessage, setOrderMessage] = useState("");
+  const [orderError, setOrderError] = useState("");
 
   const categories = useMemo(() => {
     const categorySet = new Set();
@@ -53,6 +107,47 @@ export default function ProductsPage() {
     }));
   }, [filteredProducts]);
 
+  const selectedProduct = useMemo(
+    () => products.find((product) => product.id === selectedProductId) || null,
+    [products, selectedProductId],
+  );
+
+  const selectedProductImages = useMemo(
+    () => (selectedProduct ? getProductImages(selectedProduct) : []),
+    [selectedProduct],
+  );
+
+  const parsedLatitude = useMemo(
+    () => parseCoordinate(orderForm.locationLatitude, -90, 90),
+    [orderForm.locationLatitude],
+  );
+
+  const parsedLongitude = useMemo(
+    () => parseCoordinate(orderForm.locationLongitude, -180, 180),
+    [orderForm.locationLongitude],
+  );
+
+  const mapEmbedUrl = useMemo(() => {
+    if (parsedLatitude === null || parsedLongitude === null) {
+      return "";
+    }
+
+    return buildMapEmbedUrl(parsedLatitude, parsedLongitude);
+  }, [parsedLatitude, parsedLongitude]);
+
+  const selectedPreviewImage =
+    selectedProductImages[selectedImageIndex] || selectedProductImages[0] || "";
+
+  const locationSearchUrl = useMemo(() => {
+    const trimmedLocationText = orderForm.locationText.trim();
+
+    if (!trimmedLocationText) {
+      return "";
+    }
+
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(trimmedLocationText)}`;
+  }, [orderForm.locationText]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -91,6 +186,100 @@ export default function ProductsPage() {
       ...current,
       [category]: current[category] === false,
     }));
+  }
+
+  function selectProductForOrder(productId) {
+    setSelectedProductId(productId);
+    setSelectedImageIndex(0);
+    setOrderForm(initialOrderForm);
+    setOrderError("");
+    setOrderMessage("");
+
+    window.requestAnimationFrame(() => {
+      orderSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  function updateOrderField(event) {
+    const { name, value } = event.target;
+
+    setOrderForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+  }
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setOrderError("Geolocation is not supported in this browser.");
+      return;
+    }
+
+    setLocationStatus("locating");
+    setOrderError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        setOrderForm((currentForm) => ({
+          ...currentForm,
+          locationLatitude: latitude.toFixed(6),
+          locationLongitude: longitude.toFixed(6),
+        }));
+        setLocationStatus("idle");
+      },
+      (locationError) => {
+        setLocationStatus("idle");
+        setOrderError(locationError.message || "Could not read your current location.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+      },
+    );
+  }
+
+  async function submitOrder(event) {
+    event.preventDefault();
+
+    if (!selectedProduct) {
+      setOrderError("Please select a product first.");
+      return;
+    }
+
+    setOrderStatus("saving");
+    setOrderError("");
+    setOrderMessage("");
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          quantity: orderForm.quantity,
+          locationText: orderForm.locationText,
+          locationLatitude: orderForm.locationLatitude,
+          locationLongitude: orderForm.locationLongitude,
+        }),
+      });
+
+      const data = await readJsonResponse(response, "Could not place order.");
+      setOrderMessage(data.message || "Order placed successfully.");
+      setOrderForm(initialOrderForm);
+      setSelectedImageIndex(0);
+    } catch (submitError) {
+      setOrderError(submitError.message);
+    } finally {
+      setOrderStatus("idle");
+    }
   }
 
   return (
@@ -217,12 +406,7 @@ export default function ProductsPage() {
                       <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-3">
                         {group.products.map((product) => {
                           const isOutOfStock = Number(product.stockAmount) <= 0;
-                          const productImages =
-                            Array.isArray(product.imageUrls) && product.imageUrls.length > 0
-                              ? product.imageUrls
-                              : product.imageUrl
-                                ? [product.imageUrl]
-                                : [];
+                          const productImages = getProductImages(product);
                           const mainImage = productImages[0];
 
                           return (
@@ -313,6 +497,15 @@ export default function ProductsPage() {
                                     </div>
                                   ) : null}
                                 </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => selectProductForOrder(product.id)}
+                                  disabled={isOutOfStock}
+                                  className="mt-4 w-full border border-white/12 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-45"
+                                >
+                                  {isOutOfStock ? "Out of stock" : "Place Order"}
+                                </button>
                               </div>
                             </article>
                           );
@@ -329,6 +522,210 @@ export default function ProductsPage() {
             <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-white/70">
               No products match this category.
             </div>
+          ) : null}
+
+          {selectedProduct ? (
+            <section
+              ref={orderSectionRef}
+              className="mt-8 border border-white/10 bg-[#151516] p-5 sm:p-6"
+            >
+              <div className="border-b border-white/10 pb-5">
+                <p
+                  className="text-sm uppercase tracking-[0.32em] text-white/55"
+                  style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+                >
+                  Place Order
+                </p>
+
+                <h2
+                  className="mt-3 text-3xl leading-none text-white sm:text-4xl"
+                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                >
+                  {selectedProduct.title}
+                </h2>
+
+                <p
+                  className="mt-4 max-w-2xl text-base leading-7 text-white/58"
+                  style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                >
+                  Confirm your quantity, check product photos, then share your location
+                  as text or map coordinates.
+                </p>
+              </div>
+
+              {orderError ? (
+                <div className="mt-5 border border-red-400/30 bg-red-950/25 p-4 text-red-100">
+                  {orderError}
+                </div>
+              ) : null}
+
+              {orderMessage ? (
+                <div className="mt-5 border border-emerald-400/30 bg-emerald-950/25 p-4 text-emerald-100">
+                  {orderMessage}
+                </div>
+              ) : null}
+
+              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                <div className="border border-white/10 bg-[#101011] p-4">
+                  <div className="relative aspect-[4/3] bg-black">
+                    {selectedPreviewImage ? (
+                      <img
+                        src={selectedPreviewImage}
+                        alt={`${selectedProduct.title} preview`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm text-white/35">
+                        No image
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedProductImages.length > 1 ? (
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {selectedProductImages.map((imageUrl, index) => (
+                        <button
+                          key={`${selectedProduct.id}-order-image-${index}`}
+                          type="button"
+                          onClick={() => setSelectedImageIndex(index)}
+                          className={`overflow-hidden border ${
+                            selectedImageIndex === index
+                              ? "border-white"
+                              : "border-white/10 hover:border-white/30"
+                          }`}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={`${selectedProduct.title} image ${index + 1}`}
+                            className="aspect-square w-full object-cover"
+                            loading="lazy"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-4 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.2em] text-white/60">
+                    {formatPrice(selectedProduct.price)} • {selectedProduct.weight} •{" "}
+                    {selectedProduct.category || "Uncategorised"}
+                  </div>
+
+                  <p
+                    className="mt-3 text-base leading-7 text-white/72"
+                    style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                  >
+                    {selectedProduct.description}
+                  </p>
+                </div>
+
+                <form className="grid gap-4 border border-white/10 bg-[#101011] p-4" onSubmit={submitOrder}>
+                  <label className="grid gap-2 text-sm text-white/70">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                      Amount / Quantity
+                    </span>
+                    <input
+                      type="number"
+                      name="quantity"
+                      min="1"
+                      value={orderForm.quantity}
+                      onChange={updateOrderField}
+                      required
+                      className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/45"
+                    />
+                  </label>
+
+                  <label className="grid gap-2 text-sm text-white/70">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                      Location (Text)
+                    </span>
+                    <textarea
+                      name="locationText"
+                      value={orderForm.locationText}
+                      onChange={updateOrderField}
+                      rows={4}
+                      placeholder="Street address, suburb, city, delivery note"
+                      className="resize-none border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
+                    />
+                  </label>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="grid gap-2 text-sm text-white/70">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                        Latitude
+                      </span>
+                      <input
+                        type="text"
+                        name="locationLatitude"
+                        value={orderForm.locationLatitude}
+                        onChange={updateOrderField}
+                        placeholder="-26.2041"
+                        className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm text-white/70">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                        Longitude
+                      </span>
+                      <input
+                        type="text"
+                        name="locationLongitude"
+                        value={orderForm.locationLongitude}
+                        onChange={updateOrderField}
+                        placeholder="28.0473"
+                        className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={useCurrentLocation}
+                      disabled={locationStatus === "locating"}
+                      className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {locationStatus === "locating" ? "Locating..." : "Use My Current Location"}
+                    </button>
+
+                    {locationSearchUrl ? (
+                      <a
+                        href={locationSearchUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs uppercase tracking-[0.2em] text-white/60 underline-offset-4 hover:text-white hover:underline"
+                      >
+                        Preview Text Location
+                      </a>
+                    ) : null}
+                  </div>
+
+                  {mapEmbedUrl ? (
+                    <div className="border border-white/10 bg-black p-2">
+                      <iframe
+                        title="Selected location map"
+                        src={mapEmbedUrl}
+                        className="h-56 w-full border-0"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="border border-white/10 bg-black/40 p-4 text-sm text-white/50">
+                      Add both latitude and longitude to preview map location.
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={orderStatus === "saving"}
+                    className="border border-white bg-white px-6 py-4 text-center text-sm uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                  >
+                    {orderStatus === "saving" ? "Placing Order..." : "Confirm Place Order"}
+                  </button>
+                </form>
+              </div>
+            </section>
           ) : null}
 
           <div className="mt-14">
