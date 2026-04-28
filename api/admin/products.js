@@ -10,6 +10,8 @@ import {
   setProductOutOfStock,
 } from "../_utils/productsStore.js";
 
+const MAX_PRODUCT_IMAGES = 6;
+
 function parseMultipartForm(request) {
   const contentType = request.headers["content-type"] || "";
 
@@ -19,14 +21,14 @@ function parseMultipartForm(request) {
 
   return new Promise((resolve, reject) => {
     const fields = {};
-    let image = null;
+    const images = [];
     let imageTooLarge = false;
 
     const busboy = Busboy({
       headers: request.headers,
       limits: {
-        fields: 10,
-        files: 1,
+        fields: 12,
+        files: MAX_PRODUCT_IMAGES,
         fileSize: MAX_IMAGE_SIZE_BYTES,
       },
     });
@@ -36,7 +38,7 @@ function parseMultipartForm(request) {
     });
 
     busboy.on("file", (name, file, info) => {
-      if (name !== "image") {
+      if (name !== "image" && name !== "images") {
         file.resume();
         return;
       }
@@ -56,25 +58,29 @@ function parseMultipartForm(request) {
 
       file.on("end", () => {
         if (!imageTooLarge && size > 0) {
-          image = {
+          images.push({
             buffer: Buffer.concat(chunks),
             filename: info.filename,
             mimeType: info.mimeType,
             size,
-          };
+          });
         }
       });
+    });
+
+    busboy.on("filesLimit", () => {
+      reject(new HttpError(400, `You can upload up to ${MAX_PRODUCT_IMAGES} images.`));
     });
 
     busboy.on("error", reject);
 
     busboy.on("finish", () => {
       if (imageTooLarge) {
-        reject(new HttpError(413, "Product image must be 4 MB or smaller."));
+        reject(new HttpError(413, "Each product image must be 4 MB or smaller."));
         return;
       }
 
-      resolve({ fields, image });
+      resolve({ fields, images });
     });
 
     request.pipe(busboy);
@@ -99,8 +105,8 @@ export default async function handler(request, response) {
     }
 
     if (request.method === "POST") {
-      const { fields, image } = await parseMultipartForm(request);
-      const product = await createProduct(fields, image);
+      const { fields, images } = await parseMultipartForm(request);
+      const product = await createProduct(fields, images);
       const products = await readProducts();
 
       sendJson(response, 201, { product, products });

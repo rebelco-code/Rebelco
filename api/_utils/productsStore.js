@@ -53,6 +53,22 @@ function parseStockAmount(value) {
 }
 
 function normalizeProduct(product) {
+  const imageUrls = Array.isArray(product.imageUrls)
+    ? product.imageUrls.map(String).filter(Boolean)
+    : [];
+
+  if (!imageUrls.length && product.imageUrl) {
+    imageUrls.push(String(product.imageUrl));
+  }
+
+  const imagePathnames = Array.isArray(product.imagePathnames)
+    ? product.imagePathnames.map(String).filter(Boolean)
+    : [];
+
+  if (!imagePathnames.length && product.imagePathname) {
+    imagePathnames.push(String(product.imagePathname));
+  }
+
   return {
     id: String(product.id || ""),
     title: String(product.title || ""),
@@ -61,14 +77,16 @@ function normalizeProduct(product) {
     price: Number(product.price || 0),
     weight: String(product.weight || ""),
     stockAmount: Number(product.stockAmount || 0),
-    imageUrl: String(product.imageUrl || ""),
-    imagePathname: String(product.imagePathname || ""),
+    imageUrl: imageUrls[0] || "",
+    imageUrls,
+    imagePathname: imagePathnames[0] || "",
+    imagePathnames,
     createdAt: String(product.createdAt || ""),
     updatedAt: String(product.updatedAt || ""),
   };
 }
 
-function validateProductInput(fields, image) {
+function validateProductInput(fields, images) {
   const title = cleanText(fields.title, 120);
   const description = cleanText(fields.description, 1000);
   const category = cleanText(fields.category, 80);
@@ -92,17 +110,23 @@ function validateProductInput(fields, image) {
     throw new HttpError(400, "Product weight is required.");
   }
 
-  if (!image?.buffer?.length) {
-    throw new HttpError(400, "Product image is required.");
+  if (!Array.isArray(images) || images.length === 0) {
+    throw new HttpError(400, "At least one product image is required.");
   }
 
-  if (image.buffer.length > MAX_IMAGE_SIZE_BYTES) {
-    throw new HttpError(413, "Product image must be 4 MB or smaller.");
-  }
+  images.forEach((image) => {
+    if (!image?.buffer?.length) {
+      throw new HttpError(400, "Product image is required.");
+    }
 
-  if (!ALLOWED_IMAGE_TYPES.has(image.mimeType)) {
-    throw new HttpError(400, "Product image must be JPG, PNG, or WebP.");
-  }
+    if (image.buffer.length > MAX_IMAGE_SIZE_BYTES) {
+      throw new HttpError(413, "Each product image must be 4 MB or smaller.");
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(image.mimeType)) {
+      throw new HttpError(400, "Product images must be JPG, PNG, or WebP.");
+    }
+  });
 
   return {
     title,
@@ -174,25 +198,35 @@ export async function writeProducts(products) {
   return catalog.products;
 }
 
-export async function createProduct(fields, image) {
+export async function createProduct(fields, images) {
   ensureBlobConfigured();
 
-  const productInput = validateProductInput(fields, image);
+  const productInput = validateProductInput(fields, images);
   const now = new Date().toISOString();
   const id = `${slugify(productInput.title)}-${Date.now()}`;
-  const imagePathname = `${IMAGE_PREFIX}/${id}.${getImageExtension(image)}`;
 
-  const imageBlob = await put(imagePathname, image.buffer, {
-    access: "public",
-    addRandomSuffix: true,
-    contentType: image.mimeType,
-  });
+  const uploadedImages = await Promise.all(
+    images.map(async (image, index) => {
+      const imagePathname = `${IMAGE_PREFIX}/${id}-${index + 1}.${getImageExtension(image)}`;
+
+      return put(imagePathname, image.buffer, {
+        access: "public",
+        addRandomSuffix: true,
+        contentType: image.mimeType,
+      });
+    }),
+  );
+
+  const imageUrls = uploadedImages.map((blob) => blob.url);
+  const imagePathnames = uploadedImages.map((blob) => blob.pathname);
 
   const product = {
     id,
     ...productInput,
-    imageUrl: imageBlob.url,
-    imagePathname: imageBlob.pathname,
+    imageUrl: imageUrls[0],
+    imageUrls,
+    imagePathname: imagePathnames[0],
+    imagePathnames,
     createdAt: now,
     updatedAt: now,
   };
