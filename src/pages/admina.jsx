@@ -11,20 +11,26 @@ const initialForm = {
   stockAmount: "",
 };
 
+const initialLoginForm = {
+  email: "",
+  password: "",
+};
+
 export default function AdminaPage() {
-  const googleButtonRef = useRef(null);
   const imageInputRef = useRef(null);
+
   const [admin, setAdmin] = useState(null);
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [sessionStatus, setSessionStatus] = useState("checking");
   const [productsStatus, setProductsStatus] = useState("idle");
   const [formStatus, setFormStatus] = useState("idle");
+  const [loginStatus, setLoginStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   const loadProducts = useCallback(async () => {
     setProductsStatus("loading");
@@ -34,6 +40,7 @@ export default function AdminaPage() {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
+
       const data = await readJsonResponse(
         response,
         "Admin API is available through Vercel dev or a deployed Vercel site.",
@@ -56,6 +63,7 @@ export default function AdminaPage() {
           headers: { Accept: "application/json" },
           credentials: "include",
         });
+
         const data = await readJsonResponse(response, "Admin session API is unavailable.");
 
         if (data.admin && isMounted) {
@@ -82,85 +90,49 @@ export default function AdminaPage() {
     };
   }, [loadProducts]);
 
-  useEffect(() => {
-    if (sessionStatus !== "signed-out" || !googleClientId || !googleButtonRef.current) {
-      return;
-    }
+  function updateLoginField(event) {
+    const { name, value } = event.target;
 
-    let isCancelled = false;
+    setLoginForm((currentLoginForm) => ({
+      ...currentLoginForm,
+      [name]: value,
+    }));
+  }
 
-    function renderGoogleButton() {
-      if (isCancelled || !window.google || !googleButtonRef.current) {
-        return;
-      }
+  async function submitLogin(event) {
+    event.preventDefault();
 
-      googleButtonRef.current.innerHTML = "";
-      window.google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: async (credentialResponse) => {
-          setError("");
-          setMessage("");
+    setError("");
+    setMessage("");
+    setLoginStatus("loading");
 
-          try {
-            const response = await fetch("/api/admin/session", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ credential: credentialResponse.credential }),
-            });
-            const data = await readJsonResponse(
-              response,
-              "Admin API is available through Vercel dev or a deployed Vercel site.",
-            );
-
-            setAdmin(data.admin);
-            setSessionStatus("signed-in");
-            loadProducts();
-          } catch (signInError) {
-            setError(signInError.message);
-          }
-        },
-      });
-      window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: "filled_black",
-        size: "large",
-        text: "signin_with",
-        shape: "rectangular",
-        width: 260,
-      });
-    }
-
-    if (window.google?.accounts?.id) {
-      renderGoogleButton();
-      return () => {
-        isCancelled = true;
-      };
-    }
-
-    const existingScript = document.getElementById("google-identity-services");
-    const script =
-      existingScript ||
-      Object.assign(document.createElement("script"), {
-        id: "google-identity-services",
-        src: "https://accounts.google.com/gsi/client",
-        async: true,
-        defer: true,
+    try {
+      const response = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(loginForm),
       });
 
-    script.addEventListener("load", renderGoogleButton);
+      const data = await readJsonResponse(
+        response,
+        "Admin API is available through Vercel dev or a deployed Vercel site.",
+      );
 
-    if (!existingScript) {
-      document.head.appendChild(script);
+      setAdmin(data.admin);
+      setSessionStatus("signed-in");
+      setLoginStatus("idle");
+      setLoginForm(initialLoginForm);
+      loadProducts();
+    } catch (loginError) {
+      setError(loginError.message);
+      setLoginStatus("idle");
     }
-
-    return () => {
-      isCancelled = true;
-      script.removeEventListener("load", renderGoogleButton);
-    };
-  }, [googleClientId, loadProducts, sessionStatus]);
+  }
 
   function updateField(event) {
     const { name, value } = event.target;
+
     setForm((currentForm) => ({
       ...currentForm,
       [name]: value,
@@ -185,12 +157,14 @@ export default function AdminaPage() {
 
   async function submitProduct(event) {
     event.preventDefault();
+
     setError("");
     setMessage("");
     setFormStatus("saving");
 
     try {
       const formData = new FormData();
+
       formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("price", form.price);
@@ -206,6 +180,7 @@ export default function AdminaPage() {
         body: formData,
         credentials: "include",
       });
+
       const data = await readJsonResponse(
         response,
         "Admin API is available through Vercel dev or a deployed Vercel site.",
@@ -246,6 +221,7 @@ export default function AdminaPage() {
               >
                 Rebelco
               </p>
+
               <h1
                 className="mt-3 text-4xl leading-none text-white sm:text-5xl"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
@@ -257,6 +233,7 @@ export default function AdminaPage() {
             {admin ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="text-sm text-white/65">{admin.email}</div>
+
                 <button
                   type="button"
                   onClick={signOut}
@@ -283,13 +260,43 @@ export default function AdminaPage() {
                 Admin Sign In
               </h2>
 
-              {!googleClientId ? (
-                <div className="mt-5 border border-amber-300/25 bg-amber-950/20 p-4 text-amber-100">
-                  Google client ID is not configured.
-                </div>
-              ) : (
-                <div className="mt-6" ref={googleButtonRef} />
-              )}
+              <form className="mt-6 grid gap-5" onSubmit={submitLogin}>
+                <label className="grid gap-2 text-sm text-white/72">
+                  <span className="uppercase tracking-[0.18em]">Email</span>
+
+                  <input
+                    name="email"
+                    type="email"
+                    value={loginForm.email}
+                    onChange={updateLoginField}
+                    required
+                    autoComplete="username"
+                    className="border border-white/12 bg-black px-4 py-3 text-base text-white outline-none transition focus:border-white/45"
+                  />
+                </label>
+
+                <label className="grid gap-2 text-sm text-white/72">
+                  <span className="uppercase tracking-[0.18em]">Password</span>
+
+                  <input
+                    name="password"
+                    type="password"
+                    value={loginForm.password}
+                    onChange={updateLoginField}
+                    required
+                    autoComplete="current-password"
+                    className="border border-white/12 bg-black px-4 py-3 text-base text-white outline-none transition focus:border-white/45"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={loginStatus === "loading"}
+                  className="border border-white bg-white px-5 py-4 text-sm uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  {loginStatus === "loading" ? "Signing in..." : "Sign in"}
+                </button>
+              </form>
             </section>
           ) : null}
 
@@ -318,6 +325,7 @@ export default function AdminaPage() {
                 <form className="mt-6 grid gap-5" onSubmit={submitProduct}>
                   <label className="grid gap-2 text-sm text-white/72">
                     <span className="uppercase tracking-[0.18em]">Title</span>
+
                     <input
                       name="title"
                       value={form.title}
@@ -329,6 +337,7 @@ export default function AdminaPage() {
 
                   <label className="grid gap-2 text-sm text-white/72">
                     <span className="uppercase tracking-[0.18em]">Description</span>
+
                     <textarea
                       name="description"
                       value={form.description}
@@ -342,6 +351,7 @@ export default function AdminaPage() {
                   <div className="grid gap-5 sm:grid-cols-3">
                     <label className="grid gap-2 text-sm text-white/72">
                       <span className="uppercase tracking-[0.18em]">Price</span>
+
                       <input
                         name="price"
                         value={form.price}
@@ -354,6 +364,7 @@ export default function AdminaPage() {
 
                     <label className="grid gap-2 text-sm text-white/72">
                       <span className="uppercase tracking-[0.18em]">Weight</span>
+
                       <input
                         name="weight"
                         value={form.weight}
@@ -365,6 +376,7 @@ export default function AdminaPage() {
 
                     <label className="grid gap-2 text-sm text-white/72">
                       <span className="uppercase tracking-[0.18em]">Stock</span>
+
                       <input
                         name="stockAmount"
                         value={form.stockAmount}
@@ -378,6 +390,7 @@ export default function AdminaPage() {
 
                   <label className="grid gap-2 text-sm text-white/72">
                     <span className="uppercase tracking-[0.18em]">Image</span>
+
                     <input
                       ref={imageInputRef}
                       type="file"
@@ -416,6 +429,7 @@ export default function AdminaPage() {
                   >
                     Inventory
                   </h2>
+
                   <div className="text-sm uppercase tracking-[0.2em] text-white/50">
                     {products.length} products
                   </div>
@@ -442,6 +456,7 @@ export default function AdminaPage() {
                             loading="lazy"
                           />
                         </div>
+
                         <div className="min-w-0">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <h3
@@ -452,13 +467,16 @@ export default function AdminaPage() {
                             >
                               {product.title}
                             </h3>
+
                             <div className="text-sm text-white/70">
                               {formatPrice(product.price)}
                             </div>
                           </div>
+
                           <p className="mt-3 line-clamp-2 text-sm leading-6 text-white/62">
                             {product.description}
                           </p>
+
                           <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-white/48">
                             <span>{product.weight}</span>
                             <span>{formatStockAmount(product.stockAmount)}</span>

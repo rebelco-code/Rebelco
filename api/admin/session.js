@@ -2,7 +2,7 @@ import {
   clearAdminSessionCookie,
   createAdminSessionCookie,
   readAdminSession,
-  verifyGoogleCredential,
+  verifyAdminLogin,
 } from "../_utils/adminAuth.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
 
@@ -29,7 +29,7 @@ export default async function handler(request, response) {
     }
 
     const body = await readJsonBody(request);
-    const admin = await verifyGoogleCredential(body.credential);
+    const admin = verifyAdminLogin(body.email, body.password);
 
     response.setHeader("Set-Cookie", createAdminSessionCookie(admin));
     sendJson(response, 200, { admin });

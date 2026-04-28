@@ -3,7 +3,6 @@ import { HttpError } from "./errors.js";
 
 const COOKIE_NAME = "rebelco_admin";
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
-const GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo";
 
 function getEnv(name) {
   return process.env[name]?.trim() || "";
@@ -34,6 +33,16 @@ function isAllowedAdminEmail(email) {
   return getAllowedAdminEmails().includes(normalizeEmail(email));
 }
 
+function safeCompare(value, expectedValue) {
+  const valueBuffer = Buffer.from(String(value || ""));
+  const expectedBuffer = Buffer.from(String(expectedValue || ""));
+
+  return (
+    valueBuffer.length === expectedBuffer.length &&
+    timingSafeEqual(valueBuffer, expectedBuffer)
+  );
+}
+
 function parseCookies(cookieHeader = "") {
   return cookieHeader.split(";").reduce((cookies, cookie) => {
     const [name, ...valueParts] = cookie.trim().split("=");
@@ -53,13 +62,7 @@ function signValue(value, secret) {
 
 function verifySignature(value, signature, secret) {
   const expected = signValue(value, secret);
-  const signatureBuffer = Buffer.from(signature);
-  const expectedBuffer = Buffer.from(expected);
-
-  return (
-    signatureBuffer.length === expectedBuffer.length &&
-    timingSafeEqual(signatureBuffer, expectedBuffer)
-  );
+  return safeCompare(signature, expected);
 }
 
 function isSecureCookieRequest() {
@@ -68,14 +71,17 @@ function isSecureCookieRequest() {
 
 export function createAdminSessionCookie(admin) {
   const secret = getRequiredEnv("ADMIN_SESSION_SECRET", "Admin session secret");
+
   const payload = {
     email: normalizeEmail(admin.email),
     name: admin.name || admin.email,
     picture: admin.picture || "",
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
   };
+
   const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const signature = signValue(encodedPayload, secret);
+
   const attributes = [
     `${COOKIE_NAME}=${encodedPayload}.${signature}`,
     "Path=/",
@@ -128,7 +134,10 @@ export function readAdminSession(request) {
   }
 
   try {
-    const payload = JSON.parse(Buffer.from(encodedPayload, "base64url").toString("utf8"));
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, "base64url").toString("utf8"),
+    );
+
     const isExpired = Number(payload.exp) < Math.floor(Date.now() / 1000);
 
     if (isExpired || !isAllowedAdminEmail(payload.email)) {
@@ -155,43 +164,26 @@ export function requireAdminSession(request) {
   return admin;
 }
 
-export async function verifyGoogleCredential(credential) {
-  const clientId = getRequiredEnv("GOOGLE_CLIENT_ID", "Google client ID");
+export function verifyAdminLogin(email, password) {
+  const adminPassword = getRequiredEnv("ADMIN_PASSWORD", "Admin password");
   const allowedAdminEmails = getAllowedAdminEmails();
+  const normalizedEmail = normalizeEmail(email);
 
   if (allowedAdminEmails.length === 0) {
     throw new HttpError(500, "Admin email allow-list is not configured.");
   }
 
-  if (!credential) {
-    throw new HttpError(400, "Google credential is required.");
+  if (!normalizedEmail || !password) {
+    throw new HttpError(400, "Email and password are required.");
   }
 
-  const tokenInfoUrl = new URL(GOOGLE_TOKEN_INFO_URL);
-  tokenInfoUrl.searchParams.set("id_token", credential);
-
-  const tokenInfoResponse = await fetch(tokenInfoUrl, { cache: "no-store" });
-
-  if (!tokenInfoResponse.ok) {
-    throw new HttpError(401, "Google sign-in could not be verified.");
-  }
-
-  const tokenInfo = await tokenInfoResponse.json();
-  const email = normalizeEmail(tokenInfo.email);
-  const isEmailVerified =
-    tokenInfo.email_verified === true || tokenInfo.email_verified === "true";
-
-  if (tokenInfo.aud !== clientId || !email || !isEmailVerified) {
-    throw new HttpError(401, "Google sign-in could not be verified.");
-  }
-
-  if (!isAllowedAdminEmail(email)) {
-    throw new HttpError(403, "This Google account is not allowed to manage products.");
+  if (!isAllowedAdminEmail(normalizedEmail) || !safeCompare(password, adminPassword)) {
+    throw new HttpError(401, "Invalid admin email or password.");
   }
 
   return {
-    email,
-    name: tokenInfo.name || email,
-    picture: tokenInfo.picture || "",
+    email: normalizedEmail,
+    name: normalizedEmail,
+    picture: "",
   };
 }
