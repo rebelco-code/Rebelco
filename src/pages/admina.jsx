@@ -17,19 +17,6 @@ const initialLoginForm = {
   password: "",
 };
 
-function formatDateTime(value) {
-  const timestamp = Date.parse(String(value || ""));
-
-  if (!Number.isFinite(timestamp)) {
-    return "Unknown";
-  }
-
-  return new Intl.DateTimeFormat("en-ZA", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(timestamp));
-}
-
 export default function AdminaPage() {
   const imageInputRef = useRef(null);
 
@@ -41,14 +28,11 @@ export default function AdminaPage() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [sessionStatus, setSessionStatus] = useState("checking");
   const [productsStatus, setProductsStatus] = useState("idle");
-  const [orders, setOrders] = useState([]);
-  const [ordersStatus, setOrdersStatus] = useState("idle");
   const [formStatus, setFormStatus] = useState("idle");
   const [loginStatus, setLoginStatus] = useState("idle");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [openCategories, setOpenCategories] = useState({});
   const [productActionStatus, setProductActionStatus] = useState("");
-  const [orderActionStatus, setOrderActionStatus] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -115,28 +99,6 @@ export default function AdminaPage() {
     }
   }, []);
 
-  const loadOrders = useCallback(async () => {
-    setOrdersStatus("loading");
-
-    try {
-      const response = await fetch("/api/admin/orders", {
-        headers: { Accept: "application/json" },
-        credentials: "include",
-      });
-
-      const data = await readJsonResponse(
-        response,
-        "Orders API is available through Vercel dev or a deployed Vercel site.",
-      );
-
-      setOrders(data.orders || []);
-      setOrdersStatus("ready");
-    } catch (loadError) {
-      setError(loadError.message);
-      setOrdersStatus("error");
-    }
-  }, []);
-
   useEffect(() => {
     let isMounted = true;
 
@@ -153,7 +115,6 @@ export default function AdminaPage() {
           setAdmin(data.admin);
           setSessionStatus("signed-in");
           loadProducts();
-          loadOrders();
           return;
         }
 
@@ -172,7 +133,7 @@ export default function AdminaPage() {
     return () => {
       isMounted = false;
     };
-  }, [loadOrders, loadProducts]);
+  }, [loadProducts]);
 
   useEffect(() => {
     return () => {
@@ -214,7 +175,6 @@ export default function AdminaPage() {
       setLoginStatus("idle");
       setLoginForm(initialLoginForm);
       loadProducts();
-      loadOrders();
     } catch (loginError) {
       setError(loginError.message);
       setLoginStatus("idle");
@@ -230,7 +190,7 @@ export default function AdminaPage() {
     }));
   }
 
-  function selectExistingCategory(category) {
+  function useExistingCategory(category) {
     setForm((currentForm) => ({
       ...currentForm,
       category,
@@ -364,33 +324,6 @@ export default function AdminaPage() {
     }
   }
 
-  async function setProofOfPaymentReceived(orderId, proofOfPaymentReceived) {
-    setError("");
-    setMessage("");
-    setOrderActionStatus(orderId);
-
-    try {
-      const response = await fetch("/api/admin/orders", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          id: orderId,
-          proofOfPaymentReceived,
-        }),
-      });
-
-      const data = await readJsonResponse(response, "Order could not be updated.");
-
-      setOrders(data.orders || []);
-      setMessage("Order payment proof status updated.");
-    } catch (actionError) {
-      setError(actionError.message);
-    } finally {
-      setOrderActionStatus("");
-    }
-  }
-
   async function signOut() {
     await fetch("/api/admin/session", {
       method: "DELETE",
@@ -399,7 +332,6 @@ export default function AdminaPage() {
 
     setAdmin(null);
     setProducts([]);
-    setOrders([]);
     setSessionStatus("signed-out");
   }
 
@@ -524,8 +456,7 @@ export default function AdminaPage() {
           ) : null}
 
           {admin ? (
-            <>
-              <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(360px,520px)_minmax(0,1fr)]">
+            <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(360px,520px)_minmax(0,1fr)]">
               <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
                 <div className="border-b border-white/10 pb-5">
                   <h2
@@ -600,7 +531,7 @@ export default function AdminaPage() {
                           <button
                             key={category}
                             type="button"
-                            onClick={() => selectExistingCategory(category)}
+                            onClick={() => useExistingCategory(category)}
                             className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
                           >
                             {category}
@@ -938,126 +869,6 @@ export default function AdminaPage() {
                 ) : null}
               </section>
             </div>
-
-              <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] shadow-2xl shadow-black/20">
-                <div className="flex flex-col gap-4 border-b border-white/10 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-6">
-                  <div>
-                    <h2
-                      className="text-3xl leading-none text-white sm:text-4xl"
-                      style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                    >
-                      Orders
-                    </h2>
-
-                    <p className="mt-3 text-sm leading-6 text-white/50">
-                      New customer orders with quantity, location, and payment proof status.
-                    </p>
-                  </div>
-
-                  <div className="self-start rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55 sm:self-auto">
-                    {orders.length} total
-                  </div>
-                </div>
-
-                {ordersStatus === "loading" ? (
-                  <div className="p-6 text-sm text-white/70">Loading orders...</div>
-                ) : null}
-
-                {ordersStatus === "ready" && orders.length === 0 ? (
-                  <div className="p-6 text-sm text-white/65">
-                    No orders yet. Orders created from the products page will appear here.
-                  </div>
-                ) : null}
-
-                {orders.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-[1100px] w-full text-left text-sm text-white/80">
-                      <thead className="bg-black/40 text-xs uppercase tracking-[0.16em] text-white/50">
-                        <tr>
-                          <th className="px-4 py-3 font-semibold">Placed</th>
-                          <th className="px-4 py-3 font-semibold">Product</th>
-                          <th className="px-4 py-3 font-semibold">Price</th>
-                          <th className="px-4 py-3 font-semibold">Quantity</th>
-                          <th className="px-4 py-3 font-semibold">Location (Text)</th>
-                          <th className="px-4 py-3 font-semibold">Map Coordinates</th>
-                          <th className="px-4 py-3 font-semibold">Proof Received</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {orders.map((order) => {
-                          const hasCoordinates =
-                            order.locationLatitude !== null &&
-                            order.locationLatitude !== undefined &&
-                            order.locationLongitude !== null &&
-                            order.locationLongitude !== undefined;
-                          const isBusy = orderActionStatus === order.id;
-
-                          return (
-                            <tr key={order.id} className="border-t border-white/10 align-top">
-                              <td className="px-4 py-4 text-xs text-white/60">
-                                {formatDateTime(order.createdAt)}
-                              </td>
-
-                              <td className="px-4 py-4">
-                                <div className="font-semibold text-white">{order.productTitle}</div>
-
-                                <div className="mt-1 text-xs text-white/55">
-                                  {order.productCategory || "Uncategorised"}
-                                </div>
-                              </td>
-
-                              <td className="px-4 py-4">{formatPrice(order.productPrice)}</td>
-
-                              <td className="px-4 py-4">
-                                <span className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.14em] text-white/70">
-                                  {order.quantity}
-                                </span>
-                              </td>
-
-                              <td className="px-4 py-4 text-sm leading-6 text-white/70">
-                                {order.locationText || "Not provided"}
-                              </td>
-
-                              <td className="px-4 py-4 text-xs text-white/65">
-                                {hasCoordinates ? (
-                                  <a
-                                    href={`https://www.openstreetmap.org/?mlat=${order.locationLatitude}&mlon=${order.locationLongitude}#map=15/${order.locationLatitude}/${order.locationLongitude}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="underline-offset-4 hover:text-white hover:underline"
-                                  >
-                                    {order.locationLatitude}, {order.locationLongitude}
-                                  </a>
-                                ) : (
-                                  "Not provided"
-                                )}
-                              </td>
-
-                              <td className="px-4 py-4">
-                                <label className="flex items-center gap-3 text-xs uppercase tracking-[0.14em] text-white/70">
-                                  <input
-                                    type="checkbox"
-                                    checked={Boolean(order.proofOfPaymentReceived)}
-                                    onChange={(event) =>
-                                      setProofOfPaymentReceived(order.id, event.target.checked)
-                                    }
-                                    disabled={isBusy}
-                                    className="h-4 w-4 cursor-pointer rounded border border-white/20 bg-black"
-                                  />
-
-                                  <span>{isBusy ? "Saving..." : String(Boolean(order.proofOfPaymentReceived))}</span>
-                                </label>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : null}
-              </section>
-            </>
           ) : null}
         </div>
       </main>
