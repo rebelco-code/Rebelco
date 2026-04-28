@@ -103,12 +103,12 @@ export default function Gallery() {
         </button>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 z-20 flex items-center">
-        <div className="flex w-full items-end px-4 pb-20 sm:px-8 sm:pb-24 lg:px-16 lg:pb-32">
-          <div className="max-w-3xl sm:ml-4 lg:ml-12">
+      <div className="pointer-events-none absolute inset-0 z-20 flex items-end">
+        <div className="flex w-full items-end px-3 pb-16 pt-24 sm:px-8 sm:pb-24 sm:pt-28 lg:px-16 lg:pb-32">
+          <div className="w-full max-w-3xl sm:ml-4 lg:ml-12">
             <div
               key={currentIndex}
-              className="pointer-events-auto max-w-[44rem] border border-white/12 bg-[linear-gradient(180deg,rgba(8,8,10,0.28),rgba(8,8,10,0.54))] px-5 py-5 text-[#f6ead6] shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur-md sm:px-8 sm:py-8 lg:px-12 lg:py-10"
+              className="pointer-events-auto w-full max-w-[44rem] max-h-[calc(100svh-8rem)] overflow-y-auto rounded-[20px] border border-white/12 bg-[linear-gradient(180deg,rgba(8,8,10,0.28),rgba(8,8,10,0.54))] px-4 py-4 text-[#f6ead6] shadow-[0_24px_70px_rgba(0,0,0,0.22)] backdrop-blur-md sm:max-h-[calc(100svh-10rem)] sm:rounded-[24px] sm:px-8 sm:py-8 lg:max-h-[calc(100svh-12rem)] lg:px-12 lg:py-10"
             >
               <div className="mb-4 h-px w-16 bg-white/60 sm:mb-6 sm:w-24" />
               <div
@@ -118,13 +118,13 @@ export default function Gallery() {
                 {slides[currentIndex].eyebrow}
               </div>
               <h1
-                className="mt-3 max-w-2xl text-3xl leading-[0.94] tracking-[0.01em] text-[#fff7eb] sm:mt-4 sm:text-5xl lg:text-7xl"
+                className="mt-3 max-w-2xl text-[2rem] leading-[0.94] tracking-[0.01em] text-[#fff7eb] sm:mt-4 sm:text-5xl lg:text-7xl"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
               >
                 {slides[currentIndex].heading}
               </h1>
               <p
-                className="mt-4 max-w-2xl text-[15px] leading-6 text-[#eee1cf] sm:text-lg sm:leading-8 lg:text-xl lg:leading-9"
+                className="mt-3 max-w-2xl text-[14px] leading-6 text-[#eee1cf] sm:mt-4 sm:text-lg sm:leading-8 lg:text-xl lg:leading-9"
                 style={{ fontFamily: '"Alegreya", Georgia, serif' }}
               >
                 {slides[currentIndex].body}
@@ -133,7 +133,7 @@ export default function Gallery() {
               {slides[currentIndex].ctaHref ? (
                 <a
                   href={slides[currentIndex].ctaHref}
-                  className="mt-6 inline-flex items-center justify-center border border-white/18 bg-black px-6 py-3 text-xs uppercase tracking-[0.2em] text-white transition duration-200 hover:border-white hover:bg-white hover:text-black sm:mt-8 sm:px-10 sm:py-4 sm:text-sm lg:px-12 lg:py-5"
+                  className="mt-5 inline-flex w-full items-center justify-center border border-white/18 bg-black px-5 py-3 text-[11px] uppercase tracking-[0.18em] text-white transition duration-200 hover:border-white hover:bg-white hover:text-black sm:mt-8 sm:w-auto sm:px-10 sm:py-4 sm:text-sm lg:px-12 lg:py-5"
                   style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                 >
                   {slides[currentIndex].ctaLabel}

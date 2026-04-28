@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = ({ className = "" }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
   const navItems = [
     { label: "Home", href: "/" },
     { label: "Contact", href: "/contact" },
@@ -18,10 +17,6 @@ const Navbar = ({ className = "" }) => {
         <path d="M16 37L28 19L40 37" fill="none" stroke="#8a8a8f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     `);
-
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname]);
 
   return (
     <nav className={`relative z-50 text-[#f3e8d6] ${className}`}>
@@ -58,7 +53,9 @@ const Navbar = ({ className = "" }) => {
         >
           {navItems.map((item) => (
             <li key={item.label}>
-              <Link to={item.href}>{item.label}</Link>
+              <Link to={item.href} onClick={() => setIsOpen(false)}>
+                {item.label}
+              </Link>
             </li>
           ))}
         </ul>
@@ -74,6 +71,7 @@ const Navbar = ({ className = "" }) => {
               <li key={item.label}>
                 <Link
                   to={item.href}
+                  onClick={() => setIsOpen(false)}
                   className="block border border-white/10 bg-black/25 px-4 py-3 text-sm uppercase tracking-[0.2em] text-white"
                 >
                   {item.label}
