@@ -189,7 +189,7 @@ export async function writeProducts(products) {
   };
 
   await put(CATALOG_PATH, JSON.stringify(catalog, null, 2), {
-    access: "public",
+    access: "private",
     allowOverwrite: true,
     cacheControlMaxAge: 60,
     contentType: "application/json",
@@ -210,7 +210,7 @@ export async function createProduct(fields, images) {
       const imagePathname = `${IMAGE_PREFIX}/${id}-${index + 1}.${getImageExtension(image)}`;
 
       return put(imagePathname, image.buffer, {
-        access: "public",
+        access: "private",
         addRandomSuffix: true,
         contentType: image.mimeType,
       });
