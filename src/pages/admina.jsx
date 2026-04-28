@@ -57,11 +57,6 @@ export default function AdminaPage() {
     return products.filter((product) => product.category === selectedCategory);
   }, [products, selectedCategory]);
 
-  const outOfStockCount = useMemo(
-    () => products.filter((product) => Number(product.stockAmount) <= 0).length,
-    [products],
-  );
-
   const loadProducts = useCallback(async () => {
     setProductsStatus("loading");
 
@@ -237,7 +232,7 @@ export default function AdminaPage() {
 
       setProducts(data.products || []);
       resetForm();
-      setMessage("Product added to the collection.");
+      setMessage("Product saved.");
       setFormStatus("idle");
     } catch (saveError) {
       setError(saveError.message);
@@ -264,7 +259,7 @@ export default function AdminaPage() {
       const data = await readJsonResponse(response, "Product could not be updated.");
 
       setProducts(data.products || []);
-      setMessage("Product marked as out of stock.");
+      setMessage("Product set out of stock.");
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -273,7 +268,7 @@ export default function AdminaPage() {
   }
 
   async function removeProduct(productId) {
-    const confirmed = window.confirm("Remove this product from the collection?");
+    const confirmed = window.confirm("Remove this product from the catalog?");
 
     if (!confirmed) {
       return;
@@ -294,7 +289,7 @@ export default function AdminaPage() {
       const data = await readJsonResponse(response, "Product could not be removed.");
 
       setProducts(data.products || []);
-      setMessage("Product removed from the collection.");
+      setMessage("Product removed.");
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -314,74 +309,42 @@ export default function AdminaPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0d0d0b] text-[#f7f1e8]">
-      <Navbar className="border-b border-[#d8c7a3]/10 bg-[#0d0d0b]/95 backdrop-blur" />
+    <div className="min-h-screen overflow-x-hidden bg-[#0f0f10] text-white">
+      <Navbar className="border-b border-white/10 bg-[#0f0f10]/95 backdrop-blur" />
 
       <main className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <header className="relative w-full overflow-hidden rounded-[2rem] border border-[#d8c7a3]/15 bg-[radial-gradient(circle_at_top_left,_rgba(216,199,163,0.16),_transparent_34%),linear-gradient(135deg,_#191714,_#10100e)] p-6 shadow-2xl shadow-black/30 sm:p-8 lg:p-10">
-            <div className="relative z-10 flex min-w-0 flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+          <header className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
+            <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <p
-                  className="text-xs uppercase tracking-[0.55em] text-[#d8c7a3]/65"
+                  className="text-xs uppercase tracking-[0.45em] text-white/45"
                   style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                 >
-                  Rebelco Apothecary
+                  Rebelco
                 </p>
 
                 <h1
-                  className="mt-4 max-w-3xl break-words text-5xl leading-[0.9] text-[#fff8ef] sm:text-6xl lg:text-7xl"
+                  className="mt-3 break-words text-4xl leading-none text-white sm:text-5xl lg:text-6xl"
                   style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                 >
-                  Product Studio
+                  Product Admin
                 </h1>
 
-                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#f7f1e8]/62 sm:text-base">
-                  Curate soaps, salves, balms, oils, and handcrafted body-care products
-                  before they appear in the Rebelco storefront.
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">
+                  Add products, upload multiple photos, manage stock, remove old items, and
+                  organise the catalog by category.
                 </p>
-
-                {admin ? (
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-[#d8c7a3]/10 bg-black/25 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-[#d8c7a3]/50">
-                        Products
-                      </p>
-                      <p className="mt-2 text-2xl text-[#fff8ef]">{products.length}</p>
-                    </div>
-
-                    <div className="rounded-2xl border border-[#d8c7a3]/10 bg-black/25 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-[#d8c7a3]/50">
-                        Categories
-                      </p>
-                      <p className="mt-2 text-2xl text-[#fff8ef]">{categories.length}</p>
-                    </div>
-
-                    <div className="rounded-2xl border border-[#d8c7a3]/10 bg-black/25 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.28em] text-[#d8c7a3]/50">
-                        Out of stock
-                      </p>
-                      <p className="mt-2 text-2xl text-[#fff8ef]">{outOfStockCount}</p>
-                    </div>
-                  </div>
-                ) : null}
               </div>
 
               {admin ? (
-                <div className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-[#d8c7a3]/10 bg-black/35 p-4 sm:w-auto">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-[#d8c7a3]/45">
-                      Signed in
-                    </p>
-                    <div className="mt-1 min-w-0 truncate text-sm text-[#f7f1e8]/70">
-                      {admin.email}
-                    </div>
-                  </div>
+                <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-white/10 bg-black/35 p-4 sm:w-auto sm:flex-row sm:items-center">
+                  <div className="min-w-0 truncate text-sm text-white/65">{admin.email}</div>
 
                   <button
                     type="button"
                     onClick={signOut}
-                    className="shrink-0 rounded-xl border border-[#d8c7a3]/20 bg-[#0b0b09] px-5 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-[#f7f1e8] transition hover:border-[#d8c7a3]/50 hover:bg-[#f7f1e8] hover:text-black"
+                    className="shrink-0 rounded-lg border border-white/15 bg-black px-5 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:border-white/35 hover:bg-white hover:text-black"
                   >
                     Sign out
                   </button>
@@ -391,31 +354,27 @@ export default function AdminaPage() {
           </header>
 
           {sessionStatus === "checking" ? (
-            <section className="mt-6 rounded-3xl border border-[#d8c7a3]/10 bg-[#15130f] p-6 text-[#f7f1e8]/70">
+            <section className="mt-6 rounded-2xl border border-white/10 bg-[#151516] p-6 text-white/70">
               Checking admin session...
             </section>
           ) : null}
 
           {sessionStatus === "signed-out" ? (
-            <section className="mt-6 w-full max-w-xl rounded-3xl border border-[#d8c7a3]/10 bg-[#15130f] p-6 shadow-2xl shadow-black/25 sm:p-8">
-              <p className="text-xs uppercase tracking-[0.35em] text-[#d8c7a3]/50">
-                Private access
-              </p>
-
+            <section className="mt-6 w-full max-w-xl rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
               <h2
-                className="mt-3 text-4xl leading-none text-[#fff8ef]"
+                className="text-3xl leading-none text-white"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
               >
                 Admin Sign In
               </h2>
 
-              <p className="mt-4 text-sm leading-7 text-[#f7f1e8]/55">
-                Sign in to manage the Rebelco product collection.
+              <p className="mt-3 text-sm leading-6 text-white/55">
+                Sign in with your admin email and password to manage products.
               </p>
 
-              <form className="mt-7 grid gap-5" onSubmit={submitLogin}>
-                <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
+              <form className="mt-6 grid gap-5" onSubmit={submitLogin}>
+                <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                  <span className="text-xs font-semibold uppercase tracking-[0.22em]">
                     Email
                   </span>
 
@@ -426,12 +385,12 @@ export default function AdminaPage() {
                     onChange={updateLoginField}
                     required
                     autoComplete="username"
-                    className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/25 focus:border-[#d8c7a3]/45"
+                    className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                   />
                 </label>
 
-                <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
+                <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                  <span className="text-xs font-semibold uppercase tracking-[0.22em]">
                     Password
                   </span>
 
@@ -442,14 +401,14 @@ export default function AdminaPage() {
                     onChange={updateLoginField}
                     required
                     autoComplete="current-password"
-                    className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/25 focus:border-[#d8c7a3]/45"
+                    className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                   />
                 </label>
 
                 <button
                   type="submit"
                   disabled={loginStatus === "loading"}
-                  className="rounded-2xl border border-[#d8c7a3] bg-[#f7f1e8] px-5 py-4 text-sm font-semibold uppercase tracking-[0.24em] text-black transition hover:bg-[#d8c7a3] disabled:cursor-not-allowed disabled:opacity-55"
+                  className="rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                 >
                   {loginStatus === "loading" ? "Signing in..." : "Sign in"}
                 </button>
@@ -458,41 +417,38 @@ export default function AdminaPage() {
           ) : null}
 
           {error ? (
-            <div className="mt-6 rounded-2xl border border-red-300/25 bg-red-950/25 p-4 text-sm leading-6 text-red-100">
+            <div className="mt-6 rounded-xl border border-red-400/30 bg-red-950/25 p-4 text-sm leading-6 text-red-100">
               {error}
             </div>
           ) : null}
 
           {message ? (
-            <div className="mt-6 rounded-2xl border border-emerald-300/25 bg-emerald-950/20 p-4 text-sm leading-6 text-emerald-100">
+            <div className="mt-6 rounded-xl border border-emerald-400/30 bg-emerald-950/25 p-4 text-sm leading-6 text-emerald-100">
               {message}
             </div>
           ) : null}
 
           {admin ? (
-            <div className="mt-6 grid w-full min-w-0 gap-6 xl:grid-cols-[minmax(0,500px)_minmax(0,1fr)]">
-              <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#d8c7a3]/10 bg-[#15130f] p-5 shadow-2xl shadow-black/25 sm:p-8">
-                <div className="border-b border-[#d8c7a3]/10 pb-6">
-                  <p className="text-xs uppercase tracking-[0.35em] text-[#d8c7a3]/50">
-                    Create listing
-                  </p>
-
+            <div className="mt-6 grid w-full min-w-0 gap-6 xl:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
+              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
+                <div className="border-b border-white/10 pb-5">
                   <h2
-                    className="mt-3 text-4xl leading-none text-[#fff8ef]"
+                    className="text-3xl leading-none text-white"
                     style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                   >
                     Add Product
                   </h2>
 
-                  <p className="mt-4 text-sm leading-7 text-[#f7f1e8]/50">
-                    Add soaps, salves, balms, or care products with up to 6 product photos.
+                  <p className="mt-3 text-sm leading-6 text-white/50">
+                    Add product details, choose a category, and upload up to 6 product
+                    photos.
                   </p>
                 </div>
 
                 <form className="mt-6 grid min-w-0 gap-5" onSubmit={submitProduct}>
-                  <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
-                      Product name
+                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      Title
                     </span>
 
                     <input
@@ -500,14 +456,14 @@ export default function AdminaPage() {
                       value={form.title}
                       onChange={updateField}
                       required
-                      placeholder="Lavender Tallow Soap"
-                      className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/22 focus:border-[#d8c7a3]/45"
+                      placeholder="Product name"
+                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                     />
                   </label>
 
-                  <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
-                      Customer description
+                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      Description
                     </span>
 
                     <textarea
@@ -516,14 +472,14 @@ export default function AdminaPage() {
                       onChange={updateField}
                       required
                       rows={5}
-                      placeholder="A gentle, handcrafted bar made for daily cleansing and soft skin."
-                      className="min-w-0 resize-none rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base leading-7 text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/22 focus:border-[#d8c7a3]/45"
+                      placeholder="Short product description"
+                      className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                     />
                   </label>
 
-                  <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
-                      Collection / category
+                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      Category
                     </span>
 
                     <input
@@ -531,9 +487,9 @@ export default function AdminaPage() {
                       value={form.category}
                       onChange={updateField}
                       required
-                      placeholder="Soaps, Salves, Balms, Oils"
+                      placeholder="Example: Soaps, Salves, Balms"
                       list="admin-product-categories"
-                      className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/22 focus:border-[#d8c7a3]/45"
+                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                     />
 
                     <datalist id="admin-product-categories">
@@ -549,7 +505,7 @@ export default function AdminaPage() {
                             key={category}
                             type="button"
                             onClick={() => useExistingCategory(category)}
-                            className="rounded-full border border-[#d8c7a3]/10 bg-[#d8c7a3]/5 px-3 py-1.5 text-xs uppercase tracking-[0.16em] text-[#d8c7a3]/65 transition hover:border-[#d8c7a3]/30 hover:text-[#fff8ef]"
+                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
                           >
                             {category}
                           </button>
@@ -559,8 +515,8 @@ export default function AdminaPage() {
                   </label>
 
                   <div className="grid min-w-0 gap-5 sm:grid-cols-3">
-                    <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.22em]">
                         Price
                       </span>
 
@@ -571,13 +527,13 @@ export default function AdminaPage() {
                         required
                         inputMode="decimal"
                         placeholder="85.00"
-                        className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/22 focus:border-[#d8c7a3]/45"
+                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                       />
                     </label>
 
-                    <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
-                        Size
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                        Weight
                       </span>
 
                       <input
@@ -586,12 +542,12 @@ export default function AdminaPage() {
                         onChange={updateField}
                         required
                         placeholder="120g"
-                        className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/22 focus:border-[#d8c7a3]/45"
+                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                       />
                     </label>
 
-                    <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.22em]">
                         Stock
                       </span>
 
@@ -602,14 +558,14 @@ export default function AdminaPage() {
                         required
                         inputMode="numeric"
                         placeholder="12"
-                        className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-4 text-base text-[#fff8ef] outline-none transition placeholder:text-[#f7f1e8]/22 focus:border-[#d8c7a3]/45"
+                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                       />
                     </label>
                   </div>
 
-                  <label className="grid min-w-0 gap-2 text-sm text-[#f7f1e8]/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/70">
-                      Product photos
+                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      Images
                     </span>
 
                     <input
@@ -619,10 +575,10 @@ export default function AdminaPage() {
                       multiple
                       onChange={updateImage}
                       required
-                      className="min-w-0 rounded-2xl border border-[#d8c7a3]/10 bg-black/60 px-4 py-3 text-sm text-[#f7f1e8] file:mr-4 file:rounded-xl file:border-0 file:bg-[#f7f1e8] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
+                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
                     />
 
-                    <p className="text-xs leading-5 text-[#f7f1e8]/40">
+                    <p className="text-xs leading-5 text-white/40">
                       Upload up to 6 images. Each image must be JPG, PNG, or WebP and 4 MB
                       or smaller.
                     </p>
@@ -633,12 +589,12 @@ export default function AdminaPage() {
                       {imagePreviews.map((preview, index) => (
                         <div
                           key={preview}
-                          className="overflow-hidden rounded-2xl border border-[#d8c7a3]/10 bg-black"
+                          className="aspect-square overflow-hidden rounded-xl border border-white/10 bg-black"
                         >
                           <img
                             src={preview}
                             alt={`Selected product preview ${index + 1}`}
-                            className="aspect-square w-full object-cover"
+                            className="h-full w-full object-cover"
                           />
                         </div>
                       ))}
@@ -648,34 +604,31 @@ export default function AdminaPage() {
                   <button
                     type="submit"
                     disabled={formStatus === "saving"}
-                    className="mt-2 rounded-2xl border border-[#d8c7a3] bg-[#f7f1e8] px-5 py-4 text-sm font-semibold uppercase tracking-[0.24em] text-black transition hover:bg-[#d8c7a3] disabled:cursor-not-allowed disabled:opacity-55"
+                    className="mt-2 rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                   >
-                    {formStatus === "saving" ? "Saving..." : "Add to collection"}
+                    {formStatus === "saving" ? "Saving..." : "Save Product"}
                   </button>
                 </form>
               </section>
 
-              <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#d8c7a3]/10 bg-[#15130f] p-5 shadow-2xl shadow-black/25 sm:p-8">
-                <div className="flex min-w-0 flex-col gap-5 border-b border-[#d8c7a3]/10 pb-6">
+              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
+                <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5">
                   <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs uppercase tracking-[0.35em] text-[#d8c7a3]/50">
-                        Storefront preview
-                      </p>
-
                       <h2
-                        className="mt-3 text-4xl leading-none text-[#fff8ef]"
+                        className="text-3xl leading-none text-white"
                         style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                       >
-                        Product Collection
+                        Product Preview
                       </h2>
 
-                      <p className="mt-4 text-sm leading-7 text-[#f7f1e8]/50">
-                        Review how soaps, salves, and care products will feel to customers.
+                      <p className="mt-3 text-sm leading-6 text-white/50">
+                        Filter by category, review photos, mark items out of stock, or
+                        remove products.
                       </p>
                     </div>
 
-                    <div className="shrink-0 rounded-full border border-[#d8c7a3]/10 bg-black/45 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c7a3]/60">
+                    <div className="shrink-0 rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
                       {filteredProducts.length} shown
                     </div>
                   </div>
@@ -686,8 +639,8 @@ export default function AdminaPage() {
                       onClick={() => setSelectedCategory("all")}
                       className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                         selectedCategory === "all"
-                          ? "border-[#d8c7a3] bg-[#f7f1e8] text-black"
-                          : "border-[#d8c7a3]/10 bg-black/45 text-[#f7f1e8]/55 hover:border-[#d8c7a3]/30 hover:text-[#fff8ef]"
+                          ? "border-white bg-white text-black"
+                          : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
                       }`}
                     >
                       All
@@ -700,8 +653,8 @@ export default function AdminaPage() {
                         onClick={() => setSelectedCategory(category)}
                         className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                           selectedCategory === category
-                            ? "border-[#d8c7a3] bg-[#f7f1e8] text-black"
-                            : "border-[#d8c7a3]/10 bg-black/45 text-[#f7f1e8]/55 hover:border-[#d8c7a3]/30 hover:text-[#fff8ef]"
+                            ? "border-white bg-white text-black"
+                            : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
                         }`}
                       >
                         {category}
@@ -711,8 +664,8 @@ export default function AdminaPage() {
                 </div>
 
                 {productsStatus === "loading" ? (
-                  <div className="mt-6 rounded-2xl border border-[#d8c7a3]/10 bg-black/45 p-4 text-[#f7f1e8]/70">
-                    Loading collection...
+                  <div className="mt-6 rounded-xl border border-white/10 bg-black p-4 text-white/70">
+                    Loading products...
                   </div>
                 ) : null}
 
@@ -732,9 +685,9 @@ export default function AdminaPage() {
                       return (
                         <article
                           key={product.id}
-                          className="group min-w-0 overflow-hidden rounded-[1.5rem] border border-[#d8c7a3]/10 bg-[#0d0d0b] transition duration-300 hover:-translate-y-1 hover:border-[#d8c7a3]/30"
+                          className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
                         >
-                          <div className="relative overflow-hidden bg-[#10100e]">
+                          <div className="relative overflow-hidden bg-[#101010]">
                             {mainImage ? (
                               <img
                                 src={mainImage}
@@ -745,38 +698,38 @@ export default function AdminaPage() {
                                 loading="lazy"
                               />
                             ) : (
-                              <div className="flex aspect-[4/5] w-full items-center justify-center bg-black text-sm text-[#f7f1e8]/35">
+                              <div className="flex aspect-[4/5] w-full items-center justify-center bg-black text-sm text-white/35">
                                 No image
                               </div>
                             )}
 
-                            <div className="absolute left-3 top-3 rounded-full border border-[#d8c7a3]/20 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f7f1e8]/80 backdrop-blur">
+                            <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
                               {isOutOfStock
                                 ? "Out of stock"
                                 : formatStockAmount(product.stockAmount)}
                             </div>
 
                             {productImages.length > 1 ? (
-                              <div className="absolute right-3 top-3 rounded-full border border-[#d8c7a3]/20 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f7f1e8]/80 backdrop-blur">
+                              <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
                                 {productImages.length} photos
                               </div>
                             ) : null}
 
                             {product.category ? (
-                              <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-[#d8c7a3]/20 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f7f1e8]/80 backdrop-blur">
+                              <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
                                 <span className="block truncate">{product.category}</span>
                               </div>
                             ) : null}
                           </div>
 
                           {productImages.length > 1 ? (
-                            <div className="grid grid-cols-4 gap-2 border-b border-[#d8c7a3]/10 p-3">
+                            <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
                               {productImages.slice(0, 4).map((imageUrl, index) => (
                                 <img
                                   key={`${product.id}-${imageUrl}-${index}`}
                                   src={imageUrl}
                                   alt={`${product.title} thumbnail ${index + 1}`}
-                                  className="aspect-square rounded-xl object-cover"
+                                  className="aspect-square rounded-lg object-cover"
                                   loading="lazy"
                                 />
                               ))}
@@ -786,7 +739,7 @@ export default function AdminaPage() {
                           <div className="min-w-0 p-4">
                             <div className="flex min-w-0 items-start justify-between gap-3">
                               <h3
-                                className="min-w-0 break-words text-2xl leading-none text-[#fff8ef]"
+                                className="min-w-0 break-words text-2xl leading-none text-white"
                                 style={{
                                   fontFamily: '"Cormorant Garamond", Georgia, serif',
                                 }}
@@ -794,17 +747,17 @@ export default function AdminaPage() {
                                 {product.title}
                               </h3>
 
-                              <div className="shrink-0 rounded-full border border-[#d8c7a3]/15 px-3 py-1 text-sm text-[#f7f1e8]/80">
+                              <div className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80">
                                 {formatPrice(product.price)}
                               </div>
                             </div>
 
-                            <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-[#f7f1e8]/55">
+                            <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
                               {product.description}
                             </p>
 
-                            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-[#d8c7a3]/10 pt-4">
-                              <span className="rounded-full bg-[#d8c7a3]/8 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#d8c7a3]/60">
+                            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+                              <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
                                 {product.weight}
                               </span>
 
@@ -812,7 +765,7 @@ export default function AdminaPage() {
                                 type="button"
                                 onClick={() => setOutOfStock(product.id)}
                                 disabled={isBusy || isOutOfStock}
-                                className="rounded-full border border-[#d8c7a3]/10 bg-[#d8c7a3]/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-[#f7f1e8]/55 transition hover:border-[#d8c7a3]/35 hover:text-[#fff8ef] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 {isBusy ? "Saving..." : "Out of stock"}
                               </button>
@@ -821,7 +774,7 @@ export default function AdminaPage() {
                                 type="button"
                                 onClick={() => removeProduct(product.id)}
                                 disabled={isBusy}
-                                className="rounded-full border border-red-300/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/70 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
                               >
                                 Remove
                               </button>
@@ -834,9 +787,9 @@ export default function AdminaPage() {
                 ) : null}
 
                 {productsStatus === "ready" && filteredProducts.length === 0 ? (
-                  <div className="mt-6 rounded-3xl border border-[#d8c7a3]/10 bg-black/45 p-6 text-sm leading-7 text-[#f7f1e8]/60">
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-black p-6 text-sm leading-6 text-white/65">
                     {products.length === 0
-                      ? "No products saved yet. Add your first soap, salve, or care product to begin building the collection."
+                      ? "No products saved yet. Once you add a product, it will appear here."
                       : "No products match this category filter."}
                   </div>
                 ) : null}

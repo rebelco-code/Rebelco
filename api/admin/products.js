@@ -23,6 +23,7 @@ function parseMultipartForm(request) {
     const fields = {};
     const images = [];
     let imageTooLarge = false;
+    let tooManyImages = false;
 
     const busboy = Busboy({
       headers: request.headers,
@@ -57,7 +58,7 @@ function parseMultipartForm(request) {
       });
 
       file.on("end", () => {
-        if (!imageTooLarge && size > 0) {
+        if (!imageTooLarge && size > 0 && images.length < MAX_PRODUCT_IMAGES) {
           images.push({
             buffer: Buffer.concat(chunks),
             filename: info.filename,
@@ -69,12 +70,17 @@ function parseMultipartForm(request) {
     });
 
     busboy.on("filesLimit", () => {
-      reject(new HttpError(400, `You can upload up to ${MAX_PRODUCT_IMAGES} images.`));
+      tooManyImages = true;
     });
 
     busboy.on("error", reject);
 
     busboy.on("finish", () => {
+      if (tooManyImages) {
+        reject(new HttpError(400, `You can upload up to ${MAX_PRODUCT_IMAGES} images.`));
+        return;
+      }
+
       if (imageTooLarge) {
         reject(new HttpError(413, "Each product image must be 4 MB or smaller."));
         return;
