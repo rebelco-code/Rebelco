@@ -1,4 +1,4 @@
-import { list, put } from "@vercel/blob";
+import { downloadUrl, list, put } from "@vercel/blob";
 import { HttpError } from "./errors.js";
 
 const CATALOG_PATH = "products/catalog.json";
@@ -168,7 +168,13 @@ export async function readProducts() {
     return [];
   }
 
-  const catalogResponse = await fetch(catalogBlob.url, { cache: "no-store" });
+  const catalogUrl = downloadUrl(catalogBlob.url, {
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  });
+
+  const catalogResponse = await fetch(catalogUrl, {
+    cache: "no-store",
+  });
 
   if (!catalogResponse.ok) {
     throw new HttpError(502, "Product catalog could not be read from Blob.");
