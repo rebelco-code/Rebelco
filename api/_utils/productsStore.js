@@ -1,4 +1,4 @@
-import { downloadUrl, list, put } from "@vercel/blob";
+import { list, put } from "@vercel/blob";
 import { HttpError } from "./errors.js";
 
 const CATALOG_PATH = "products/catalog.json";
@@ -8,10 +8,18 @@ const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export { MAX_IMAGE_SIZE_BYTES };
 
-function ensureBlobConfigured() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+function getBlobToken() {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
+
+  if (!token) {
     throw new HttpError(500, "Vercel Blob read-write token is not configured.");
   }
+
+  return token;
+}
+
+function ensureBlobConfigured() {
+  getBlobToken();
 }
 
 function slugify(value) {
@@ -151,12 +159,32 @@ function getImageExtension(image) {
 }
 
 async function getCatalogBlob() {
+  const token = getBlobToken();
+
   const { blobs } = await list({
     prefix: CATALOG_PATH,
     limit: 10,
+    token,
   });
 
   return blobs.find((blob) => blob.pathname === CATALOG_PATH);
+}
+
+async function fetchPrivateBlobJson(blob) {
+  const token = getBlobToken();
+
+  const response = await fetch(blob.url, {
+    cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new HttpError(502, "Product catalog could not be read from Blob.");
+  }
+
+  return response.json();
 }
 
 export async function readProducts() {
@@ -168,26 +196,14 @@ export async function readProducts() {
     return [];
   }
 
-  const catalogUrl = downloadUrl(catalogBlob.url, {
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-  });
-
-  const catalogResponse = await fetch(catalogUrl, {
-    cache: "no-store",
-  });
-
-  if (!catalogResponse.ok) {
-    throw new HttpError(502, "Product catalog could not be read from Blob.");
-  }
-
-  const catalog = await catalogResponse.json();
+  const catalog = await fetchPrivateBlobJson(catalogBlob);
   const products = Array.isArray(catalog.products) ? catalog.products : [];
 
   return products.map(normalizeProduct).filter((product) => product.id && product.title);
 }
 
 export async function writeProducts(products) {
-  ensureBlobConfigured();
+  const token = getBlobToken();
 
   const catalog = {
     updatedAt: new Date().toISOString(),
@@ -199,13 +215,14 @@ export async function writeProducts(products) {
     allowOverwrite: true,
     cacheControlMaxAge: 60,
     contentType: "application/json",
+    token,
   });
 
   return catalog.products;
 }
 
 export async function createProduct(fields, images) {
-  ensureBlobConfigured();
+  const token = getBlobToken();
 
   const productInput = validateProductInput(fields, images);
   const now = new Date().toISOString();
@@ -219,6 +236,7 @@ export async function createProduct(fields, images) {
         access: "private",
         addRandomSuffix: true,
         contentType: image.mimeType,
+        token,
       });
     }),
   );
