@@ -30,6 +30,26 @@ function formatDateTime(value) {
   }).format(new Date(timestamp));
 }
 
+function buildGoogleMapsUrl(locationValue) {
+  const trimmedLocation = String(locationValue || "").trim();
+
+  if (!trimmedLocation) {
+    return "";
+  }
+
+  try {
+    const parsedUrl = new URL(trimmedLocation);
+
+    if (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") {
+      return parsedUrl.toString();
+    }
+  } catch {
+    // no-op
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedLocation)}`;
+}
+
 export default function AdminaPage() {
   const imageInputRef = useRef(null);
 
@@ -978,18 +998,14 @@ export default function AdminaPage() {
                           <th className="px-4 py-3 font-semibold">Price</th>
                           <th className="px-4 py-3 font-semibold">Quantity</th>
                           <th className="px-4 py-3 font-semibold">Location (Text)</th>
-                          <th className="px-4 py-3 font-semibold">Map Coordinates</th>
+                          <th className="px-4 py-3 font-semibold">Google Maps Location</th>
                           <th className="px-4 py-3 font-semibold">Proof Received</th>
                         </tr>
                       </thead>
 
                       <tbody>
                         {orders.map((order) => {
-                          const hasCoordinates =
-                            order.locationLatitude !== null &&
-                            order.locationLatitude !== undefined &&
-                            order.locationLongitude !== null &&
-                            order.locationLongitude !== undefined;
+                          const googleMapsUrl = buildGoogleMapsUrl(order.googleMapsLocation);
                           const isBusy = orderActionStatus === order.id;
 
                           return (
@@ -1018,14 +1034,14 @@ export default function AdminaPage() {
                               </td>
 
                               <td className="px-4 py-4 text-xs text-white/65">
-                                {hasCoordinates ? (
+                                {googleMapsUrl ? (
                                   <a
-                                    href={`https://www.openstreetmap.org/?mlat=${order.locationLatitude}&mlon=${order.locationLongitude}#map=15/${order.locationLatitude}/${order.locationLongitude}`}
+                                    href={googleMapsUrl}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="underline-offset-4 hover:text-white hover:underline"
                                   >
-                                    {order.locationLatitude}, {order.locationLongitude}
+                                    {order.googleMapsLocation}
                                   </a>
                                 ) : (
                                   "Not provided"

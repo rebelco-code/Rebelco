@@ -7,8 +7,7 @@ import { formatPrice, formatStockAmount } from "../lib/formatters";
 const initialOrderForm = {
   quantity: "1",
   locationText: "",
-  locationLatitude: "",
-  locationLongitude: "",
+  googleMapsLocation: "",
 };
 
 function getProductImages(product) {
@@ -23,30 +22,67 @@ function getProductImages(product) {
   return [];
 }
 
-function parseCoordinate(value, min, max) {
-  const parsedValue = Number.parseFloat(String(value || "").trim());
-
-  if (!Number.isFinite(parsedValue)) {
-    return null;
+function isUrl(value) {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
   }
-
-  if (parsedValue < min || parsedValue > max) {
-    return null;
-  }
-
-  return parsedValue;
 }
 
-function buildMapEmbedUrl(latitude, longitude) {
-  const zoomOffset = 0.01;
-  const left = longitude - zoomOffset;
-  const bottom = latitude - zoomOffset;
-  const right = longitude + zoomOffset;
-  const top = latitude + zoomOffset;
-  const bbox = encodeURIComponent(`${left},${bottom},${right},${top}`);
-  const marker = encodeURIComponent(`${latitude},${longitude}`);
+function extractGoogleMapsQuery(value) {
+  const trimmedValue = String(value || "").trim();
 
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`;
+  if (!trimmedValue) {
+    return "";
+  }
+
+  if (!isUrl(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  try {
+    const parsedUrl = new URL(trimmedValue);
+    const queryValue = parsedUrl.searchParams.get("q") || parsedUrl.searchParams.get("query");
+
+    if (queryValue) {
+      return queryValue;
+    }
+
+    if (parsedUrl.pathname.includes("/place/")) {
+      const pathAfterPlace = parsedUrl.pathname.split("/place/")[1] || "";
+      return decodeURIComponent(pathAfterPlace.split("/")[0]).replace(/\+/g, " ");
+    }
+  } catch {
+    return trimmedValue;
+  }
+
+  return trimmedValue;
+}
+
+function buildGoogleMapsSearchUrl(value) {
+  const trimmedValue = String(value || "").trim();
+
+  if (!trimmedValue) {
+    return "";
+  }
+
+  if (isUrl(trimmedValue)) {
+    return trimmedValue;
+  }
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedValue)}`;
+}
+
+function buildGoogleMapsEmbedUrl(value) {
+  const locationQuery = extractGoogleMapsQuery(value);
+
+  if (!locationQuery) {
+    return "";
+  }
+
+  return `https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&output=embed`;
 }
 
 export default function ProductsPage() {
@@ -117,23 +153,15 @@ export default function ProductsPage() {
     [selectedProduct],
   );
 
-  const parsedLatitude = useMemo(
-    () => parseCoordinate(orderForm.locationLatitude, -90, 90),
-    [orderForm.locationLatitude],
+  const googleMapsSearchUrl = useMemo(
+    () => buildGoogleMapsSearchUrl(orderForm.googleMapsLocation),
+    [orderForm.googleMapsLocation],
   );
 
-  const parsedLongitude = useMemo(
-    () => parseCoordinate(orderForm.locationLongitude, -180, 180),
-    [orderForm.locationLongitude],
+  const googleMapsEmbedUrl = useMemo(
+    () => buildGoogleMapsEmbedUrl(orderForm.googleMapsLocation),
+    [orderForm.googleMapsLocation],
   );
-
-  const mapEmbedUrl = useMemo(() => {
-    if (parsedLatitude === null || parsedLongitude === null) {
-      return "";
-    }
-
-    return buildMapEmbedUrl(parsedLatitude, parsedLongitude);
-  }, [parsedLatitude, parsedLongitude]);
 
   const selectedPreviewImage =
     selectedProductImages[selectedImageIndex] || selectedProductImages[0] || "";
@@ -145,7 +173,7 @@ export default function ProductsPage() {
       return "";
     }
 
-    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(trimmedLocationText)}`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedLocationText)}`;
   }, [orderForm.locationText]);
 
   useEffect(() => {
@@ -227,8 +255,7 @@ export default function ProductsPage() {
 
         setOrderForm((currentForm) => ({
           ...currentForm,
-          locationLatitude: latitude.toFixed(6),
-          locationLongitude: longitude.toFixed(6),
+          googleMapsLocation: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
         }));
         setLocationStatus("idle");
       },
@@ -266,8 +293,7 @@ export default function ProductsPage() {
           productId: selectedProduct.id,
           quantity: orderForm.quantity,
           locationText: orderForm.locationText,
-          locationLatitude: orderForm.locationLatitude,
-          locationLongitude: orderForm.locationLongitude,
+          googleMapsLocation: orderForm.googleMapsLocation,
         }),
       });
 
@@ -549,7 +575,7 @@ export default function ProductsPage() {
                   style={{ fontFamily: '"Alegreya", Georgia, serif' }}
                 >
                   Confirm your quantity, check product photos, then share your location
-                  as text or map coordinates.
+                  as text or a Google Maps location.
                 </p>
               </div>
 
@@ -649,35 +675,19 @@ export default function ProductsPage() {
                     />
                   </label>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="grid gap-2 text-sm text-white/70">
-                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                        Latitude
-                      </span>
-                      <input
-                        type="text"
-                        name="locationLatitude"
-                        value={orderForm.locationLatitude}
-                        onChange={updateOrderField}
-                        placeholder="-26.2041"
-                        className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
-                      />
-                    </label>
-
-                    <label className="grid gap-2 text-sm text-white/70">
-                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                        Longitude
-                      </span>
-                      <input
-                        type="text"
-                        name="locationLongitude"
-                        value={orderForm.locationLongitude}
-                        onChange={updateOrderField}
-                        placeholder="28.0473"
-                        className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
-                      />
-                    </label>
-                  </div>
+                  <label className="grid gap-2 text-sm text-white/70">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                      Google Maps Location
+                    </span>
+                    <input
+                      type="text"
+                      name="googleMapsLocation"
+                      value={orderForm.googleMapsLocation}
+                      onChange={updateOrderField}
+                      placeholder="Paste a Google Maps location or type a place name"
+                      className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
+                    />
+                  </label>
 
                   <div className="flex flex-wrap items-center gap-3">
                     <button
@@ -689,6 +699,17 @@ export default function ProductsPage() {
                       {locationStatus === "locating" ? "Locating..." : "Use My Current Location"}
                     </button>
 
+                    {googleMapsSearchUrl ? (
+                      <a
+                        href={googleMapsSearchUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs uppercase tracking-[0.2em] text-white/60 underline-offset-4 hover:text-white hover:underline"
+                      >
+                        Open Google Maps Location
+                      </a>
+                    ) : null}
+
                     {locationSearchUrl ? (
                       <a
                         href={locationSearchUrl}
@@ -696,23 +717,23 @@ export default function ProductsPage() {
                         rel="noreferrer"
                         className="text-xs uppercase tracking-[0.2em] text-white/60 underline-offset-4 hover:text-white hover:underline"
                       >
-                        Preview Text Location
+                        Search Text Location
                       </a>
                     ) : null}
                   </div>
 
-                  {mapEmbedUrl ? (
+                  {googleMapsEmbedUrl ? (
                     <div className="border border-white/10 bg-black p-2">
                       <iframe
-                        title="Selected location map"
-                        src={mapEmbedUrl}
+                        title="Selected Google Maps location"
+                        src={googleMapsEmbedUrl}
                         className="h-56 w-full border-0"
                         loading="lazy"
                       />
                     </div>
                   ) : (
                     <div className="border border-white/10 bg-black/40 p-4 text-sm text-white/50">
-                      Add both latitude and longitude to preview map location.
+                      Add a Google Maps location to preview it here.
                     </div>
                   )}
 

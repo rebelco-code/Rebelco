@@ -3,6 +3,7 @@ import { HttpError } from "./errors.js";
 
 const ORDERS_PATH = "products/orders.json";
 const MAX_LOCATION_TEXT_LENGTH = 320;
+const MAX_MAP_LOCATION_LENGTH = 400;
 
 function getBlobToken() {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
@@ -28,26 +29,21 @@ function parseQuantity(value) {
   return quantity;
 }
 
-function parseCoordinate(value, type) {
-  if (value === null || value === undefined || String(value).trim() === "") {
-    return null;
+function cleanMapLocation(value) {
+  return cleanText(value, MAX_MAP_LOCATION_LENGTH);
+}
+
+function buildLegacyCoordinateLocation(order) {
+  const latitude = Number.parseFloat(String(order.locationLatitude || "").trim());
+  const longitude = Number.parseFloat(String(order.locationLongitude || "").trim());
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return "";
   }
 
-  const coordinate = Number.parseFloat(String(value));
-
-  if (!Number.isFinite(coordinate)) {
-    throw new HttpError(400, `Enter a valid ${type} coordinate.`);
-  }
-
-  if (type === "latitude" && (coordinate < -90 || coordinate > 90)) {
-    throw new HttpError(400, "Latitude must be between -90 and 90.");
-  }
-
-  if (type === "longitude" && (coordinate < -180 || coordinate > 180)) {
-    throw new HttpError(400, "Longitude must be between -180 and 180.");
-  }
-
-  return Math.round(coordinate * 1_000_000) / 1_000_000;
+  return `${Math.round(latitude * 1_000_000) / 1_000_000}, ${
+    Math.round(longitude * 1_000_000) / 1_000_000
+  }`;
 }
 
 function normalizeImageUrls(input) {
@@ -64,6 +60,8 @@ function normalizeImageUrls(input) {
 function normalizeOrder(order) {
   const imageUrls = normalizeImageUrls(order);
   const quantity = Number.parseInt(String(order.quantity || ""), 10);
+  const googleMapsLocation =
+    cleanMapLocation(order.googleMapsLocation) || buildLegacyCoordinateLocation(order);
 
   return {
     id: String(order.id || ""),
@@ -77,8 +75,7 @@ function normalizeOrder(order) {
     imageUrls,
     quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
     locationText: cleanText(order.locationText, MAX_LOCATION_TEXT_LENGTH),
-    locationLatitude: parseCoordinate(order.locationLatitude, "latitude"),
-    locationLongitude: parseCoordinate(order.locationLongitude, "longitude"),
+    googleMapsLocation,
     proofOfPaymentReceived: Boolean(order.proofOfPaymentReceived),
     createdAt: String(order.createdAt || ""),
     updatedAt: String(order.updatedAt || ""),
@@ -157,21 +154,19 @@ export async function writeOrders(orders) {
 function validateOrderInput(payload) {
   const quantity = parseQuantity(payload.quantity);
   const locationText = cleanText(payload.locationText, MAX_LOCATION_TEXT_LENGTH);
-  const locationLatitude = parseCoordinate(payload.locationLatitude, "latitude");
-  const locationLongitude = parseCoordinate(payload.locationLongitude, "longitude");
+  const googleMapsLocation = cleanMapLocation(payload.googleMapsLocation);
 
   const hasTextLocation = Boolean(locationText);
-  const hasMapLocation = locationLatitude !== null && locationLongitude !== null;
+  const hasMapLocation = Boolean(googleMapsLocation);
 
   if (!hasTextLocation && !hasMapLocation) {
-    throw new HttpError(400, "Enter location text or map coordinates.");
+    throw new HttpError(400, "Enter location text or a Google Maps location.");
   }
 
   return {
     quantity,
     locationText,
-    locationLatitude,
-    locationLongitude,
+    googleMapsLocation,
   };
 }
 
@@ -197,8 +192,7 @@ export async function createOrder(product, payload) {
     imageUrls: product.imageUrls,
     quantity: input.quantity,
     locationText: input.locationText,
-    locationLatitude: input.locationLatitude,
-    locationLongitude: input.locationLongitude,
+    googleMapsLocation: input.googleMapsLocation,
     proofOfPaymentReceived: false,
     createdAt: now,
     updatedAt: now,
