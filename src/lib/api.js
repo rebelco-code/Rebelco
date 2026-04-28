@@ -1,15 +1,23 @@
-export async function readJsonResponse(response, fallbackMessage) {
-  const contentType = response.headers.get("content-type") || "";
+export async function readJsonResponse(response, fallbackMessage = "Request failed.") {
+  let data = null;
 
-  if (!contentType.includes("application/json")) {
-    throw new Error(fallbackMessage);
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
   }
-
-  const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.error || fallbackMessage);
+    const message =
+      data?.error ||
+      data?.message ||
+      data?.details ||
+      data?.detail ||
+      (typeof data === "string" ? data : "") ||
+      fallbackMessage;
+
+    throw new Error(message);
   }
 
-  return data;
+  return data || {};
 }
