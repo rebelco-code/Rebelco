@@ -3,6 +3,11 @@ import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 const initialOrderForm = {
   quantity: "1",
@@ -85,8 +90,49 @@ function buildGoogleMapsEmbedUrl(value) {
   return `https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&output=embed`;
 }
 
+function parseLatLngText(value) {
+  const match = String(value || "")
+    .trim()
+    .match(
+      /^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/,
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const latitude = Number.parseFloat(match[1]);
+  const longitude = Number.parseFloat(match[2]);
+
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return null;
+  }
+
+  return { latitude, longitude };
+}
+
+function formatLatLng(latitude, longitude) {
+  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+}
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
 export default function ProductsPage() {
   const orderSectionRef = useRef(null);
+  const pinMapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const mapMarkerRef = useRef(null);
 
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState("loading");
@@ -208,6 +254,79 @@ export default function ProductsPage() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedProduct || !pinMapRef.current || mapInstanceRef.current) {
+      return undefined;
+    }
+
+    const initialCenter = [-26.2041, 28.0473];
+    const mapInstance = L.map(pinMapRef.current, {
+      center: initialCenter,
+      zoom: 12,
+      zoomControl: true,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(mapInstance);
+
+    window.setTimeout(() => {
+      mapInstance.invalidateSize();
+    }, 0);
+
+    mapInstance.on("click", (event) => {
+      const { lat, lng } = event.latlng;
+      const formattedValue = formatLatLng(lat, lng);
+
+      if (mapMarkerRef.current) {
+        mapMarkerRef.current.setLatLng([lat, lng]);
+      } else {
+        mapMarkerRef.current = L.marker([lat, lng]).addTo(mapInstance);
+      }
+
+      setOrderForm((currentForm) => ({
+        ...currentForm,
+        googleMapsLocation: formattedValue,
+      }));
+      setOrderError("");
+      setOrderMessage("");
+    });
+
+    mapInstanceRef.current = mapInstance;
+
+    return () => {
+      mapInstance.off();
+      mapInstance.remove();
+      mapInstanceRef.current = null;
+      mapMarkerRef.current = null;
+    };
+  }, [selectedProduct]);
+
+  useEffect(() => {
+    const mapInstance = mapInstanceRef.current;
+
+    if (!mapInstance) {
+      return;
+    }
+
+    const parsedLatLng = parseLatLngText(orderForm.googleMapsLocation);
+
+    if (!parsedLatLng) {
+      return;
+    }
+
+    const { latitude, longitude } = parsedLatLng;
+
+    if (mapMarkerRef.current) {
+      mapMarkerRef.current.setLatLng([latitude, longitude]);
+    } else {
+      mapMarkerRef.current = L.marker([latitude, longitude]).addTo(mapInstance);
+    }
+
+    mapInstance.setView([latitude, longitude], Math.max(mapInstance.getZoom(), 14));
+  }, [orderForm.googleMapsLocation]);
 
   function toggleCategory(category) {
     setOpenCategories((current) => ({
@@ -688,6 +807,22 @@ export default function ProductsPage() {
                       className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
                     />
                   </label>
+
+                  <div className="grid gap-2 text-sm text-white/70">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                      Pin Your Location
+                    </span>
+
+                    <div
+                      ref={pinMapRef}
+                      className="h-64 w-full border border-white/10 bg-black"
+                    />
+
+                    <p className="text-xs leading-5 text-white/45">
+                      Tap/click the map to drop a pin. The pin location will fill the Google
+                      Maps location field automatically.
+                    </p>
+                  </div>
 
                   <div className="flex flex-wrap items-center gap-3">
                     <button
