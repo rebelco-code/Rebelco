@@ -57,6 +57,25 @@ export default function AdminaPage() {
     return products.filter((product) => product.category === selectedCategory);
   }, [products, selectedCategory]);
 
+  const groupedProducts = useMemo(() => {
+    const groups = new Map();
+
+    filteredProducts.forEach((product) => {
+      const category = String(product.category || "Uncategorised").trim() || "Uncategorised";
+
+      if (!groups.has(category)) {
+        groups.set(category, []);
+      }
+
+      groups.get(category).push(product);
+    });
+
+    return Array.from(groups.entries()).map(([category, categoryProducts]) => ({
+      category,
+      products: categoryProducts,
+    }));
+  }, [filteredProducts]);
+
   const loadProducts = useCallback(async () => {
     setProductsStatus("loading");
 
@@ -623,8 +642,7 @@ export default function AdminaPage() {
                       </h2>
 
                       <p className="mt-3 text-sm leading-6 text-white/50">
-                        Filter by category, review photos, mark items out of stock, or
-                        remove products.
+                        Products are grouped by category so each collection stays together.
                       </p>
                     </div>
 
@@ -669,124 +687,143 @@ export default function AdminaPage() {
                   </div>
                 ) : null}
 
-                {filteredProducts.length > 0 ? (
-                  <div className="mt-6 grid min-w-0 gap-5 sm:grid-cols-2 2xl:grid-cols-3">
-                    {filteredProducts.map((product) => {
-                      const isOutOfStock = Number(product.stockAmount) <= 0;
-                      const isBusy = productActionStatus === product.id;
-                      const productImages =
-                        Array.isArray(product.imageUrls) && product.imageUrls.length > 0
-                          ? product.imageUrls
-                          : product.imageUrl
-                            ? [product.imageUrl]
-                            : [];
-                      const mainImage = productImages[0];
+                {groupedProducts.length > 0 ? (
+                  <div className="mt-6 grid gap-8">
+                    {groupedProducts.map((group) => (
+                      <section key={group.category} className="min-w-0">
+                        <div className="mb-4 flex items-center justify-between gap-4 border-b border-white/10 pb-3">
+                          <h3
+                            className="text-3xl leading-none text-white"
+                            style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                          >
+                            {group.category}
+                          </h3>
 
-                      return (
-                        <article
-                          key={product.id}
-                          className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
-                        >
-                          <div className="relative overflow-hidden bg-[#101010]">
-                            {mainImage ? (
-                              <img
-                                src={mainImage}
-                                alt={product.title}
-                                className={`aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-105 ${
-                                  isOutOfStock ? "opacity-45 grayscale" : ""
-                                }`}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex aspect-[4/5] w-full items-center justify-center bg-black text-sm text-white/35">
-                                No image
-                              </div>
-                            )}
-
-                            <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                              {isOutOfStock
-                                ? "Out of stock"
-                                : formatStockAmount(product.stockAmount)}
-                            </div>
-
-                            {productImages.length > 1 ? (
-                              <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                                {productImages.length} photos
-                              </div>
-                            ) : null}
-
-                            {product.category ? (
-                              <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                                <span className="block truncate">{product.category}</span>
-                              </div>
-                            ) : null}
+                          <div className="shrink-0 rounded-full border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                            {group.products.length} items
                           </div>
+                        </div>
 
-                          {productImages.length > 1 ? (
-                            <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
-                              {productImages.slice(0, 4).map((imageUrl, index) => (
-                                <img
-                                  key={`${product.id}-${imageUrl}-${index}`}
-                                  src={imageUrl}
-                                  alt={`${product.title} thumbnail ${index + 1}`}
-                                  className="aspect-square rounded-lg object-cover"
-                                  loading="lazy"
-                                />
-                              ))}
-                            </div>
-                          ) : null}
+                        <div className="grid min-w-0 gap-5 sm:grid-cols-2 2xl:grid-cols-3">
+                          {group.products.map((product) => {
+                            const isOutOfStock = Number(product.stockAmount) <= 0;
+                            const isBusy = productActionStatus === product.id;
+                            const productImages =
+                              Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+                                ? product.imageUrls
+                                : product.imageUrl
+                                  ? [product.imageUrl]
+                                  : [];
+                            const mainImage = productImages[0];
 
-                          <div className="min-w-0 p-4">
-                            <div className="flex min-w-0 items-start justify-between gap-3">
-                              <h3
-                                className="min-w-0 break-words text-2xl leading-none text-white"
-                                style={{
-                                  fontFamily: '"Cormorant Garamond", Georgia, serif',
-                                }}
+                            return (
+                              <article
+                                key={product.id}
+                                className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
                               >
-                                {product.title}
-                              </h3>
+                                <div className="relative overflow-hidden bg-[#101010]">
+                                  {mainImage ? (
+                                    <img
+                                      src={mainImage}
+                                      alt={product.title}
+                                      className={`aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-105 ${
+                                        isOutOfStock ? "opacity-45 grayscale" : ""
+                                      }`}
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <div className="flex aspect-[4/5] w-full items-center justify-center bg-black text-sm text-white/35">
+                                      No image
+                                    </div>
+                                  )}
 
-                              <div className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80">
-                                {formatPrice(product.price)}
-                              </div>
-                            </div>
+                                  <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                    {isOutOfStock
+                                      ? "Out of stock"
+                                      : formatStockAmount(product.stockAmount)}
+                                  </div>
 
-                            <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
-                              {product.description}
-                            </p>
+                                  {productImages.length > 1 ? (
+                                    <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                      {productImages.length} photos
+                                    </div>
+                                  ) : null}
 
-                            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
-                              <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
-                                {product.weight}
-                              </span>
+                                  {product.category ? (
+                                    <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                      <span className="block truncate">{product.category}</span>
+                                    </div>
+                                  ) : null}
+                                </div>
 
-                              <button
-                                type="button"
-                                onClick={() => setOutOfStock(product.id)}
-                                disabled={isBusy || isOutOfStock}
-                                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-                              >
-                                {isBusy ? "Saving..." : "Out of stock"}
-                              </button>
+                                {productImages.length > 1 ? (
+                                  <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
+                                    {productImages.slice(0, 4).map((imageUrl, index) => (
+                                      <img
+                                        key={`${product.id}-${imageUrl}-${index}`}
+                                        src={imageUrl}
+                                        alt={`${product.title} thumbnail ${index + 1}`}
+                                        className="aspect-square rounded-lg object-cover"
+                                        loading="lazy"
+                                      />
+                                    ))}
+                                  </div>
+                                ) : null}
 
-                              <button
-                                type="button"
-                                onClick={() => removeProduct(product.id)}
-                                disabled={isBusy}
-                                className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
+                                <div className="min-w-0 p-4">
+                                  <div className="flex min-w-0 items-start justify-between gap-3">
+                                    <h3
+                                      className="min-w-0 break-words text-2xl leading-none text-white"
+                                      style={{
+                                        fontFamily: '"Cormorant Garamond", Georgia, serif',
+                                      }}
+                                    >
+                                      {product.title}
+                                    </h3>
+
+                                    <div className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80">
+                                      {formatPrice(product.price)}
+                                    </div>
+                                  </div>
+
+                                  <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
+                                    {product.description}
+                                  </p>
+
+                                  <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+                                    <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                                      {product.weight}
+                                    </span>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => setOutOfStock(product.id)}
+                                      disabled={isBusy || isOutOfStock}
+                                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                      {isBusy ? "Saving..." : "Out of stock"}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => removeProduct(product.id)}
+                                      disabled={isBusy}
+                                      className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              </article>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ))}
                   </div>
                 ) : null}
 
-                {productsStatus === "ready" && filteredProducts.length === 0 ? (
+                {productsStatus === "ready" && groupedProducts.length === 0 ? (
                   <div className="mt-6 rounded-2xl border border-white/10 bg-black p-6 text-sm leading-6 text-white/65">
                     {products.length === 0
                       ? "No products saved yet. Once you add a product, it will appear here."
