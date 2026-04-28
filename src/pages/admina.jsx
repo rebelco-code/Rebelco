@@ -339,13 +339,13 @@ export default function AdminaPage() {
     <div className="min-h-screen overflow-x-hidden bg-[#0f0f10] text-white">
       <Navbar className="border-b border-white/10 bg-[#0f0f10]/95 backdrop-blur" />
 
-      <main className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
+      <main className="w-full px-3 py-5 sm:px-5 sm:py-7 md:px-6 lg:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <header className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
-            <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <header className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
+            <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <p
-                  className="text-xs uppercase tracking-[0.45em] text-white/45"
+                  className="break-words text-[10px] uppercase tracking-[0.35em] text-white/45 sm:text-xs sm:tracking-[0.45em]"
                   style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                 >
                   Rebelco
@@ -365,13 +365,13 @@ export default function AdminaPage() {
               </div>
 
               {admin ? (
-                <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-white/10 bg-black/35 p-4 sm:w-auto sm:flex-row sm:items-center">
+                <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-white/10 bg-black/35 p-3 sm:w-auto sm:min-w-[260px] sm:p-4">
                   <div className="min-w-0 truncate text-sm text-white/65">{admin.email}</div>
 
                   <button
                     type="button"
                     onClick={signOut}
-                    className="shrink-0 rounded-lg border border-white/15 bg-black px-5 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:border-white/35 hover:bg-white hover:text-black"
+                    className="w-full shrink-0 rounded-lg border border-white/15 bg-black px-5 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:border-white/35 hover:bg-white hover:text-black"
                   >
                     Sign out
                   </button>
@@ -381,15 +381,15 @@ export default function AdminaPage() {
           </header>
 
           {sessionStatus === "checking" ? (
-            <section className="mt-6 rounded-2xl border border-white/10 bg-[#151516] p-6 text-white/70">
+            <section className="mt-6 rounded-2xl border border-white/10 bg-[#151516] p-5 text-white/70 sm:p-6">
               Checking admin session...
             </section>
           ) : null}
 
           {sessionStatus === "signed-out" ? (
-            <section className="mt-6 w-full max-w-xl rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
+            <section className="mx-auto mt-6 w-full max-w-md rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:max-w-xl sm:p-8">
               <h2
-                className="text-3xl leading-none text-white"
+                className="text-3xl leading-none text-white sm:text-4xl"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
               >
                 Admin Sign In
@@ -401,7 +401,7 @@ export default function AdminaPage() {
 
               <form className="mt-6 grid gap-5" onSubmit={submitLogin}>
                 <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                     Email
                   </span>
 
@@ -417,7 +417,7 @@ export default function AdminaPage() {
                 </label>
 
                 <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                     Password
                   </span>
 
@@ -435,7 +435,7 @@ export default function AdminaPage() {
                 <button
                   type="submit"
                   disabled={loginStatus === "loading"}
-                  className="rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                  className="w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                 >
                   {loginStatus === "loading" ? "Signing in..." : "Sign in"}
                 </button>
@@ -456,11 +456,11 @@ export default function AdminaPage() {
           ) : null}
 
           {admin ? (
-            <div className="mt-6 grid w-full min-w-0 gap-6 xl:grid-cols-[minmax(0,520px)_minmax(0,1fr)]">
-              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
+            <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(360px,520px)_minmax(0,1fr)]">
+              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
                 <div className="border-b border-white/10 pb-5">
                   <h2
-                    className="text-3xl leading-none text-white"
+                    className="text-3xl leading-none text-white sm:text-4xl"
                     style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                   >
                     Add Product
@@ -474,7 +474,7 @@ export default function AdminaPage() {
 
                 <form className="mt-6 grid min-w-0 gap-5" onSubmit={submitProduct}>
                   <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                       Title
                     </span>
 
@@ -489,7 +489,7 @@ export default function AdminaPage() {
                   </label>
 
                   <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                       Description
                     </span>
 
@@ -505,7 +505,7 @@ export default function AdminaPage() {
                   </label>
 
                   <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                       Category
                     </span>
 
@@ -526,13 +526,13 @@ export default function AdminaPage() {
                     </datalist>
 
                     {categories.length > 0 ? (
-                      <div className="flex min-w-0 flex-wrap gap-2 pt-1">
+                      <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                         {categories.map((category) => (
                           <button
                             key={category}
                             type="button"
                             onClick={() => useExistingCategory(category)}
-                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                            className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
                           >
                             {category}
                           </button>
@@ -541,9 +541,9 @@ export default function AdminaPage() {
                     ) : null}
                   </label>
 
-                  <div className="grid min-w-0 gap-5 sm:grid-cols-3">
+                  <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                         Price
                       </span>
 
@@ -559,7 +559,7 @@ export default function AdminaPage() {
                     </label>
 
                     <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                         Weight
                       </span>
 
@@ -573,8 +573,8 @@ export default function AdminaPage() {
                       />
                     </label>
 
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72 sm:col-span-2 lg:col-span-1">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                         Stock
                       </span>
 
@@ -591,7 +591,7 @@ export default function AdminaPage() {
                   </div>
 
                   <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                       Images
                     </span>
 
@@ -602,7 +602,7 @@ export default function AdminaPage() {
                       multiple
                       onChange={updateImage}
                       required
-                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
+                      className="min-w-0 rounded-xl border border-white/10 bg-black px-3 py-3 text-sm text-white file:mr-3 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-xs file:font-semibold file:text-black sm:px-4 sm:file:mr-4 sm:file:px-4 sm:file:text-sm"
                     />
 
                     <p className="text-xs leading-5 text-white/40">
@@ -631,19 +631,19 @@ export default function AdminaPage() {
                   <button
                     type="submit"
                     disabled={formStatus === "saving"}
-                    className="mt-2 rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                    className="mt-2 w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55 sm:tracking-[0.22em]"
                   >
                     {formStatus === "saving" ? "Saving..." : "Save Product"}
                   </button>
                 </form>
               </section>
 
-              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
+              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
                 <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5">
                   <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div className="min-w-0">
                       <h2
-                        className="text-3xl leading-none text-white"
+                        className="text-3xl leading-none text-white sm:text-4xl"
                         style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                       >
                         Product Preview
@@ -655,16 +655,16 @@ export default function AdminaPage() {
                       </p>
                     </div>
 
-                    <div className="shrink-0 rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
+                    <div className="shrink-0 self-start rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55 sm:self-auto">
                       {filteredProducts.length} shown
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 flex-wrap gap-2">
+                  <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                     <button
                       type="button"
                       onClick={() => setSelectedCategory("all")}
-                      className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                      className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                         selectedCategory === "all"
                           ? "border-white bg-white text-black"
                           : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
@@ -678,7 +678,7 @@ export default function AdminaPage() {
                         key={category}
                         type="button"
                         onClick={() => setSelectedCategory(category)}
-                        className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                        className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
                           selectedCategory === category
                             ? "border-white bg-white text-black"
                             : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
@@ -709,11 +709,11 @@ export default function AdminaPage() {
                           <button
                             type="button"
                             onClick={() => toggleCategory(group.category)}
-                            className="flex w-full items-center justify-between gap-4 p-4 text-left transition hover:bg-white/[0.03]"
+                            className="flex w-full flex-col gap-4 p-4 text-left transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between"
                           >
                             <div className="min-w-0">
                               <h3
-                                className="break-words text-3xl leading-none text-white"
+                                className="break-words text-3xl leading-none text-white sm:text-4xl"
                                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                               >
                                 {group.category}
@@ -724,7 +724,7 @@ export default function AdminaPage() {
                               </p>
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-3">
+                            <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
                               <div className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
                                 {group.products.length} items
                               </div>
@@ -736,7 +736,7 @@ export default function AdminaPage() {
                           </button>
 
                           {isOpen ? (
-                            <div className="grid min-w-0 gap-5 border-t border-white/10 p-4 sm:grid-cols-2 2xl:grid-cols-3">
+                            <div className="grid min-w-0 gap-4 border-t border-white/10 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-2 2xl:grid-cols-3">
                               {group.products.map((product) => {
                                 const isOutOfStock = Number(product.stockAmount) <= 0;
                                 const isBusy = productActionStatus === product.id;
@@ -806,7 +806,7 @@ export default function AdminaPage() {
                                     ) : null}
 
                                     <div className="min-w-0 p-4">
-                                      <div className="flex min-w-0 items-start justify-between gap-3">
+                                      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                         <h3
                                           className="min-w-0 break-words text-2xl leading-none text-white"
                                           style={{
@@ -816,7 +816,7 @@ export default function AdminaPage() {
                                           {product.title}
                                         </h3>
 
-                                        <div className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80">
+                                        <div className="shrink-0 self-start rounded-full border border-white/10 px-3 py-1 text-sm text-white/80 sm:self-auto">
                                           {formatPrice(product.price)}
                                         </div>
                                       </div>
