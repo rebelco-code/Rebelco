@@ -1,11 +1,13 @@
 import Busboy from "busboy";
 import { requireAdminSession } from "../_utils/adminAuth.js";
 import { HttpError } from "../_utils/errors.js";
-import { requireMethod, sendError, sendJson } from "../_utils/http.js";
+import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
 import {
   createProduct,
+  deleteProduct,
   MAX_IMAGE_SIZE_BYTES,
   readProducts,
+  setProductOutOfStock,
 } from "../_utils/productsStore.js";
 
 function parseMultipartForm(request) {
@@ -19,10 +21,11 @@ function parseMultipartForm(request) {
     const fields = {};
     let image = null;
     let imageTooLarge = false;
+
     const busboy = Busboy({
       headers: request.headers,
       limits: {
-        fields: 8,
+        fields: 10,
         files: 1,
         fileSize: MAX_IMAGE_SIZE_BYTES,
       },
@@ -78,22 +81,53 @@ function parseMultipartForm(request) {
   });
 }
 
+function getProductId(request) {
+  const requestUrl = new URL(request.url, `https://${request.headers.host || "localhost"}`);
+  return requestUrl.searchParams.get("id");
+}
+
 export default async function handler(request, response) {
   try {
-    requireMethod(request, response, ["GET", "POST"]);
+    requireMethod(request, response, ["GET", "POST", "PATCH", "DELETE"]);
     requireAdminSession(request);
 
     if (request.method === "GET") {
       const products = await readProducts();
+
       sendJson(response, 200, { products });
       return;
     }
 
-    const { fields, image } = await parseMultipartForm(request);
-    const product = await createProduct(fields, image);
-    const products = await readProducts();
+    if (request.method === "POST") {
+      const { fields, image } = await parseMultipartForm(request);
+      const product = await createProduct(fields, image);
+      const products = await readProducts();
 
-    sendJson(response, 201, { product, products });
+      sendJson(response, 201, { product, products });
+      return;
+    }
+
+    if (request.method === "PATCH") {
+      const body = await readJsonBody(request);
+      const productId = body.id || getProductId(request);
+
+      if (body.action !== "set-out-of-stock") {
+        throw new HttpError(400, "Unsupported product action.");
+      }
+
+      const result = await setProductOutOfStock(productId);
+
+      sendJson(response, 200, result);
+      return;
+    }
+
+    if (request.method === "DELETE") {
+      const body = await readJsonBody(request).catch(() => ({}));
+      const productId = body.id || getProductId(request);
+      const result = await deleteProduct(productId);
+
+      sendJson(response, 200, result);
+    }
   } catch (error) {
     sendError(response, error);
   }

@@ -32,6 +32,7 @@ function parsePrice(value) {
   const cleanedValue = String(value || "")
     .replace(/[^\d.,-]/g, "")
     .replace(",", ".");
+
   const price = Number.parseFloat(cleanedValue);
 
   if (!Number.isFinite(price) || price < 0) {
@@ -56,6 +57,7 @@ function normalizeProduct(product) {
     id: String(product.id || ""),
     title: String(product.title || ""),
     description: String(product.description || ""),
+    category: String(product.category || ""),
     price: Number(product.price || 0),
     weight: String(product.weight || ""),
     stockAmount: Number(product.stockAmount || 0),
@@ -69,6 +71,7 @@ function normalizeProduct(product) {
 function validateProductInput(fields, image) {
   const title = cleanText(fields.title, 120);
   const description = cleanText(fields.description, 1000);
+  const category = cleanText(fields.category, 80);
   const weight = cleanText(fields.weight, 60);
   const price = parsePrice(fields.price);
   const stockAmount = parseStockAmount(fields.stockAmount);
@@ -79,6 +82,10 @@ function validateProductInput(fields, image) {
 
   if (!description) {
     throw new HttpError(400, "Product description is required.");
+  }
+
+  if (!category) {
+    throw new HttpError(400, "Product category is required.");
   }
 
   if (!weight) {
@@ -100,6 +107,7 @@ function validateProductInput(fields, image) {
   return {
     title,
     description,
+    category,
     price,
     weight,
     stockAmount,
@@ -173,11 +181,13 @@ export async function createProduct(fields, image) {
   const now = new Date().toISOString();
   const id = `${slugify(productInput.title)}-${Date.now()}`;
   const imagePathname = `${IMAGE_PREFIX}/${id}.${getImageExtension(image)}`;
+
   const imageBlob = await put(imagePathname, image.buffer, {
     access: "public",
     addRandomSuffix: true,
     contentType: image.mimeType,
   });
+
   const product = {
     id,
     ...productInput,
@@ -186,10 +196,72 @@ export async function createProduct(fields, image) {
     createdAt: now,
     updatedAt: now,
   };
+
   const products = await readProducts();
   const updatedProducts = [product, ...products];
 
   await writeProducts(updatedProducts);
 
   return normalizeProduct(product);
+}
+
+export async function deleteProduct(productId) {
+  const id = String(productId || "").trim();
+
+  if (!id) {
+    throw new HttpError(400, "Product ID is required.");
+  }
+
+  const products = await readProducts();
+  const existingProduct = products.find((product) => product.id === id);
+
+  if (!existingProduct) {
+    throw new HttpError(404, "Product was not found.");
+  }
+
+  const updatedProducts = products.filter((product) => product.id !== id);
+
+  await writeProducts(updatedProducts);
+
+  return {
+    deletedProduct: existingProduct,
+    products: updatedProducts,
+  };
+}
+
+export async function setProductOutOfStock(productId) {
+  const id = String(productId || "").trim();
+
+  if (!id) {
+    throw new HttpError(400, "Product ID is required.");
+  }
+
+  const products = await readProducts();
+  const now = new Date().toISOString();
+  let updatedProduct = null;
+
+  const updatedProducts = products.map((product) => {
+    if (product.id !== id) {
+      return product;
+    }
+
+    updatedProduct = normalizeProduct({
+      ...product,
+      stockAmount: 0,
+      updatedAt: now,
+    });
+
+    return updatedProduct;
+  });
+
+  if (!updatedProduct) {
+    throw new HttpError(404, "Product was not found.");
+  }
+
+  await writeProducts(updatedProducts);
+
+  return {
+    product: updatedProduct,
+    products: updatedProducts,
+  };
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
@@ -6,6 +6,7 @@ import { formatPrice, formatStockAmount } from "../lib/formatters";
 const initialForm = {
   title: "",
   description: "",
+  category: "",
   price: "",
   weight: "",
   stockAmount: "",
@@ -29,8 +30,32 @@ export default function AdminaPage() {
   const [productsStatus, setProductsStatus] = useState("idle");
   const [formStatus, setFormStatus] = useState("idle");
   const [loginStatus, setLoginStatus] = useState("idle");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [productActionStatus, setProductActionStatus] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const categories = useMemo(() => {
+    const categorySet = new Set();
+
+    products.forEach((product) => {
+      const category = String(product.category || "").trim();
+
+      if (category) {
+        categorySet.add(category);
+      }
+    });
+
+    return Array.from(categorySet).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === "all") {
+      return products;
+    }
+
+    return products.filter((product) => product.category === selectedCategory);
+  }, [products, selectedCategory]);
 
   const loadProducts = useCallback(async () => {
     setProductsStatus("loading");
@@ -139,6 +164,13 @@ export default function AdminaPage() {
     }));
   }
 
+  function useExistingCategory(category) {
+    setForm((currentForm) => ({
+      ...currentForm,
+      category,
+    }));
+  }
+
   function updateImage(event) {
     const file = event.target.files?.[0] || null;
 
@@ -168,6 +200,7 @@ export default function AdminaPage() {
 
       formData.append("title", form.title);
       formData.append("description", form.description);
+      formData.append("category", form.category);
       formData.append("price", form.price);
       formData.append("weight", form.weight);
       formData.append("stockAmount", form.stockAmount);
@@ -194,6 +227,63 @@ export default function AdminaPage() {
     } catch (saveError) {
       setError(saveError.message);
       setFormStatus("idle");
+    }
+  }
+
+  async function setOutOfStock(productId) {
+    setError("");
+    setMessage("");
+    setProductActionStatus(productId);
+
+    try {
+      const response = await fetch("/api/admin/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          id: productId,
+          action: "set-out-of-stock",
+        }),
+      });
+
+      const data = await readJsonResponse(response, "Product could not be updated.");
+
+      setProducts(data.products || []);
+      setMessage("Product set out of stock.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setProductActionStatus("");
+    }
+  }
+
+  async function removeProduct(productId) {
+    const confirmed = window.confirm("Remove this product from the catalog?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setProductActionStatus(productId);
+
+    try {
+      const response = await fetch("/api/admin/products", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: productId }),
+      });
+
+      const data = await readJsonResponse(response, "Product could not be removed.");
+
+      setProducts(data.products || []);
+      setMessage("Product removed.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setProductActionStatus("");
     }
   }
 
@@ -232,8 +322,8 @@ export default function AdminaPage() {
                 </h1>
 
                 <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">
-                  Add products, upload images, and preview how your products will appear to
-                  customers.
+                  Add products, manage stock, remove old items, and organise products by
+                  category.
                 </p>
               </div>
 
@@ -340,8 +430,8 @@ export default function AdminaPage() {
                   </h2>
 
                   <p className="mt-3 text-sm leading-6 text-white/50">
-                    Fill in the product details exactly how they should appear on the public
-                    product page.
+                    Add products and choose a category. Existing categories appear below so
+                    you can reuse them.
                   </p>
                 </div>
 
@@ -375,6 +465,43 @@ export default function AdminaPage() {
                       placeholder="Short product description"
                       className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                     />
+                  </label>
+
+                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em]">
+                      Category
+                    </span>
+
+                    <input
+                      name="category"
+                      value={form.category}
+                      onChange={updateField}
+                      required
+                      placeholder="Example: Hoodies, Shirts, Accessories"
+                      list="admin-product-categories"
+                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                    />
+
+                    <datalist id="admin-product-categories">
+                      {categories.map((category) => (
+                        <option key={category} value={category} />
+                      ))}
+                    </datalist>
+
+                    {categories.length > 0 ? (
+                      <div className="flex min-w-0 flex-wrap gap-2 pt-1">
+                        {categories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => useExistingCategory(category)}
+                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </label>
 
                   <div className="grid min-w-0 gap-5 sm:grid-cols-3">
@@ -462,23 +589,54 @@ export default function AdminaPage() {
               </section>
 
               <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-5 shadow-2xl shadow-black/20 sm:p-8">
-                <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="min-w-0">
-                    <h2
-                      className="text-3xl leading-none text-white"
-                      style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                    >
-                      Customer Product Preview
-                    </h2>
+                <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5">
+                  <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                      <h2
+                        className="text-3xl leading-none text-white"
+                        style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                      >
+                        Customer Product Preview
+                      </h2>
 
-                    <p className="mt-3 text-sm leading-6 text-white/50">
-                      This preview is styled to match how products should feel when customers
-                      browse the store.
-                    </p>
+                      <p className="mt-3 text-sm leading-6 text-white/50">
+                        Filter by category, mark items out of stock, or remove them from the
+                        catalog.
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
+                      {filteredProducts.length} shown
+                    </div>
                   </div>
 
-                  <div className="shrink-0 rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
-                    {products.length} products
+                  <div className="flex min-w-0 flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory("all")}
+                      className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                        selectedCategory === "all"
+                          ? "border-white bg-white text-black"
+                          : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
+                      }`}
+                    >
+                      All
+                    </button>
+
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => setSelectedCategory(category)}
+                        className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                          selectedCategory === category
+                            ? "border-white bg-white text-black"
+                            : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -488,68 +646,95 @@ export default function AdminaPage() {
                   </div>
                 ) : null}
 
-                {products.length > 0 ? (
+                {filteredProducts.length > 0 ? (
                   <div className="mt-6 grid min-w-0 gap-5 sm:grid-cols-2 2xl:grid-cols-3">
-                    {products.map((product) => (
-                      <article
-                        key={product.id}
-                        className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
-                      >
-                        <div className="relative overflow-hidden bg-[#101010]">
-                          <img
-                            src={product.imageUrl}
-                            alt={product.title}
-                            className="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-105"
-                            loading="lazy"
-                          />
+                    {filteredProducts.map((product) => {
+                      const isOutOfStock = Number(product.stockAmount) <= 0;
+                      const isBusy = productActionStatus === product.id;
 
-                          <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                            {formatStockAmount(product.stockAmount)}
+                      return (
+                        <article
+                          key={product.id}
+                          className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
+                        >
+                          <div className="relative overflow-hidden bg-[#101010]">
+                            <img
+                              src={product.imageUrl}
+                              alt={product.title}
+                              className={`aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-105 ${
+                                isOutOfStock ? "opacity-45 grayscale" : ""
+                              }`}
+                              loading="lazy"
+                            />
+
+                            <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                              {isOutOfStock
+                                ? "Out of stock"
+                                : formatStockAmount(product.stockAmount)}
+                            </div>
+
+                            {product.category ? (
+                              <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                <span className="block truncate">{product.category}</span>
+                              </div>
+                            ) : null}
                           </div>
-                        </div>
 
-                        <div className="min-w-0 p-4">
-                          <div className="flex min-w-0 items-start justify-between gap-3">
-                            <h3
-                              className="min-w-0 break-words text-2xl leading-none text-white"
-                              style={{
-                                fontFamily: '"Cormorant Garamond", Georgia, serif',
-                              }}
-                            >
-                              {product.title}
-                            </h3>
+                          <div className="min-w-0 p-4">
+                            <div className="flex min-w-0 items-start justify-between gap-3">
+                              <h3
+                                className="min-w-0 break-words text-2xl leading-none text-white"
+                                style={{
+                                  fontFamily: '"Cormorant Garamond", Georgia, serif',
+                                }}
+                              >
+                                {product.title}
+                              </h3>
 
-                            <div className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80">
-                              {formatPrice(product.price)}
+                              <div className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-sm text-white/80">
+                                {formatPrice(product.price)}
+                              </div>
+                            </div>
+
+                            <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
+                              {product.description}
+                            </p>
+
+                            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+                              <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                                {product.weight}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => setOutOfStock(product.id)}
+                                disabled={isBusy || isOutOfStock}
+                                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                {isBusy ? "Saving..." : "Out of stock"}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => removeProduct(product.id)}
+                                disabled={isBusy}
+                                className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                Remove
+                              </button>
                             </div>
                           </div>
-
-                          <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
-                            {product.description}
-                          </p>
-
-                          <div className="mt-4 flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-                            <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
-                              {product.weight}
-                            </span>
-
-                            <button
-                              type="button"
-                              className="rounded-full border border-white bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-black transition hover:bg-[#d9d9d9]"
-                            >
-                              View
-                            </button>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                 ) : null}
 
-                {productsStatus === "ready" && products.length === 0 ? (
+                {productsStatus === "ready" && filteredProducts.length === 0 ? (
                   <div className="mt-6 rounded-2xl border border-white/10 bg-black p-6 text-sm leading-6 text-white/65">
-                    No products saved yet. Once you add a product, it will appear here as a
-                    customer-facing product card.
+                    {products.length === 0
+                      ? "No products saved yet. Once you add a product, it will appear here as a customer-facing product card."
+                      : "No products match this category filter."}
                   </div>
                 ) : null}
               </section>
