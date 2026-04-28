@@ -12,20 +12,20 @@ function getBlobToken() {
   return token;
 }
 
+function isAllowedImagePathname(pathname) {
+  return String(pathname || "").startsWith("products/images/");
+}
+
 async function findBlobByPathname(pathname) {
   const token = getBlobToken();
 
   const { blobs } = await list({
     prefix: pathname,
-    limit: 1,
+    limit: 10,
     token,
   });
 
   return blobs.find((blob) => blob.pathname === pathname);
-}
-
-function isAllowedImagePathname(pathname) {
-  return String(pathname || "").startsWith("products/images/");
 }
 
 export default async function handler(request, response) {
@@ -49,7 +49,8 @@ export default async function handler(request, response) {
       throw new HttpError(404, "Image was not found.");
     }
 
-    const blobResponse = await fetch(blob.url, {
+    const blobResponse = await fetch(blob.downloadUrl || blob.url, {
+      cache: "no-store",
       headers: {
         Authorization: `Bearer ${getBlobToken()}`,
       },
@@ -59,10 +60,10 @@ export default async function handler(request, response) {
       throw new HttpError(502, "Image could not be read from Blob.");
     }
 
+    const arrayBuffer = await blobResponse.arrayBuffer();
+
     response.setHeader("Content-Type", blob.contentType || "image/jpeg");
     response.setHeader("Cache-Control", "public, max-age=300");
-
-    const arrayBuffer = await blobResponse.arrayBuffer();
     response.status(200).send(Buffer.from(arrayBuffer));
   } catch (error) {
     sendError(response, error);

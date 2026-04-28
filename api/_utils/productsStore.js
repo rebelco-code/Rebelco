@@ -185,7 +185,7 @@ async function getCatalogBlob() {
 async function fetchPrivateBlobJson(blob) {
   const token = getBlobToken();
 
-  const response = await fetch(blob.url, {
+  const response = await fetch(blob.downloadUrl || blob.url, {
     cache: "no-store",
     headers: {
       Authorization: `Bearer ${token}`,
