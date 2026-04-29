@@ -13,6 +13,9 @@ const initialOrderForm = {
   quantity: "1",
   locationText: "",
   googleMapsLocation: "",
+  pudoLockerCode: "",
+  pudoLockerName: "",
+  pudoLockerAddress: "",
 };
 
 function getProductImages(product) {
@@ -49,12 +52,11 @@ function buildGoogleMapsSearchUrl(value) {
 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedValue)}`;
 }
+
 function parseLatLngText(value) {
   const match = String(value || "")
     .trim()
-    .match(
-      /^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/,
-    );
+    .match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/);
 
   if (!match) {
     return null;
@@ -103,6 +105,9 @@ export default function ProductsPage() {
   const [orderForm, setOrderForm] = useState(initialOrderForm);
   const [orderStatus, setOrderStatus] = useState("idle");
   const [locationStatus, setLocationStatus] = useState("idle");
+  const [pudoStatus, setPudoStatus] = useState("idle");
+  const [pudoLockers, setPudoLockers] = useState([]);
+  const [pudoMessage, setPudoMessage] = useState("");
   const [orderMessage, setOrderMessage] = useState("");
   const [orderError, setOrderError] = useState("");
 
@@ -243,7 +248,14 @@ export default function ProductsPage() {
       setOrderForm((currentForm) => ({
         ...currentForm,
         googleMapsLocation: formattedValue,
+        pudoLockerCode: "",
+        pudoLockerName: "",
+        pudoLockerAddress: "",
       }));
+
+      setPudoLockers([]);
+      setPudoMessage("");
+      setPudoStatus("idle");
       setOrderError("");
       setOrderMessage("");
     });
@@ -293,6 +305,9 @@ export default function ProductsPage() {
     setSelectedProductId(productId);
     setSelectedImageIndex(0);
     setOrderForm(initialOrderForm);
+    setPudoLockers([]);
+    setPudoMessage("");
+    setPudoStatus("idle");
     setOrderError("");
     setOrderMessage("");
 
@@ -310,7 +325,20 @@ export default function ProductsPage() {
     setOrderForm((currentForm) => ({
       ...currentForm,
       [name]: value,
+      ...(name === "googleMapsLocation"
+        ? {
+            pudoLockerCode: "",
+            pudoLockerName: "",
+            pudoLockerAddress: "",
+          }
+        : {}),
     }));
+
+    if (name === "googleMapsLocation") {
+      setPudoLockers([]);
+      setPudoMessage("");
+      setPudoStatus("idle");
+    }
   }
 
   function useCurrentLocation() {
@@ -329,7 +357,14 @@ export default function ProductsPage() {
         setOrderForm((currentForm) => ({
           ...currentForm,
           googleMapsLocation: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          pudoLockerCode: "",
+          pudoLockerName: "",
+          pudoLockerAddress: "",
         }));
+
+        setPudoLockers([]);
+        setPudoMessage("");
+        setPudoStatus("idle");
         setLocationStatus("idle");
       },
       (locationError) => {
@@ -343,11 +378,68 @@ export default function ProductsPage() {
     );
   }
 
+  async function findClosestPudoLockers() {
+    const parsedLatLng = parseLatLngText(orderForm.googleMapsLocation);
+
+    if (!parsedLatLng) {
+      setOrderError("Pin your location or use your current location before finding PUDO lockers.");
+      return;
+    }
+
+    setPudoStatus("loading");
+    setPudoMessage("");
+    setPudoLockers([]);
+    setOrderError("");
+    setOrderMessage("");
+
+    try {
+      const queryParams = new URLSearchParams({
+        lat: String(parsedLatLng.latitude),
+        lng: String(parsedLatLng.longitude),
+        limit: "5",
+      });
+
+      const response = await fetch(`/api/pudo-lockers?${queryParams.toString()}`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+
+      const data = await readJsonResponse(response, "Could not load nearby PUDO lockers.");
+      const lockers = Array.isArray(data.lockers) ? data.lockers : [];
+
+      setPudoLockers(lockers);
+      setPudoMessage(data.message || (lockers.length ? "" : "No nearby PUDO lockers found."));
+      setPudoStatus("ready");
+    } catch (lookupError) {
+      setPudoStatus("error");
+      setPudoMessage("");
+      setOrderError(lookupError.message);
+    }
+  }
+
+  function selectPudoLocker(locker) {
+    setOrderForm((currentForm) => ({
+      ...currentForm,
+      pudoLockerCode: String(locker.code || ""),
+      pudoLockerName: String(locker.name || ""),
+      pudoLockerAddress: String(locker.address || ""),
+    }));
+
+    setOrderError("");
+    setOrderMessage("");
+  }
+
   async function submitOrder(event) {
     event.preventDefault();
 
     if (!selectedProduct) {
       setOrderError("Please select a product first.");
+      return;
+    }
+
+    if (!orderForm.pudoLockerCode) {
+      setOrderError("Please choose the closest PUDO locker before placing your order.");
       return;
     }
 
@@ -367,12 +459,18 @@ export default function ProductsPage() {
           quantity: orderForm.quantity,
           locationText: orderForm.locationText,
           googleMapsLocation: orderForm.googleMapsLocation,
+          pudoLockerCode: orderForm.pudoLockerCode,
+          pudoLockerName: orderForm.pudoLockerName,
+          pudoLockerAddress: orderForm.pudoLockerAddress,
         }),
       });
 
       const data = await readJsonResponse(response, "Could not place order.");
       setOrderMessage(data.message || "Order placed successfully.");
       setOrderForm(initialOrderForm);
+      setPudoLockers([]);
+      setPudoMessage("");
+      setPudoStatus("idle");
       setSelectedImageIndex(0);
     } catch (submitError) {
       setOrderError(submitError.message);
@@ -617,12 +715,6 @@ export default function ProductsPage() {
             </section>
           ) : null}
 
-          {status === "ready" && products.length > 0 && groupedProducts.length === 0 ? (
-            <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-white/70">
-              No products match this category.
-            </div>
-          ) : null}
-
           {selectedProduct ? (
             <section
               ref={orderSectionRef}
@@ -647,8 +739,7 @@ export default function ProductsPage() {
                   className="mt-4 max-w-2xl text-base leading-7 text-white/58"
                   style={{ fontFamily: '"Alegreya", Georgia, serif' }}
                 >
-                  Confirm your quantity, check product photos, then share your location
-                  as text or a Google Maps location.
+                  Confirm your quantity, pin your location, then choose the closest PUDO locker.
                 </p>
               </div>
 
@@ -681,30 +772,6 @@ export default function ProductsPage() {
                     )}
                   </div>
 
-                  {selectedProductImages.length > 1 ? (
-                    <div className="mt-3 grid grid-cols-4 gap-2">
-                      {selectedProductImages.map((imageUrl, index) => (
-                        <button
-                          key={`${selectedProduct.id}-order-image-${index}`}
-                          type="button"
-                          onClick={() => setSelectedImageIndex(index)}
-                          className={`overflow-hidden border ${
-                            selectedImageIndex === index
-                              ? "border-white"
-                              : "border-white/10 hover:border-white/30"
-                          }`}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt={`${selectedProduct.title} image ${index + 1}`}
-                            className="aspect-square w-full object-cover"
-                            loading="lazy"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-
                   <div className="mt-4 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.2em] text-white/60">
                     {formatPrice(selectedProduct.price)} • {selectedProduct.weight} •{" "}
                     {selectedProduct.category || "Uncategorised"}
@@ -736,7 +803,7 @@ export default function ProductsPage() {
 
                   <label className="grid gap-2 text-sm text-white/70">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                      Location (Text)
+                      Location Text
                     </span>
                     <textarea
                       name="locationText"
@@ -750,14 +817,14 @@ export default function ProductsPage() {
 
                   <label className="grid gap-2 text-sm text-white/70">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                      Google Maps Location
+                      Customer Coordinates
                     </span>
                     <input
                       type="text"
                       name="googleMapsLocation"
                       value={orderForm.googleMapsLocation}
                       onChange={updateOrderField}
-                      placeholder="Paste a Google Maps location or type a place name"
+                      placeholder="Click the map or use current location"
                       className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
                     />
                   </label>
@@ -773,8 +840,7 @@ export default function ProductsPage() {
                     />
 
                     <p className="text-xs leading-5 text-white/45">
-                      Tap/click the map to drop a pin. The pin location will fill the Google
-                      Maps location field automatically.
+                      Tap/click the map to drop a pin. PUDO lockers will be sorted from closest to furthest.
                     </p>
                   </div>
 
@@ -788,6 +854,15 @@ export default function ProductsPage() {
                       {locationStatus === "locating" ? "Locating..." : "Use My Current Location"}
                     </button>
 
+                    <button
+                      type="button"
+                      onClick={findClosestPudoLockers}
+                      disabled={pudoStatus === "loading"}
+                      className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {pudoStatus === "loading" ? "Finding PUDO..." : "Find Closest PUDO"}
+                    </button>
+
                     {googleMapsSearchUrl ? (
                       <a
                         href={googleMapsSearchUrl}
@@ -795,7 +870,7 @@ export default function ProductsPage() {
                         rel="noreferrer"
                         className="text-xs uppercase tracking-[0.2em] text-white/60 underline-offset-4 hover:text-white hover:underline"
                       >
-                        Open Google Maps Location
+                        Open Location
                       </a>
                     ) : null}
 
@@ -810,6 +885,55 @@ export default function ProductsPage() {
                       </a>
                     ) : null}
                   </div>
+
+                  {pudoMessage ? (
+                    <div className="border border-white/10 bg-black p-4 text-sm text-white/60">
+                      {pudoMessage}
+                    </div>
+                  ) : null}
+
+                  {pudoLockers.length > 0 ? (
+                    <div className="grid gap-3">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                        Choose PUDO Locker
+                      </span>
+
+                      {pudoLockers.map((locker) => {
+                        const isSelected = orderForm.pudoLockerCode === locker.code;
+
+                        return (
+                          <button
+                            key={`${locker.code}-${locker.latitude}-${locker.longitude}`}
+                            type="button"
+                            onClick={() => selectPudoLocker(locker)}
+                            className={`border p-4 text-left text-sm transition ${
+                              isSelected
+                                ? "border-white bg-white text-black"
+                                : "border-white/10 bg-black text-white/70 hover:border-white/35"
+                            }`}
+                          >
+                            <strong className="block">{locker.name}</strong>
+
+                            {locker.address ? (
+                              <span className="mt-1 block">{locker.address}</span>
+                            ) : null}
+
+                            {locker.distanceKm !== null ? (
+                              <span className="mt-2 block text-xs uppercase tracking-[0.18em] opacity-70">
+                                {locker.distanceKm} km away
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+
+                  {orderForm.pudoLockerCode ? (
+                    <div className="border border-emerald-400/30 bg-emerald-950/25 p-4 text-sm text-emerald-100">
+                      Selected PUDO: {orderForm.pudoLockerName}
+                    </div>
+                  ) : null}
 
                   <button
                     type="submit"
