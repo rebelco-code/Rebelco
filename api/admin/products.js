@@ -28,7 +28,7 @@ function parseMultipartForm(request) {
     const busboy = Busboy({
       headers: request.headers,
       limits: {
-        fields: 12,
+        fields: 20,
         files: MAX_PRODUCT_IMAGES,
         fileSize: MAX_IMAGE_SIZE_BYTES,
       },

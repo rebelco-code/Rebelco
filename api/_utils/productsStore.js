@@ -38,6 +38,59 @@ function cleanText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function cleanList(value, maxItems = 20, maxItemLength = 60) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => cleanText(item, maxItemLength))
+      .filter(Boolean)
+      .slice(0, maxItems);
+  }
+
+  return String(value || "")
+    .split(/[\n,]+/)
+    .map((item) => cleanText(item, maxItemLength))
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+
+function parseBoolean(value) {
+  return value === true || String(value || "").toLowerCase() === "true";
+}
+
+function normalizeSpecialOption(value = {}) {
+  const enabled = parseBoolean(value.enabled);
+  const label = cleanText(value.label || "Special", 80);
+  const startDate = cleanText(value.startDate, 20);
+  const endDate = cleanText(value.endDate, 20);
+
+  if (!enabled || !startDate || !endDate) {
+    return {
+      enabled: false,
+      label: "",
+      startDate: "",
+      endDate: "",
+    };
+  }
+
+  const startTime = Date.parse(startDate);
+  const endTime = Date.parse(endDate);
+
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+    throw new HttpError(400, "Enter valid special option dates.");
+  }
+
+  if (startTime > endTime) {
+    throw new HttpError(400, "Special option start date must be before the end date.");
+  }
+
+  return {
+    enabled: true,
+    label: label || "Special",
+    startDate,
+    endDate,
+  };
+}
+
 function parsePrice(value) {
   const cleanedValue = String(value || "")
     .replace(/[^\d.,-]/g, "")
@@ -146,6 +199,9 @@ function normalizeProduct(product) {
     imageUrls,
     imagePathname: imagePathnames[0] || "",
     imagePathnames,
+    colors: cleanList(product.colors),
+    scents: cleanList(product.scents),
+    specialOption: normalizeSpecialOption(product.specialOption || {}),
     createdAt: String(product.createdAt || ""),
     updatedAt: String(product.updatedAt || ""),
   };
@@ -158,6 +214,14 @@ function validateProductInput(fields, images) {
   const weight = cleanText(fields.weight, 60);
   const price = parsePrice(fields.price);
   const stockAmount = parseStockAmount(fields.stockAmount);
+  const colors = cleanList(fields.colors);
+  const scents = cleanList(fields.scents);
+  const specialOption = normalizeSpecialOption({
+    enabled: fields.specialOptionEnabled,
+    label: fields.specialOptionLabel,
+    startDate: fields.specialOptionStartDate,
+    endDate: fields.specialOptionEndDate,
+  });
 
   if (!title) {
     throw new HttpError(400, "Product title is required.");
@@ -200,6 +264,9 @@ function validateProductInput(fields, images) {
     price,
     weight,
     stockAmount,
+    colors,
+    scents,
+    specialOption,
   };
 }
 
