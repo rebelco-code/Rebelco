@@ -917,7 +917,7 @@ export default function AdminaPage() {
 
           {admin ? (
             <>
-              <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(360px,520px)_minmax(0,1fr)]">
+              <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(380px,540px)_minmax(0,1fr)]">
                 <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
                   <div className="border-b border-white/10 pb-5">
                     <h2
@@ -928,230 +928,265 @@ export default function AdminaPage() {
                     </h2>
 
                     <p className="mt-3 text-sm leading-6 text-white/50">
-                      Add product details, choose a category, and upload up to 6 product
-                      photos.
+                      Complete each section below to create a polished product listing.
                     </p>
                   </div>
 
-                  <form className="mt-6 grid min-w-0 gap-5" onSubmit={submitProduct}>
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Title
-                      </span>
+                  <form className="mt-6 grid min-w-0 gap-6" onSubmit={submitProduct}>
+                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
+                          Product Details
+                        </h3>
+                        <p className="mt-2 text-xs leading-5 text-white/40">
+                          Add the main information customers will see in the catalogue.
+                        </p>
+                      </div>
 
-                      <input
-                        name="title"
-                        value={form.title}
-                        onChange={updateField}
-                        required
-                        placeholder="Product name"
-                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                      />
-                    </label>
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Title
+                        </span>
 
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Description
-                      </span>
+                        <input
+                          name="title"
+                          value={form.title}
+                          onChange={updateField}
+                          required
+                          placeholder="Product name"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+                      </label>
 
-                      <textarea
-                        name="description"
-                        value={form.description}
-                        onChange={updateField}
-                        required
-                        rows={5}
-                        placeholder="Short product description"
-                        className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                      />
-                    </label>
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Description
+                        </span>
 
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Category
-                      </span>
+                        <textarea
+                          name="description"
+                          value={form.description}
+                          onChange={updateField}
+                          required
+                          rows={5}
+                          placeholder="Short product description"
+                          className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+                      </label>
 
-                      <input
-                        name="category"
-                        value={form.category}
-                        onChange={updateField}
-                        required
-                        placeholder="Example: Soaps, Salves, Balms"
-                        list="admin-product-categories"
-                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                      />
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Category
+                        </span>
 
-                      <datalist id="admin-product-categories">
-                        {categories.map((category) => (
-                          <option key={category} value={category} />
-                        ))}
-                      </datalist>
+                        <input
+                          name="category"
+                          value={form.category}
+                          onChange={updateField}
+                          required
+                          placeholder="Example: Soaps, Salves, Balms"
+                          list="admin-product-categories"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
 
-                      {categories.length > 0 ? (
-                        <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                        <datalist id="admin-product-categories">
                           {categories.map((category) => (
-                            <button
-                              key={category}
-                              type="button"
-                              onClick={() => selectExistingCategory(category)}
-                              className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
-                            >
-                              {category}
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </label>
-
-                    <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Price
-                        </span>
-
-                        <input
-                          name="price"
-                          value={form.price}
-                          onChange={updateField}
-                          required
-                          inputMode="decimal"
-                          placeholder="85.00"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-                      </label>
-
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Weight
-                        </span>
-
-                        <input
-                          name="weight"
-                          value={form.weight}
-                          onChange={updateField}
-                          required
-                          placeholder="120g"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-                      </label>
-
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72 sm:col-span-2 lg:col-span-1">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Stock
-                        </span>
-
-                        <input
-                          name="stockAmount"
-                          value={form.stockAmount}
-                          onChange={updateField}
-                          required
-                          inputMode="numeric"
-                          placeholder="12"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="grid min-w-0 gap-5 sm:grid-cols-2">
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Colors Optional
-                        </span>
-
-                        <input
-                          name="colors"
-                          value={form.colors}
-                          onChange={updateField}
-                          placeholder="Example: Red, Blue, Natural"
-                          list="admin-product-colors"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-
-                        <datalist id="admin-product-colors">
-                          {colorOptions.map((color) => (
-                            <option key={color} value={color} />
+                            <option key={category} value={category} />
                           ))}
                         </datalist>
 
-                        {colorOptions.length > 0 ? (
+                        {categories.length > 0 ? (
                           <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            {categories.map((category) => (
+                              <button
+                                key={category}
+                                type="button"
+                                onClick={() => selectExistingCategory(category)}
+                                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                              >
+                                {category}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </label>
+                    </section>
+
+                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
+                          Pricing & Stock
+                        </h3>
+                        <p className="mt-2 text-xs leading-5 text-white/40">
+                          Set the product price, weight, and available stock.
+                        </p>
+                      </div>
+
+                      <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                            Price
+                          </span>
+
+                          <input
+                            name="price"
+                            value={form.price}
+                            onChange={updateField}
+                            required
+                            inputMode="decimal"
+                            placeholder="85.00"
+                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+                        </label>
+
+                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                            Weight
+                          </span>
+
+                          <input
+                            name="weight"
+                            value={form.weight}
+                            onChange={updateField}
+                            required
+                            placeholder="120g"
+                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+                        </label>
+
+                        <label className="grid min-w-0 gap-2 text-sm text-white/72 sm:col-span-2 lg:col-span-1">
+                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                            Stock
+                          </span>
+
+                          <input
+                            name="stockAmount"
+                            value={form.stockAmount}
+                            onChange={updateField}
+                            required
+                            inputMode="numeric"
+                            placeholder="12"
+                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+                        </label>
+                      </div>
+                    </section>
+
+                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
+                          Options
+                        </h3>
+                        <p className="mt-2 text-xs leading-5 text-white/40">
+                          Add optional colors and scents. Customers will only see these when values are added.
+                        </p>
+                      </div>
+
+                      <div className="grid min-w-0 gap-5 sm:grid-cols-2">
+                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                            Colors
+                          </span>
+
+                          <input
+                            name="colors"
+                            value={form.colors}
+                            onChange={updateField}
+                            placeholder="Example: Red, Blue, Natural"
+                            list="admin-product-colors"
+                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+
+                          <datalist id="admin-product-colors">
                             {colorOptions.map((color) => (
-                              <button
-                                key={color}
-                                type="button"
-                                onClick={() => selectExistingColor(color)}
-                                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
-                              >
-                                {color}
-                              </button>
+                              <option key={color} value={color} />
                             ))}
-                          </div>
-                        ) : null}
+                          </datalist>
 
-                        <span className="text-xs leading-5 text-white/40">
-                          Type custom colors or choose existing ones. Separate multiple colors with commas.
-                        </span>
-                      </label>
+                          {colorOptions.length > 0 ? (
+                            <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                              {colorOptions.map((color) => (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  onClick={() => selectExistingColor(color)}
+                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                                >
+                                  {color}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
 
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Scents Optional
-                        </span>
+                          <span className="text-xs leading-5 text-white/40">
+                            Type custom colors or choose existing ones. Separate multiple colors with commas.
+                          </span>
+                        </label>
 
-                        <input
-                          name="scents"
-                          value={form.scents}
-                          onChange={updateField}
-                          placeholder="Example: Lavender, Vanilla, Unscented"
-                          list="admin-product-scents"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
+                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                            Scents
+                          </span>
 
-                        <datalist id="admin-product-scents">
-                          {scentOptions.map((scent) => (
-                            <option key={scent} value={scent} />
-                          ))}
-                        </datalist>
+                          <input
+                            name="scents"
+                            value={form.scents}
+                            onChange={updateField}
+                            placeholder="Example: Lavender, Vanilla, Unscented"
+                            list="admin-product-scents"
+                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
 
-                        {scentOptions.length > 0 ? (
-                          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                          <datalist id="admin-product-scents">
                             {scentOptions.map((scent) => (
-                              <button
-                                key={scent}
-                                type="button"
-                                onClick={() => selectExistingScent(scent)}
-                                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
-                              >
-                                {scent}
-                              </button>
+                              <option key={scent} value={scent} />
                             ))}
-                          </div>
-                        ) : null}
+                          </datalist>
 
-                        <span className="text-xs leading-5 text-white/40">
-                          Type custom scents or choose existing ones. Separate multiple scents with commas.
-                        </span>
-                      </label>
-                    </div>
+                          {scentOptions.length > 0 ? (
+                            <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                              {scentOptions.map((scent) => (
+                                <button
+                                  key={scent}
+                                  type="button"
+                                  onClick={() => selectExistingScent(scent)}
+                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                                >
+                                  {scent}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
 
-                    <div className="grid min-w-0 gap-4 rounded-xl border border-white/10 bg-black/35 p-4">
-                      <label className="flex items-start gap-3 text-sm text-white/72">
-                        <input
-                          type="checkbox"
-                          name="specialOptionEnabled"
-                          checked={form.specialOptionEnabled}
-                          onChange={updateField}
-                          className="mt-1 h-4 w-4 accent-white"
-                        />
+                          <span className="text-xs leading-5 text-white/40">
+                            Type custom scents or choose existing ones. Separate multiple scents with commas.
+                          </span>
+                        </label>
+                      </div>
+                    </section>
 
-                        <span>
-                          <span className="block text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                    <section className="grid gap-5 rounded-2xl border border-amber-300/15 bg-amber-950/10 p-4 sm:p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-100/80">
                             Special Option
-                          </span>
-                          <span className="mt-1 block text-xs leading-5 text-white/45">
-                            Enable this only for products that should display a special option during a chosen date range.
-                          </span>
-                        </span>
-                      </label>
+                          </h3>
+                          <p className="mt-2 text-xs leading-5 text-amber-100/45">
+                            Show a special label for this product only during the selected date range.
+                          </p>
+                        </div>
+
+                        <label className="flex shrink-0 items-center gap-3 rounded-full border border-amber-300/20 bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.16em] text-amber-100/75">
+                          <input
+                            type="checkbox"
+                            name="specialOptionEnabled"
+                            checked={form.specialOptionEnabled}
+                            onChange={updateField}
+                            className="h-4 w-4 accent-amber-200"
+                          />
+                          Enable
+                        </label>
+                      </div>
 
                       {form.specialOptionEnabled ? (
                         <div className="grid gap-4 sm:grid-cols-3">
@@ -1165,7 +1200,7 @@ export default function AdminaPage() {
                               value={form.specialOptionLabel}
                               onChange={updateField}
                               placeholder="Special"
-                              className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                              className="min-w-0 rounded-xl border border-amber-300/15 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
                             />
                           </label>
 
@@ -1180,7 +1215,7 @@ export default function AdminaPage() {
                               value={form.specialOptionStartDate}
                               onChange={updateField}
                               required={form.specialOptionEnabled}
-                              className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-white/45"
+                              className="min-w-0 rounded-xl border border-amber-300/15 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-amber-200/45"
                             />
                           </label>
 
@@ -1195,130 +1230,136 @@ export default function AdminaPage() {
                               value={form.specialOptionEndDate}
                               onChange={updateField}
                               required={form.specialOptionEnabled}
-                              className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-white/45"
+                              className="min-w-0 rounded-xl border border-amber-300/15 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-amber-200/45"
                             />
                           </label>
                         </div>
                       ) : null}
-                    </div>
+                    </section>
 
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Images
-                      </span>
-
-                      <input
-                        ref={imageInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        multiple
-                        onChange={updateImage}
-                        className="sr-only"
-                      />
-
-                      <button
-                        type="button"
-                        onClick={openImagePicker}
-                        onDrop={handleImageDrop}
-                        onDragOver={handleImageDragOver}
-                        onDragLeave={handleImageDragLeave}
-                        className={`mt-1 min-w-0 rounded-2xl border border-dashed px-4 py-8 text-left transition sm:px-6 ${
-                          isImageDropActive
-                            ? "border-white/55 bg-white/10"
-                            : "border-white/20 bg-[linear-gradient(180deg,rgba(18,18,19,0.95),rgba(8,8,9,0.95))] hover:border-white/40 hover:bg-[#161618]"
-                        }`}
-                      >
-                        <div className="pointer-events-none flex flex-col items-center gap-2 text-center">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xl text-white/80">
-                            +
-                          </div>
-                          <div className="text-sm uppercase tracking-[0.16em] text-white/75">
-                            Drop images here
-                          </div>
-                          <p className="text-xs tracking-[0.08em] text-white/55">
-                            or click to browse and add more
-                          </p>
-                          <p className="text-xs text-white/40">
-                            JPG, PNG, WebP · up to {MAX_PRODUCT_IMAGES} images · 4 MB each
-                          </p>
-                        </div>
-                      </button>
-
-                      <div className="mt-1 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-[11px] uppercase tracking-[0.18em] text-white/55">
-                        <span>
-                          {imageFiles.length} / {MAX_PRODUCT_IMAGES} selected
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={openImagePicker}
-                            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
-                          >
-                            Add More
-                          </button>
-                          <button
-                            type="button"
-                            onClick={clearSelectedImages}
-                            disabled={imageFiles.length === 0}
-                            className="rounded-full border border-red-400/25 bg-red-950/25 px-3 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
-                          >
-                            Clear All
-                          </button>
-                        </div>
+                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
+                      <div>
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
+                          Images
+                        </h3>
+                        <p className="mt-2 text-xs leading-5 text-white/40">
+                          Upload up to {MAX_PRODUCT_IMAGES} product images. The first image is used as the main image.
+                        </p>
                       </div>
 
-                      <p className="text-xs leading-5 text-white/40">
-                        Tip: You can select files multiple times and they will be added to the same
-                        list.
-                      </p>
-                    </label>
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="sr-only">Images</span>
 
-                    {imageFiles.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                        {imageFiles.map((file, index) => (
-                          <article
-                            key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                            className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-2"
-                          >
-                            <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
-                              <img
-                                src={imagePreviews[index]}
-                                alt={`Selected product preview ${index + 1}`}
-                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                              />
-                              <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/70 backdrop-blur">
-                                {index + 1}
+                        <input
+                          ref={imageInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          multiple
+                          onChange={updateImage}
+                          className="sr-only"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={openImagePicker}
+                          onDrop={handleImageDrop}
+                          onDragOver={handleImageDragOver}
+                          onDragLeave={handleImageDragLeave}
+                          className={`mt-1 min-w-0 rounded-2xl border border-dashed px-4 py-8 text-left transition sm:px-6 ${
+                            isImageDropActive
+                              ? "border-white/55 bg-white/10"
+                              : "border-white/20 bg-[linear-gradient(180deg,rgba(18,18,19,0.95),rgba(8,8,9,0.95))] hover:border-white/40 hover:bg-[#161618]"
+                          }`}
+                        >
+                          <div className="pointer-events-none flex flex-col items-center gap-2 text-center">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xl text-white/80">
+                              +
+                            </div>
+                            <div className="text-sm uppercase tracking-[0.16em] text-white/75">
+                              Drop images here
+                            </div>
+                            <p className="text-xs tracking-[0.08em] text-white/55">
+                              or click to browse and add more
+                            </p>
+                            <p className="text-xs text-white/40">
+                              JPG, PNG, WebP · up to {MAX_PRODUCT_IMAGES} images · 4 MB each
+                            </p>
+                          </div>
+                        </button>
+
+                        <div className="mt-1 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                          <span>
+                            {imageFiles.length} / {MAX_PRODUCT_IMAGES} selected
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={openImagePicker}
+                              className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
+                            >
+                              Add More
+                            </button>
+                            <button
+                              type="button"
+                              onClick={clearSelectedImages}
+                              disabled={imageFiles.length === 0}
+                              className="rounded-full border border-red-400/25 bg-red-950/25 px-3 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+                        </div>
+                      </label>
+
+                      {imageFiles.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {imageFiles.map((file, index) => (
+                            <article
+                              key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                              className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-2"
+                            >
+                              <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
+                                <img
+                                  src={imagePreviews[index]}
+                                  alt={`Selected product preview ${index + 1}`}
+                                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                />
+                                <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/70 backdrop-blur">
+                                  {index + 1}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeSelectedImage(index)}
+                                  className="absolute right-2 top-2 rounded-full border border-red-300/35 bg-red-950/70 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
+                                >
+                                  Remove
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => removeSelectedImage(index)}
-                                className="absolute right-2 top-2 rounded-full border border-red-300/35 bg-red-950/70 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                            <div className="mt-2 truncate text-xs text-white/68" title={file.name}>
-                              {file.name}
-                            </div>
-                            <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-white/40">
-                              {formatFileSize(file.size)}
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="rounded-xl border border-white/10 bg-black/35 px-4 py-4 text-xs text-white/45">
-                        No images selected yet.
-                      </div>
-                    )}
+                              <div className="mt-2 truncate text-xs text-white/68" title={file.name}>
+                                {file.name}
+                              </div>
+                              <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-white/40">
+                                {formatFileSize(file.size)}
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-white/10 bg-black/35 px-4 py-4 text-xs text-white/45">
+                          No images selected yet.
+                        </div>
+                      )}
+                    </section>
 
-                    <button
-                      type="submit"
-                      disabled={formStatus === "saving"}
-                      className="mt-2 w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55 sm:tracking-[0.22em]"
-                    >
-                      {formStatus === "saving" ? "Saving..." : "Save Product"}
-                    </button>
+                    <div className="sticky bottom-3 z-10 rounded-2xl border border-white/10 bg-[#151516]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur">
+                      <button
+                        type="submit"
+                        disabled={formStatus === "saving"}
+                        className="w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55 sm:tracking-[0.22em]"
+                      >
+                        {formStatus === "saving" ? "Saving Product..." : "Save Product"}
+                      </button>
+                    </div>
                   </form>
                 </section>
 
