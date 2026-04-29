@@ -294,6 +294,24 @@ export default function ProductsPage() {
     return Math.round(subtotal * 100) / 100;
   }, [cartLines]);
 
+  const canSubmitOrder = cartItems.length > 0 && Boolean(orderForm.pudoLockerCode);
+
+  const submitOrderLabel = useMemo(() => {
+    if (orderStatus === "saving") {
+      return "Placing Order...";
+    }
+
+    if (cartItems.length === 0) {
+      return "Add Products To Basket First";
+    }
+
+    if (!orderForm.pudoLockerCode) {
+      return "Select Delivery Locker First";
+    }
+
+    return "Place Basket Order";
+  }, [cartItems.length, orderForm.pudoLockerCode, orderStatus]);
+
   const googleMapsSearchUrl = useMemo(
     () => buildGoogleMapsSearchUrl(orderForm.googleMapsLocation),
     [orderForm.googleMapsLocation],
@@ -1307,6 +1325,19 @@ export default function ProductsPage() {
                   className="grid gap-4 border border-white/10 bg-[#101011] p-4"
                   onSubmit={submitOrder}
                 >
+                  <div className="rounded-xl border border-white/10 bg-black p-3 text-xs text-white/70">
+                    <div className="font-semibold uppercase tracking-[0.16em] text-white/85">
+                      Checkout Steps
+                    </div>
+                    <div className="mt-1.5 leading-5">
+                      1. Set quantity and add product to basket.
+                      <br />
+                      2. Confirm location and auto-selected closest PUDO locker.
+                      <br />
+                      3. Place basket order, then send proof of payment.
+                    </div>
+                  </div>
+
                   <label className="grid gap-2 text-sm text-white/70">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/50">
                       Amount / Quantity
@@ -1332,7 +1363,7 @@ export default function ProductsPage() {
                     disabled={!selectedProduct || orderStatus === "saving"}
                     className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Add Selected Product To Cart
+                    Add Quantity To Basket
                   </button>
 
                   <div className="rounded-xl border border-white/10 bg-black p-3 text-xs text-white/65">
@@ -1477,10 +1508,10 @@ export default function ProductsPage() {
 
                   <button
                     type="submit"
-                    disabled={orderStatus === "saving"}
+                    disabled={!canSubmitOrder || orderStatus === "saving"}
                     className="border border-white bg-white px-6 py-4 text-center text-sm uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                   >
-                    {orderStatus === "saving" ? "Placing Order..." : "Place Cart Order"}
+                    {submitOrderLabel}
                   </button>
                 </form>
               </div>
