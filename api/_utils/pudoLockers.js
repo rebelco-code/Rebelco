@@ -5,7 +5,7 @@ const MAX_LIMIT = 12;
 const REQUEST_TIMEOUT_MS = 3_500;
 const MAX_PROVIDER_ATTEMPTS = 5;
 const MAX_PROVIDER_LOOKUP_MS = 12_000;
-const LOCKERS_DATA_URL = "https://api-pudo.co.za/lockers-data";
+const LOCKERS_DATA_URL = "https://www.api-pudo.co.za/api/v1/lockers-data";
 
 function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
