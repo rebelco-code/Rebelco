@@ -918,8 +918,8 @@ export default function AdminaPage() {
 
           {admin ? (
             <>
-              <div className="mt-5 grid w-full min-w-0 gap-5 2xl:grid-cols-[minmax(360px,500px)_minmax(0,1fr)]">
-                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-5">
+              <div className="mt-5 grid w-full min-w-0 gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20">
                   <div className="border-b border-white/10 pb-4">
                     <h2
                       className="text-3xl leading-none text-white sm:text-4xl"
@@ -934,7 +934,7 @@ export default function AdminaPage() {
                   </div>
 
                   <form className="mt-5 grid min-w-0 gap-4" onSubmit={submitProduct}>
-                    <section className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <section className="min-w-0 rounded-2xl border border-white/10 bg-black/25 p-4">
                       <div className="mb-4">
                         <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
                           Product Info
@@ -944,8 +944,8 @@ export default function AdminaPage() {
                         </p>
                       </div>
 
-                      <div className="grid gap-3">
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                      <div className="grid min-w-0 gap-3">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Title
                           </span>
@@ -955,11 +955,11 @@ export default function AdminaPage() {
                             onChange={updateField}
                             required
                             placeholder="Product name"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
 
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Description
                           </span>
@@ -970,11 +970,11 @@ export default function AdminaPage() {
                             required
                             rows={3}
                             placeholder="Short product description"
-                            className="resize-none rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 resize-none rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
 
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Category
                           </span>
@@ -985,7 +985,7 @@ export default function AdminaPage() {
                             required
                             placeholder="Example: Soaps, Salves, Balms"
                             list="admin-product-categories"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
 
                           <datalist id="admin-product-categories">
@@ -995,7 +995,7 @@ export default function AdminaPage() {
                           </datalist>
 
                           {categories.length > 0 ? (
-                            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                               {categories.map((category) => (
                                 <button
                                   key={category}
@@ -1012,7 +1012,7 @@ export default function AdminaPage() {
                       </div>
                     </section>
 
-                    <section className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <section className="min-w-0 rounded-2xl border border-white/10 bg-black/25 p-4">
                       <div className="mb-4">
                         <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
                           Price, Stock & Options
@@ -1022,8 +1022,8 @@ export default function AdminaPage() {
                         </p>
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                      <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Price
                           </span>
@@ -1034,11 +1034,11 @@ export default function AdminaPage() {
                             required
                             inputMode="decimal"
                             placeholder="85.00"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
 
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Weight
                           </span>
@@ -1048,11 +1048,11 @@ export default function AdminaPage() {
                             onChange={updateField}
                             required
                             placeholder="120g"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
 
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Stock
                           </span>
@@ -1063,13 +1063,13 @@ export default function AdminaPage() {
                             required
                             inputMode="numeric"
                             placeholder="12"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
                       </div>
 
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                      <div className="mt-3 grid min-w-0 gap-3 lg:grid-cols-2">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Colors
                           </span>
@@ -1079,7 +1079,7 @@ export default function AdminaPage() {
                             onChange={updateField}
                             placeholder="Red, Blue, Natural"
                             list="admin-product-colors"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
 
                           <datalist id="admin-product-colors">
@@ -1089,7 +1089,7 @@ export default function AdminaPage() {
                           </datalist>
 
                           {colorOptions.length > 0 ? (
-                            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                               {colorOptions.map((color) => (
                                 <button
                                   key={color}
@@ -1104,7 +1104,7 @@ export default function AdminaPage() {
                           ) : null}
                         </label>
 
-                        <label className="grid gap-1.5 text-sm text-white/72">
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Scents
                           </span>
@@ -1114,7 +1114,7 @@ export default function AdminaPage() {
                             onChange={updateField}
                             placeholder="Lavender, Vanilla, Unscented"
                             list="admin-product-scents"
-                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
 
                           <datalist id="admin-product-scents">
@@ -1124,7 +1124,7 @@ export default function AdminaPage() {
                           </datalist>
 
                           {scentOptions.length > 0 ? (
-                            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                               {scentOptions.map((scent) => (
                                 <button
                                   key={scent}
@@ -1141,9 +1141,9 @@ export default function AdminaPage() {
                       </div>
                     </section>
 
-                    <section className="rounded-2xl border border-amber-300/15 bg-amber-950/10 p-4">
-                      <div className="mb-4 flex items-center justify-between gap-4">
-                        <div>
+                    <section className="min-w-0 rounded-2xl border border-amber-300/15 bg-amber-950/10 p-4">
+                      <div className="mb-4 flex min-w-0 items-center justify-between gap-4">
+                        <div className="min-w-0">
                           <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-100/80">
                             Special
                           </h3>
@@ -1165,8 +1165,8 @@ export default function AdminaPage() {
                       </div>
 
                       {form.specialOptionEnabled ? (
-                        <div className="grid gap-3 sm:grid-cols-4">
-                          <label className="grid gap-1.5 text-sm text-white/72">
+                        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                          <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
                               Label
                             </span>
@@ -1175,11 +1175,11 @@ export default function AdminaPage() {
                               value={form.specialOptionLabel}
                               onChange={updateField}
                               placeholder="Special"
-                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
+                              className="w-full min-w-0 rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
                             />
                           </label>
 
-                          <label className="grid gap-1.5 text-sm text-white/72">
+                          <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
                               Discount
                             </span>
@@ -1190,13 +1190,13 @@ export default function AdminaPage() {
                               required={form.specialOptionEnabled}
                               inputMode="decimal"
                               placeholder="15.00"
-                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
+                              className="w-full min-w-0 rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
                             />
                           </label>
 
-                          <label className="grid gap-1.5 text-sm text-white/72">
+                          <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
-                              Start
+                              Start Date
                             </span>
                             <input
                               type="date"
@@ -1204,13 +1204,13 @@ export default function AdminaPage() {
                               value={form.specialOptionStartDate}
                               onChange={updateField}
                               required={form.specialOptionEnabled}
-                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-amber-200/45"
+                              className="w-full min-w-0 rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-amber-200/45"
                             />
                           </label>
 
-                          <label className="grid gap-1.5 text-sm text-white/72">
+                          <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                             <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
-                              End
+                              End Date
                             </span>
                             <input
                               type="date"
@@ -1218,14 +1218,14 @@ export default function AdminaPage() {
                               value={form.specialOptionEndDate}
                               onChange={updateField}
                               required={form.specialOptionEnabled}
-                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-amber-200/45"
+                              className="w-full min-w-0 rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-amber-200/45"
                             />
                           </label>
                         </div>
                       ) : null}
                     </section>
 
-                    <section className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <section className="min-w-0 rounded-2xl border border-white/10 bg-black/25 p-4">
                       <div className="mb-4">
                         <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
                           Images
@@ -1235,7 +1235,7 @@ export default function AdminaPage() {
                         </p>
                       </div>
 
-                      <label className="grid gap-2 text-sm text-white/72">
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
                         <span className="sr-only">Images</span>
 
                         <input
@@ -1445,7 +1445,7 @@ export default function AdminaPage() {
                             </button>
 
                             {isOpen ? (
-                              <div className="grid min-w-0 gap-3 border-t border-white/10 p-3 sm:grid-cols-2 2xl:grid-cols-3">
+                              <div className="grid min-w-0 gap-3 border-t border-white/10 p-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
                                 {group.products.map((product) => {
                                   const isOutOfStock = Number(product.stockAmount) <= 0;
                                   const isBusy = Boolean(productActionStatus);
