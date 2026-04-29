@@ -1702,6 +1702,17 @@ export default function AdminaPage() {
                             pudoProvider !== "none" &&
                             pudoProvider !== "unavailable";
                           const hasLookupInput = Boolean(parseLatLngText(order.googleMapsLocation));
+                          const selectedLockerCode = String(order.pudoLockerCode || "").trim();
+                          const selectedLockerName = String(order.pudoLockerName || "").trim();
+                          const selectedLockerAddress = String(order.pudoLockerAddress || "").trim();
+                          const hasSelectedLocker = Boolean(
+                            selectedLockerCode || selectedLockerName || selectedLockerAddress,
+                          );
+                          const selectedLockerMapsLabel =
+                            selectedLockerAddress || selectedLockerName || selectedLockerCode;
+                          const selectedLockerMapsUrl = selectedLockerMapsLabel
+                            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedLockerMapsLabel)}`
+                            : "";
 
                           return (
                             <tr key={order.id} className="border-t border-white/10 align-top">
@@ -1745,15 +1756,47 @@ export default function AdminaPage() {
 
                               <td className="px-4 py-4">
                                 <div className="min-w-[240px]">
+                                  {hasSelectedLocker ? (
+                                    <div className="rounded-lg border border-emerald-400/25 bg-emerald-950/15 p-2 text-xs">
+                                      <div className="text-[10px] uppercase tracking-[0.16em] text-emerald-100/75">
+                                        Customer Selected Locker
+                                      </div>
+                                      <div className="mt-1 font-semibold text-emerald-100">
+                                        {selectedLockerName || selectedLockerCode || "Locker selected"}
+                                      </div>
+                                      <div className="mt-1 text-emerald-100/70">
+                                        {[selectedLockerCode, selectedLockerAddress]
+                                          .filter(Boolean)
+                                          .join(" - ") || "Address unavailable"}
+                                      </div>
+                                      {selectedLockerMapsUrl ? (
+                                        <a
+                                          href={selectedLockerMapsUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="mt-2 inline-block text-[10px] uppercase tracking-[0.14em] text-emerald-100/75 underline-offset-4 hover:text-emerald-100 hover:underline"
+                                        >
+                                          Open selected locker
+                                        </a>
+                                      ) : null}
+                                    </div>
+                                  ) : (
+                                    <div className="rounded-lg border border-amber-300/25 bg-amber-950/15 p-2 text-xs text-amber-100/80">
+                                      Customer did not save a specific locker selection.
+                                    </div>
+                                  )}
+
                                   <button
                                     type="button"
                                     onClick={() => lookupPudoLockers(order)}
                                     disabled={pudoStatus === "loading" || !hasLookupInput}
-                                    className="rounded-full border border-white/15 bg-black px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/75 transition hover:border-white/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="mt-2 rounded-full border border-white/15 bg-black px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/75 transition hover:border-white/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                                   >
                                     {pudoStatus === "loading"
                                       ? "Loading..."
-                                      : "Find Nearby PUDO Lockers"}
+                                      : hasSelectedLocker
+                                        ? "Find Alternative Nearby Lockers"
+                                        : "Find Nearby PUDO Lockers"}
                                   </button>
 
                                   {!hasLookupInput ? (
