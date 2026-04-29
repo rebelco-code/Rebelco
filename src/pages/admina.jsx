@@ -1378,6 +1378,12 @@ export default function AdminaPage() {
                           const pudoLockers = Array.isArray(pudoLookupState.lockers)
                             ? pudoLookupState.lockers
                             : [];
+                          const pudoProvider = String(pudoLookupState.provider || "");
+                          const showPudoProvider =
+                            pudoStatus === "ready" &&
+                            pudoProvider &&
+                            pudoProvider !== "none" &&
+                            pudoProvider !== "unavailable";
                           const hasLookupInput = Boolean(
                             parseLatLngText(order.googleMapsLocation) ||
                               String(order.locationText || "").trim(),
@@ -1442,9 +1448,9 @@ export default function AdminaPage() {
                                     </div>
                                   ) : null}
 
-                                  {pudoStatus === "ready" && pudoLookupState.provider ? (
+                                  {showPudoProvider ? (
                                     <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-white/45">
-                                      Source: {pudoLookupState.provider}
+                                      Source: {pudoProvider}
                                     </div>
                                   ) : null}
 
@@ -1478,12 +1484,12 @@ export default function AdminaPage() {
                                             <div className="mt-1 text-white/60">
                                               {[locker.code, locker.address]
                                                 .filter(Boolean)
-                                                .join(" • ") || "Address unavailable"}
+                                                .join(" - ") || "Address unavailable"}
                                             </div>
                                             <div className="mt-1 text-white/45">
                                               {[locker.town, locker.postalCode]
                                                 .filter(Boolean)
-                                                .join(" • ")}
+                                                .join(" - ")}
                                             </div>
                                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                               {Number.isFinite(locker.distanceKm) ? (
@@ -1522,7 +1528,9 @@ export default function AdminaPage() {
                                   <span>
                                     {isCurrentBusy
                                       ? "Saving..."
-                                      : String(Boolean(order.proofOfPaymentReceived))}
+                                      : order.proofOfPaymentReceived
+                                        ? "Received"
+                                        : "Not received"}
                                   </span>
                                 </label>
                               </td>

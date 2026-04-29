@@ -454,10 +454,15 @@ async function queryPudoLockers(context, apiKey) {
     };
   }
 
+  if (diagnostics.length > 0) {
+    console.warn("[pudo-lockers] all providers unavailable", diagnostics);
+  }
+
   return {
     provider: "unavailable",
     lockers: [],
-    message: `Locker lookup unavailable right now. ${diagnostics.join(" | ")}`,
+    message:
+      "Locker lookup is temporarily unavailable. You can continue and choose a PUDO locker later.",
   };
 }
 
