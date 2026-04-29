@@ -1335,146 +1335,8 @@ export default function ProductsPage() {
                     Add Selected Product To Cart
                   </button>
 
-                  <div className="rounded-xl border border-white/10 bg-black p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.2em] text-white/50">
-                          Basket
-                        </div>
-                        <div className="mt-1 text-sm text-white/70">
-                          {cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"} selected
-                        </div>
-                      </div>
-                      {cartItems.length > 0 ? (
-                        <button
-                          type="button"
-                          onClick={clearCart}
-                          className="text-[10px] uppercase tracking-[0.18em] text-white/65 underline-offset-4 hover:text-white hover:underline"
-                        >
-                          Clear basket
-                        </button>
-                      ) : null}
-                    </div>
-
-                    {cartLines.length === 0 ? (
-                      <p className="mt-3 text-sm text-white/55">Your basket is empty.</p>
-                    ) : (
-                      <div className="mt-3 grid gap-3">
-                        {cartLines.map((line) => {
-                          const minQty = normalizeMinimumOrderQuantity(
-                            line.product.minimumOrderQuantity,
-                          );
-                          const maxQty = Math.max(minQty, Number(line.product.stockAmount || 0));
-
-                          return (
-                            <div
-                              key={`cart-${line.productId}`}
-                              className="grid gap-2 rounded-lg border border-white/10 bg-[#101011] p-3"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="text-sm font-semibold text-white">
-                                    {line.product.title}
-                                  </div>
-                                  <div className="text-xs text-white/55">
-                                    {formatPrice(line.unitPrice)} each
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => removeCartItem(line.productId)}
-                                  className="text-[10px] uppercase tracking-[0.16em] text-red-200/80 underline-offset-4 hover:text-red-100 hover:underline"
-                                >
-                                  Remove
-                                </button>
-                              </div>
-
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="number"
-                                  min={minQty}
-                                  max={maxQty}
-                                  step="1"
-                                  value={line.quantity}
-                                  onChange={(event) =>
-                                    updateCartItemQuantity(line.productId, event.target.value)
-                                  }
-                                  className="w-24 rounded-md border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none transition focus:border-white/45"
-                                />
-                                <span className="text-xs text-white/50">
-                                  Line total: {formatPrice(line.unitPrice * line.quantity)}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        <div className="rounded-lg border border-white/15 bg-black p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/75">
-                            <span>{cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"}</span>
-                            <span className="text-lg font-semibold text-white">
-                              Total: {formatPrice(cartTotalPrice)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-[#0b0c0d]">
-                      <div className="border-b border-white/10 bg-black/45 px-4 py-3">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">
-                          Bank Transfer Details
-                        </div>
-                        <div className="mt-1 text-xs text-white/55">
-                          Use these details for EFT payment.
-                        </div>
-                      </div>
-
-                      <div className="grid gap-2 p-4 sm:grid-cols-2">
-                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">Bank</div>
-                          <div className="mt-1 text-sm font-semibold text-white">Capitec</div>
-                        </div>
-                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-                            Account Holder
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-white">Mrs CM Badenhorst</div>
-                        </div>
-                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-                            Account Type
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-white">Savings account</div>
-                        </div>
-                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-                            Branch Code
-                          </div>
-                          <div className="mt-1 text-sm font-semibold text-white">470010</div>
-                        </div>
-                      </div>
-
-                      <div className="px-4 pb-4">
-                        <div className="rounded-lg border border-white/20 bg-black p-3">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">
-                            Account Number
-                          </div>
-                          <div className="mt-1 text-lg font-semibold tracking-[0.08em] text-white">
-                            1989018740
-                          </div>
-                        </div>
-
-                        <div className="mt-2 rounded-lg border border-white/10 bg-black p-3 text-xs text-white/75">
-                          <strong className="text-white">Reference:</strong> Your name / order number
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-950/20 p-3 text-xs leading-5 text-amber-100">
-                      Send proof of payment to the email linked to this website after payment.
-                      Delivery is arranged once proof is received.
-                    </div>
+                  <div className="rounded-xl border border-white/10 bg-black p-3 text-xs text-white/65">
+                    Basket and bank transfer details are in the trolley icon (bottom-right).
                   </div>
 
                   <label className="grid gap-2 text-sm text-white/70">
@@ -1627,9 +1489,9 @@ export default function ProductsPage() {
 
           <div className="fixed bottom-5 right-5 z-40">
             {isTrolleyOpen ? (
-              <div className="mb-3 w-72 rounded-xl border border-white/15 bg-black/95 p-3 text-white shadow-xl shadow-black/60">
+              <div className="mb-3 w-80 rounded-xl border border-white/15 bg-black/95 p-3 text-white shadow-xl shadow-black/60">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs uppercase tracking-[0.16em] text-white/60">Trolley</span>
+                  <span className="text-xs uppercase tracking-[0.16em] text-white/60">Basket</span>
                   <span className="text-xs text-white/70">
                     {cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"}
                   </span>
@@ -1639,25 +1501,44 @@ export default function ProductsPage() {
                   <p className="mt-2 text-xs text-white/55">Your basket is empty.</p>
                 ) : (
                   <>
-                    <div className="mt-2 grid gap-2">
-                      {cartLines.slice(0, 3).map((line) => (
+                    <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto pr-1">
+                      {cartLines.map((line) => (
                         <div
                           key={`trolley-${line.productId}`}
                           className="rounded-lg border border-white/10 bg-[#111213] px-2.5 py-2 text-xs"
                         >
-                          <div className="font-semibold text-white">{line.product.title}</div>
-                          <div className="mt-0.5 text-white/60">
-                            {line.quantity} x {formatPrice(line.unitPrice)}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="font-semibold text-white">{line.product.title}</div>
+                            <button
+                              type="button"
+                              onClick={() => removeCartItem(line.productId)}
+                              className="text-[10px] uppercase tracking-[0.14em] text-red-200/80 underline-offset-4 hover:text-red-100 hover:underline"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <div className="mt-1 flex items-center gap-2">
+                            <input
+                              type="number"
+                              min={normalizeMinimumOrderQuantity(line.product.minimumOrderQuantity)}
+                              max={Math.max(
+                                normalizeMinimumOrderQuantity(line.product.minimumOrderQuantity),
+                                Number(line.product.stockAmount || 0),
+                              )}
+                              step="1"
+                              value={line.quantity}
+                              onChange={(event) =>
+                                updateCartItemQuantity(line.productId, event.target.value)
+                              }
+                              className="w-16 rounded border border-white/10 bg-black px-2 py-1 text-xs text-white outline-none transition focus:border-white/45"
+                            />
+                            <div className="text-white/60">
+                              x {formatPrice(line.unitPrice)} = {formatPrice(line.unitPrice * line.quantity)}
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
-
-                    {cartLines.length > 3 ? (
-                      <div className="mt-2 text-[11px] text-white/50">
-                        +{cartLines.length - 3} more item{cartLines.length - 3 === 1 ? "" : "s"}
-                      </div>
-                    ) : null}
 
                     <div className="mt-3 rounded-lg border border-white/15 bg-[#111213] px-3 py-2 text-sm">
                       <div className="flex items-center justify-between text-white/75">
@@ -1665,16 +1546,70 @@ export default function ProductsPage() {
                         <span className="font-semibold text-white">{formatPrice(cartTotalPrice)}</span>
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={openBasketFromTrolley}
-                      className="mt-3 w-full rounded-lg border border-white/20 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-black transition hover:bg-[#e8e8e8]"
-                    >
-                      Open Basket
-                    </button>
                   </>
                 )}
+
+                <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-[#0b0c0d]">
+                  <div className="border-b border-white/10 bg-black/45 px-3 py-2.5">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">
+                      Bank Transfer Details
+                    </div>
+                    <div className="mt-1 text-xs text-white/55">Use these details for EFT payment.</div>
+                  </div>
+
+                  <div className="grid gap-2 p-3 sm:grid-cols-2">
+                    <div className="rounded-lg border border-white/10 bg-black p-2">
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">Bank</div>
+                      <div className="mt-1 text-xs font-semibold text-white">Capitec</div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black p-2">
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
+                        Account Holder
+                      </div>
+                      <div className="mt-1 text-xs font-semibold text-white">Mrs CM Badenhorst</div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black p-2">
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
+                        Account Type
+                      </div>
+                      <div className="mt-1 text-xs font-semibold text-white">Savings account</div>
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black p-2">
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
+                        Branch Code
+                      </div>
+                      <div className="mt-1 text-xs font-semibold text-white">470010</div>
+                    </div>
+                  </div>
+
+                  <div className="px-3 pb-3">
+                    <div className="rounded-lg border border-white/20 bg-black p-2.5">
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">
+                        Account Number
+                      </div>
+                      <div className="mt-1 text-base font-semibold tracking-[0.06em] text-white">
+                        1989018740
+                      </div>
+                    </div>
+
+                    <div className="mt-2 rounded-lg border border-white/10 bg-black p-2.5 text-xs text-white/75">
+                      <strong className="text-white">Reference:</strong> Your name / order number
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-950/20 p-2.5 text-xs leading-5 text-amber-100">
+                  Send proof of payment to the email linked to this website after payment.
+                  Delivery is arranged once proof is received.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={openBasketFromTrolley}
+                  className="mt-3 w-full rounded-lg border border-white/20 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-black transition hover:bg-[#e8e8e8]"
+                >
+                  Open Basket & Checkout
+                </button>
               </div>
             ) : null}
 
