@@ -1318,24 +1318,29 @@ export default function ProductsPage() {
                     Add Selected Product To Cart
                   </button>
 
-                  <div className="border border-white/10 bg-black p-4">
+                  <div className="rounded-xl border border-white/10 bg-black p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                        Cart
-                      </span>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.2em] text-white/50">
+                          Basket
+                        </div>
+                        <div className="mt-1 text-sm text-white/70">
+                          {cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"} selected
+                        </div>
+                      </div>
                       {cartItems.length > 0 ? (
                         <button
                           type="button"
                           onClick={clearCart}
                           className="text-[10px] uppercase tracking-[0.18em] text-white/65 underline-offset-4 hover:text-white hover:underline"
                         >
-                          Clear cart
+                          Clear basket
                         </button>
                       ) : null}
                     </div>
 
                     {cartLines.length === 0 ? (
-                      <p className="mt-3 text-sm text-white/55">No products in cart yet.</p>
+                      <p className="mt-3 text-sm text-white/55">Your basket is empty.</p>
                     ) : (
                       <div className="mt-3 grid gap-3">
                         {cartLines.map((line) => {
@@ -1347,7 +1352,7 @@ export default function ProductsPage() {
                           return (
                             <div
                               key={`cart-${line.productId}`}
-                              className="grid gap-2 border border-white/10 bg-[#101011] p-3"
+                              className="grid gap-2 rounded-lg border border-white/10 bg-[#101011] p-3"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div>
@@ -1377,7 +1382,7 @@ export default function ProductsPage() {
                                   onChange={(event) =>
                                     updateCartItemQuantity(line.productId, event.target.value)
                                   }
-                                  className="w-24 border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none transition focus:border-white/45"
+                                  className="w-24 rounded-md border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none transition focus:border-white/45"
                                 />
                                 <span className="text-xs text-white/50">
                                   Line total: {formatPrice(line.unitPrice * line.quantity)}
@@ -1387,14 +1392,40 @@ export default function ProductsPage() {
                           );
                         })}
 
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-sm text-white/75">
-                          <span>{cartTotalQuantity} items</span>
-                          <span className="font-semibold text-white">
-                            Total: {formatPrice(cartTotalPrice)}
-                          </span>
+                        <div className="rounded-lg border border-emerald-300/30 bg-emerald-950/20 p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-emerald-100/80">
+                            <span>{cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"}</span>
+                            <span className="text-lg font-semibold text-emerald-100">
+                              Total: {formatPrice(cartTotalPrice)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}
+
+                    <div className="mt-4 rounded-xl border border-[#d8d8d8] bg-[#f7f7f7] p-4 text-sm leading-6 text-[#111111]">
+                      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#333333]">
+                        Payment Details
+                      </div>
+                      <div className="mt-2">
+                        <strong>Bank:</strong> Capitec
+                        <br />
+                        <strong>Account holder:</strong> Mrs CM Badenhorst
+                        <br />
+                        <strong>Account type:</strong> Savings account
+                        <br />
+                        <strong>Account number:</strong> 1989018740
+                        <br />
+                        <strong>Branch code:</strong> 470010
+                        <br />
+                        <strong>Reference:</strong> Your name / order number
+                      </div>
+                    </div>
+
+                    <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-950/20 p-3 text-xs leading-5 text-amber-100">
+                      Send proof of payment to the email linked to this website after payment.
+                      Delivery is arranged once proof is received.
+                    </div>
                   </div>
 
                   <label className="grid gap-2 text-sm text-white/70">
