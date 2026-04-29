@@ -9,14 +9,21 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-const initialOrderForm = {
-  quantity: "1",
-  locationText: "",
-  googleMapsLocation: "",
-  pudoLockerCode: "",
-  pudoLockerName: "",
-  pudoLockerAddress: "",
-};
+function normalizeMinimumOrderQuantity(value) {
+  const parsedQuantity = Number.parseInt(String(value || ""), 10);
+  return Number.isInteger(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : 1;
+}
+
+function buildInitialOrderForm(minimumOrderQuantity = 1) {
+  return {
+    quantity: String(normalizeMinimumOrderQuantity(minimumOrderQuantity)),
+    locationText: "",
+    googleMapsLocation: "",
+    pudoLockerCode: "",
+    pudoLockerName: "",
+    pudoLockerAddress: "",
+  };
+}
 
 function getProductImages(product) {
   if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
@@ -126,6 +133,16 @@ function formatLatLng(latitude, longitude) {
   return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 }
 
+function shortenDescription(value, maxLength = 180) {
+  const text = String(value || "").trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength).trimEnd()}...`;
+}
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
@@ -145,7 +162,7 @@ export default function ProductsPage() {
   const [openCategories, setOpenCategories] = useState({});
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [orderForm, setOrderForm] = useState(initialOrderForm);
+  const [orderForm, setOrderForm] = useState(() => buildInitialOrderForm());
   const [orderStatus, setOrderStatus] = useState("idle");
   const [locationStatus, setLocationStatus] = useState("idle");
   const [pudoStatus, setPudoStatus] = useState("idle");
@@ -201,6 +218,11 @@ export default function ProductsPage() {
     [products, selectedProductId],
   );
 
+  const selectedProductMinimumOrderQuantity = useMemo(
+    () => normalizeMinimumOrderQuantity(selectedProduct?.minimumOrderQuantity),
+    [selectedProduct],
+  );
+
   const selectedProductImages = useMemo(
     () => (selectedProduct ? getProductImages(selectedProduct) : []),
     [selectedProduct],
@@ -243,6 +265,28 @@ export default function ProductsPage() {
 
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedLocationText)}`;
   }, [orderForm.locationText]);
+
+  useEffect(() => {
+    if (!selectedProductId) {
+      return;
+    }
+
+    setOrderForm((currentForm) => {
+      const currentQuantity = Number.parseInt(String(currentForm.quantity || ""), 10);
+
+      if (
+        Number.isInteger(currentQuantity) &&
+        currentQuantity >= selectedProductMinimumOrderQuantity
+      ) {
+        return currentForm;
+      }
+
+      return {
+        ...currentForm,
+        quantity: String(selectedProductMinimumOrderQuantity),
+      };
+    });
+  }, [selectedProductId, selectedProductMinimumOrderQuantity]);
 
   useEffect(() => {
     let isMounted = true;
@@ -365,9 +409,12 @@ export default function ProductsPage() {
   }
 
   function selectProductForOrder(productId) {
+    const product = products.find((item) => item.id === productId);
+    const minimumOrderQuantity = normalizeMinimumOrderQuantity(product?.minimumOrderQuantity);
+
     setSelectedProductId(productId);
     setSelectedImageIndex(0);
-    setOrderForm(initialOrderForm);
+    setOrderForm(buildInitialOrderForm(minimumOrderQuantity));
     setPudoLockers([]);
     setPudoMessage("");
     setPudoStatus("idle");
@@ -530,7 +577,7 @@ export default function ProductsPage() {
 
       const data = await readJsonResponse(response, "Could not place order.");
       setOrderMessage(data.message || "Order placed successfully.");
-      setOrderForm(initialOrderForm);
+      setOrderForm(buildInitialOrderForm(selectedProductMinimumOrderQuantity));
       setPudoLockers([]);
       setPudoMessage("");
       setPudoStatus("idle");
@@ -764,7 +811,7 @@ export default function ProductsPage() {
                                   className="mt-4 text-base leading-7 text-white/72"
                                   style={{ fontFamily: '"Alegreya", Georgia, serif' }}
                                 >
-                                  {product.description}
+                                  {shortenDescription(product.description)}
                                 </p>
 
                                 {colors.length > 0 || scents.length > 0 ? (
@@ -827,8 +874,13 @@ export default function ProductsPage() {
                                 ) : null}
 
                                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-                                  <div className="text-sm uppercase tracking-[0.2em] text-white/60">
-                                    {formatStockAmount(product.stockAmount)}
+                                  <div className="grid gap-1">
+                                    <div className="text-sm uppercase tracking-[0.2em] text-white/60">
+                                      {formatStockAmount(product.stockAmount)}
+                                    </div>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-white/45">
+                                      Min buy {normalizeMinimumOrderQuantity(product.minimumOrderQuantity)}
+                                    </div>
                                   </div>
 
                                   {product.category ? (
@@ -1015,12 +1067,16 @@ export default function ProductsPage() {
                     <input
                       type="number"
                       name="quantity"
-                      min="1"
+                      min={selectedProductMinimumOrderQuantity}
+                      step="1"
                       value={orderForm.quantity}
                       onChange={updateOrderField}
                       required
                       className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/45"
                     />
+                    <span className="text-xs text-white/50">
+                      Minimum for this product: {selectedProductMinimumOrderQuantity}
+                    </span>
                   </label>
 
                   <label className="grid gap-2 text-sm text-white/70">

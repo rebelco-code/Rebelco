@@ -10,6 +10,7 @@ const initialForm = {
   price: "",
   weight: "",
   stockAmount: "",
+  minimumOrderQuantity: "1",
   colors: "",
   scents: "",
   specialOptionEnabled: false,
@@ -580,6 +581,7 @@ export default function AdminaPage() {
       formData.append("price", form.price);
       formData.append("weight", form.weight);
       formData.append("stockAmount", form.stockAmount);
+      formData.append("minimumOrderQuantity", form.minimumOrderQuantity);
       formData.append("colors", form.colors);
       formData.append("scents", form.scents);
       formData.append("specialOptionEnabled", String(form.specialOptionEnabled));
@@ -1028,7 +1030,7 @@ export default function AdminaPage() {
                         </p>
                       </div>
 
-                      <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+                      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Price
@@ -1069,6 +1071,24 @@ export default function AdminaPage() {
                             required
                             inputMode="numeric"
                             placeholder="12"
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+                        </label>
+
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                            Minimum buy
+                          </span>
+                          <input
+                            type="number"
+                            name="minimumOrderQuantity"
+                            min="1"
+                            step="1"
+                            value={form.minimumOrderQuantity}
+                            onChange={updateField}
+                            required
+                            inputMode="numeric"
+                            placeholder="1"
                             className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
@@ -1495,6 +1515,10 @@ export default function AdminaPage() {
                                           {isOutOfStock
                                             ? "Out of stock"
                                             : formatStockAmount(product.stockAmount)}
+                                        </div>
+
+                                        <div className="absolute left-3 top-10 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur">
+                                          Min buy {Math.max(1, Number(product.minimumOrderQuantity) || 1)}
                                         </div>
 
                                         {productImages.length > 1 ? (

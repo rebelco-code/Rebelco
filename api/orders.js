@@ -30,6 +30,17 @@ export default async function handler(request, response) {
     }
 
     const requestedQuantity = Number.parseInt(String(body.quantity || ""), 10);
+    const minimumOrderQuantity = Math.max(
+      1,
+      Number.parseInt(String(product.minimumOrderQuantity || ""), 10) || 1,
+    );
+
+    if (Number.isInteger(requestedQuantity) && requestedQuantity < minimumOrderQuantity) {
+      throw new HttpError(
+        400,
+        `Minimum order quantity for this product is ${minimumOrderQuantity}.`,
+      );
+    }
 
     if (
       Number.isInteger(requestedQuantity) &&

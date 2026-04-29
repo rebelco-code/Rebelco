@@ -132,6 +132,22 @@ function parseStockAmount(value) {
   return stockAmount;
 }
 
+function parseMinimumOrderQuantity(value) {
+  const rawValue = String(value ?? "").trim();
+
+  if (!rawValue) {
+    return 1;
+  }
+
+  const minimumOrderQuantity = Number.parseInt(rawValue, 10);
+
+  if (!Number.isInteger(minimumOrderQuantity) || minimumOrderQuantity < 1) {
+    throw new HttpError(400, "Enter a valid minimum order quantity.");
+  }
+
+  return minimumOrderQuantity;
+}
+
 function getPrivateImageUrl(pathname) {
   if (!pathname) {
     return "";
@@ -204,6 +220,8 @@ function normalizeProduct(product) {
     ? imagePathnames.map(getPrivateImageUrl)
     : rawImageUrls;
 
+  const minimumOrderQuantity = Number.parseInt(String(product.minimumOrderQuantity || ""), 10);
+
   return {
     id: String(product.id || ""),
     title: String(product.title || ""),
@@ -212,6 +230,10 @@ function normalizeProduct(product) {
     price: Number(product.price || 0),
     weight: String(product.weight || ""),
     stockAmount: Number(product.stockAmount || 0),
+    minimumOrderQuantity:
+      Number.isInteger(minimumOrderQuantity) && minimumOrderQuantity > 0
+        ? minimumOrderQuantity
+        : 1,
     imageUrl: imageUrls[0] || "",
     imageUrls,
     imagePathname: imagePathnames[0] || "",
@@ -231,6 +253,7 @@ function validateProductInput(fields, images) {
   const weight = cleanText(fields.weight, 60);
   const price = parsePrice(fields.price);
   const stockAmount = parseStockAmount(fields.stockAmount);
+  const minimumOrderQuantity = parseMinimumOrderQuantity(fields.minimumOrderQuantity);
   const colors = cleanList(fields.colors);
   const scents = cleanList(fields.scents);
   const specialOption = normalizeSpecialOption({
@@ -282,6 +305,7 @@ function validateProductInput(fields, images) {
     price,
     weight,
     stockAmount,
+    minimumOrderQuantity,
     colors,
     scents,
     specialOption,
