@@ -2,7 +2,10 @@ import { HttpError } from "./errors.js";
 
 const DEFAULT_LIMIT = 6;
 const MAX_LIMIT = 12;
-const REQUEST_TIMEOUT_MS = 12_000;
+const REQUEST_TIMEOUT_MS = 3_500;
+const MAX_PROVIDER_ATTEMPTS = 5;
+const MAX_PROVIDER_LOOKUP_MS = 12_000;
+const LOCKERS_DATA_URL = "https://api-pudo.co.za/lockers-data";
 
 function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
@@ -168,59 +171,94 @@ async function fetchPudoLockers() {
 
   const attempts = [
     {
-      label: "v1-no-auth",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
+      label: "lockers-no-auth",
+      url: LOCKERS_DATA_URL,
       headers: {},
     },
-    {
-      label: "v1-api-key-header-api-key",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { "api-key": apiKey } : {},
-    },
-    {
-      label: "v1-api-key-header-x-api-key",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { "x-api-key": apiKey } : {},
-    },
-    {
-      label: "v1-authorization-bearer-api-key",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
-    },
-    {
-      label: "v1-authorization-bearer-token",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {},
-    },
-    {
-      label: "v1-authorization-raw-api-key",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { Authorization: apiKey } : {},
-    },
-    {
-      label: "v1-authorization-raw-token",
-      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: bearerToken ? { Authorization: bearerToken } : {},
-    },
-    {
-      label: "v1-query-api-key",
-      url: apiKey
-        ? `https://www.api-pudo.co.za/api/v1/lockers-data?api_key=${encodeURIComponent(apiKey)}`
-        : "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: {},
-    },
-    {
-      label: "v1-query-token",
-      url: bearerToken
-        ? `https://www.api-pudo.co.za/api/v1/lockers-data?token=${encodeURIComponent(bearerToken)}`
-        : "https://www.api-pudo.co.za/api/v1/lockers-data",
-      headers: {},
-    },
+    ...(apiKey
+      ? [
+          {
+            label: "lockers-header-x-pudo-key",
+            url: LOCKERS_DATA_URL,
+            headers: { "x-pudo-key": apiKey },
+          },
+          {
+            label: "lockers-header-x-api-key",
+            url: LOCKERS_DATA_URL,
+            headers: { "x-api-key": apiKey },
+          },
+          {
+            label: "lockers-header-api-key",
+            url: LOCKERS_DATA_URL,
+            headers: { "api-key": apiKey },
+          },
+          {
+            label: "lockers-query-api-key",
+            url: `${LOCKERS_DATA_URL}?api_key=${encodeURIComponent(apiKey)}`,
+            headers: {},
+          },
+        ]
+      : []),
+    ...(bearerToken
+      ? [
+          {
+            label: "lockers-auth-bearer-token",
+            url: LOCKERS_DATA_URL,
+            headers: { Authorization: `Bearer ${bearerToken}` },
+          },
+          {
+            label: "lockers-query-token",
+            url: `${LOCKERS_DATA_URL}?token=${encodeURIComponent(bearerToken)}`,
+            headers: {},
+          },
+        ]
+      : []),
   ];
 
   const diagnostics = [];
+  const startedAt = Date.now();
+  let executedAttempts = 0;
 
   for (const attempt of attempts) {
+    if (executedAttempts >= MAX_PROVIDER_ATTEMPTS) {
+      diagnostics.push({
+        label: "attempt-limit-hit",
+        status: 0,
+        statusText: "",
+        durationMs: Date.now() - startedAt,
+        url: "",
+        requestHeaders: [],
+        responseContentType: "",
+        responseServer: "",
+        responseWwwAuthenticate: "",
+        responseAllowedMethods: "",
+        parsedShape: "skipped",
+        arrayLength: null,
+        bodyPreview: `Stopped after ${MAX_PROVIDER_ATTEMPTS} attempts.`,
+      });
+      break;
+    }
+
+    if (Date.now() - startedAt >= MAX_PROVIDER_LOOKUP_MS) {
+      diagnostics.push({
+        label: "time-budget-hit",
+        status: 0,
+        statusText: "",
+        durationMs: Date.now() - startedAt,
+        url: "",
+        requestHeaders: [],
+        responseContentType: "",
+        responseServer: "",
+        responseWwwAuthenticate: "",
+        responseAllowedMethods: "",
+        parsedShape: "skipped",
+        arrayLength: null,
+        bodyPreview: `Stopped after ${MAX_PROVIDER_LOOKUP_MS}ms total lookup time.`,
+      });
+      break;
+    }
+
+    executedAttempts += 1;
     const result = await fetchJsonAttempt(attempt);
 
     diagnostics.push({
@@ -356,5 +394,3 @@ export async function findNearbyPudoLockers(context) {
       : "PUDO lockers were fetched, but none had usable latitude/longitude coordinates.",
   };
 }
-
-Rebel_Disruption_01

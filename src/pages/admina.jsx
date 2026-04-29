@@ -726,19 +726,25 @@ export default function AdminaPage() {
     }
 
     const parsedLatLng = parseLatLngText(order.googleMapsLocation);
-    const locationSearch = String(order.locationText || order.googleMapsLocation || "")
-      .trim()
-      .slice(0, 120);
-    const queryParams = new URLSearchParams();
-
-    if (parsedLatLng) {
-      queryParams.set("lat", String(parsedLatLng.latitude));
-      queryParams.set("lng", String(parsedLatLng.longitude));
-    } else if (locationSearch) {
-      queryParams.set("search", locationSearch);
+    if (!parsedLatLng) {
+      setPudoLookupByOrder((current) => ({
+        ...current,
+        [orderId]: {
+          status: "error",
+          provider: "",
+          lockers: [],
+          message:
+            "Order is missing usable coordinates. Save a map pin (lat,lng) on the order before running PUDO lookup.",
+        },
+      }));
+      return;
     }
 
-    queryParams.set("limit", "4");
+    const queryParams = new URLSearchParams({
+      lat: String(parsedLatLng.latitude),
+      lng: String(parsedLatLng.longitude),
+      limit: "4",
+    });
 
     setPudoLookupByOrder((current) => ({
       ...current,
@@ -1695,10 +1701,7 @@ export default function AdminaPage() {
                             pudoProvider &&
                             pudoProvider !== "none" &&
                             pudoProvider !== "unavailable";
-                          const hasLookupInput = Boolean(
-                            parseLatLngText(order.googleMapsLocation) ||
-                              String(order.locationText || "").trim(),
-                          );
+                          const hasLookupInput = Boolean(parseLatLngText(order.googleMapsLocation));
 
                           return (
                             <tr key={order.id} className="border-t border-white/10 align-top">
@@ -1755,7 +1758,7 @@ export default function AdminaPage() {
 
                                   {!hasLookupInput ? (
                                     <div className="mt-2 text-xs text-white/50">
-                                      No order location available for lookup.
+                                      No order coordinates available for lookup.
                                     </div>
                                   ) : null}
 
