@@ -153,6 +153,11 @@ function getEffectiveProductPrice(product) {
   return Number(product?.price || 0);
 }
 
+function safeTime(value) {
+  const parsedTime = Date.parse(String(value || ""));
+  return Number.isFinite(parsedTime) ? parsedTime : 0;
+}
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
@@ -171,6 +176,8 @@ export default function ProductsPage() {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("latest");
   const [openCategories, setOpenCategories] = useState({});
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -200,12 +207,51 @@ export default function ProductsPage() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === "all") {
-      return products;
+    const query = searchQuery.trim().toLowerCase();
+
+    const filtered = products.filter((product) => {
+      if (selectedCategory !== "all" && product.category !== selectedCategory) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const searchableText = [
+        product.title,
+        product.description,
+        product.category,
+        product.weight,
+        ...(Array.isArray(product.colors) ? product.colors : []),
+        ...(Array.isArray(product.scents) ? product.scents : []),
+      ]
+        .map((value) => String(value || "").toLowerCase())
+        .join(" ");
+
+      return searchableText.includes(query);
+    });
+
+    const sorted = [...filtered];
+
+    if (sortBy === "price-asc") {
+      sorted.sort((a, b) => getEffectiveProductPrice(a) - getEffectiveProductPrice(b));
+      return sorted;
     }
 
-    return products.filter((product) => product.category === selectedCategory);
-  }, [products, selectedCategory]);
+    if (sortBy === "price-desc") {
+      sorted.sort((a, b) => getEffectiveProductPrice(b) - getEffectiveProductPrice(a));
+      return sorted;
+    }
+
+    if (sortBy === "name-asc") {
+      sorted.sort((a, b) => String(a.title || "").localeCompare(String(b.title || "")));
+      return sorted;
+    }
+
+    sorted.sort((a, b) => safeTime(b.createdAt) - safeTime(a.createdAt));
+    return sorted;
+  }, [products, searchQuery, selectedCategory, sortBy]);
 
   const groupedProducts = useMemo(() => {
     const groups = new Map();
@@ -891,7 +937,44 @@ export default function ProductsPage() {
 
           {products.length > 0 ? (
             <section className="mt-8 border border-white/10 bg-[#151516] p-4 sm:p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="grid gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-xs uppercase tracking-[0.18em] text-white/50">
+                    Showing {filteredProducts.length} of {products.length} products
+                  </div>
+
+                  {cartTotalQuantity > 0 ? (
+                    <button
+                      type="button"
+                      onClick={openBasket}
+                      className="border border-white/20 bg-black px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:border-white/45 hover:bg-[#111213]"
+                    >
+                      View Cart ({cartTotalQuantity})
+                    </button>
+                  ) : null}
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search by product name, description, category, scent, or color"
+                    className="w-full border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-white/45"
+                  />
+
+                  <select
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value)}
+                    className="w-full border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-white/45"
+                  >
+                    <option value="latest">Sort: Latest</option>
+                    <option value="name-asc">Sort: Name A-Z</option>
+                    <option value="price-asc">Sort: Price Low-High</option>
+                    <option value="price-desc">Sort: Price High-Low</option>
+                  </select>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
@@ -920,16 +1003,6 @@ export default function ProductsPage() {
                     </button>
                   ))}
                 </div>
-
-                {cartTotalQuantity > 0 ? (
-                  <button
-                    type="button"
-                    onClick={openBasket}
-                    className="border border-white/20 bg-black px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:border-white/45 hover:bg-[#111213]"
-                  >
-                    View Cart ({cartTotalQuantity})
-                  </button>
-                ) : null}
               </div>
             </section>
           ) : null}
@@ -977,6 +1050,7 @@ export default function ProductsPage() {
                       <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6 xl:grid-cols-3">
                         {group.products.map((product) => {
                           const isOutOfStock = Number(product.stockAmount) <= 0;
+                          const isSelectedProduct = selectedProductId === product.id;
                           const productImages = getProductImages(product);
                           const mainImage = productImages[0];
                           const colors = getProductList(product.colors);
@@ -987,7 +1061,11 @@ export default function ProductsPage() {
                           return (
                             <article
                               key={product.id}
-                              className="overflow-hidden border border-white/10 bg-[#101011]"
+                              className={`overflow-hidden border bg-[#101011] transition ${
+                                isSelectedProduct
+                                  ? "border-white/55 shadow-[0_0_0_1px_rgba(255,255,255,0.2)]"
+                                  : "border-white/10"
+                              }`}
                             >
                               <div className="relative aspect-[4/3] bg-black">
                                 {mainImage ? (
@@ -1160,7 +1238,11 @@ export default function ProductsPage() {
                                   disabled={isOutOfStock}
                                   className="mt-4 w-full border border-white/12 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-45"
                                 >
-                                  {isOutOfStock ? "Out of stock" : "Add to cart"}
+                                  {isOutOfStock
+                                    ? "Out of stock"
+                                    : isSelectedProduct
+                                      ? "Selected For Basket"
+                                      : "Select Product"}
                                 </button>
                               </div>
                             </article>
@@ -1172,6 +1254,13 @@ export default function ProductsPage() {
                 );
               })}
             </section>
+          ) : null}
+
+          {status === "ready" && products.length > 0 && groupedProducts.length === 0 ? (
+            <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-sm text-white/65">
+              No products match your current search/filter. Try clearing the search or switching
+              category.
+            </div>
           ) : null}
 
           {selectedProduct ? (
@@ -1366,6 +1455,11 @@ export default function ProductsPage() {
                     Add Quantity To Basket
                   </button>
 
+                  <div className="text-xs text-white/55">
+                    Adds the selected product and quantity to your basket. You can adjust items in
+                    the trolley.
+                  </div>
+
                   <div className="rounded-xl border border-white/10 bg-black p-3 text-xs text-white/65">
                     Basket and bank transfer details are in the trolley icon (bottom-right).
                   </div>
@@ -1513,6 +1607,12 @@ export default function ProductsPage() {
                   >
                     {submitOrderLabel}
                   </button>
+                  {!canSubmitOrder ? (
+                    <div className="text-xs text-white/55">
+                      To place order: add at least one item to basket and confirm a delivery
+                      locker.
+                    </div>
+                  ) : null}
                 </form>
               </div>
             </section>
