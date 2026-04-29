@@ -183,6 +183,34 @@ export default function AdminaPage() {
     return Array.from(categorySet).sort((a, b) => a.localeCompare(b));
   }, [products]);
 
+  const colorOptions = useMemo(() => {
+    const colorSet = new Set();
+
+    products.forEach((product) => {
+      getProductList(product.colors).forEach((color) => {
+        if (color) {
+          colorSet.add(color);
+        }
+      });
+    });
+
+    return Array.from(colorSet).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const scentOptions = useMemo(() => {
+    const scentSet = new Set();
+
+    products.forEach((product) => {
+      getProductList(product.scents).forEach((scent) => {
+        if (scent) {
+          scentSet.add(scent);
+        }
+      });
+    });
+
+    return Array.from(scentSet).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     if (selectedCategory === "all") {
       return products;
@@ -355,6 +383,42 @@ export default function AdminaPage() {
       ...currentForm,
       category,
     }));
+  }
+
+  function appendListValue(fieldName, value) {
+    const cleanValue = String(value || "").trim();
+
+    if (!cleanValue) {
+      return;
+    }
+
+    setForm((currentForm) => {
+      const currentItems = String(currentForm[fieldName] || "")
+        .split(/[\n,]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      const alreadyExists = currentItems.some(
+        (item) => item.toLowerCase() === cleanValue.toLowerCase(),
+      );
+
+      if (alreadyExists) {
+        return currentForm;
+      }
+
+      return {
+        ...currentForm,
+        [fieldName]: [...currentItems, cleanValue].join(", "),
+      };
+    });
+  }
+
+  function selectExistingColor(color) {
+    appendListValue("colors", color);
+  }
+
+  function selectExistingScent(scent) {
+    appendListValue("scents", scent);
   }
 
   function toggleCategory(category) {
@@ -993,17 +1057,38 @@ export default function AdminaPage() {
                           Colors Optional
                         </span>
 
-                        <textarea
+                        <input
                           name="colors"
                           value={form.colors}
                           onChange={updateField}
-                          rows={3}
                           placeholder="Example: Red, Blue, Natural"
-                          className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          list="admin-product-colors"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                         />
 
+                        <datalist id="admin-product-colors">
+                          {colorOptions.map((color) => (
+                            <option key={color} value={color} />
+                          ))}
+                        </datalist>
+
+                        {colorOptions.length > 0 ? (
+                          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            {colorOptions.map((color) => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => selectExistingColor(color)}
+                                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                              >
+                                {color}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+
                         <span className="text-xs leading-5 text-white/40">
-                          Separate custom colors with commas or new lines.
+                          Type custom colors or choose existing ones. Separate multiple colors with commas.
                         </span>
                       </label>
 
@@ -1012,17 +1097,38 @@ export default function AdminaPage() {
                           Scents Optional
                         </span>
 
-                        <textarea
+                        <input
                           name="scents"
                           value={form.scents}
                           onChange={updateField}
-                          rows={3}
                           placeholder="Example: Lavender, Vanilla, Unscented"
-                          className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          list="admin-product-scents"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                         />
 
+                        <datalist id="admin-product-scents">
+                          {scentOptions.map((scent) => (
+                            <option key={scent} value={scent} />
+                          ))}
+                        </datalist>
+
+                        {scentOptions.length > 0 ? (
+                          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            {scentOptions.map((scent) => (
+                              <button
+                                key={scent}
+                                type="button"
+                                onClick={() => selectExistingScent(scent)}
+                                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                              >
+                                {scent}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+
                         <span className="text-xs leading-5 text-white/40">
-                          Separate custom scents with commas or new lines.
+                          Type custom scents or choose existing ones. Separate multiple scents with commas.
                         </span>
                       </label>
                     </div>
