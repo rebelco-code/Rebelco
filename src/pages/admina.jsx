@@ -10,6 +10,12 @@ const initialForm = {
   price: "",
   weight: "",
   stockAmount: "",
+  colors: "",
+  scents: "",
+  specialOptionEnabled: false,
+  specialOptionLabel: "Special",
+  specialOptionStartDate: "",
+  specialOptionEndDate: "",
 };
 
 const initialLoginForm = {
@@ -131,6 +137,12 @@ function parseLatLngText(value) {
   }
 
   return { latitude, longitude };
+}
+
+function getProductList(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
 }
 
 export default function AdminaPage() {
@@ -330,11 +342,11 @@ export default function AdminaPage() {
   }
 
   function updateField(event) {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
 
     setForm((currentForm) => ({
       ...currentForm,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   }
 
@@ -503,6 +515,12 @@ export default function AdminaPage() {
       formData.append("price", form.price);
       formData.append("weight", form.weight);
       formData.append("stockAmount", form.stockAmount);
+      formData.append("colors", form.colors);
+      formData.append("scents", form.scents);
+      formData.append("specialOptionEnabled", String(form.specialOptionEnabled));
+      formData.append("specialOptionLabel", form.specialOptionLabel);
+      formData.append("specialOptionStartDate", form.specialOptionStartDate);
+      formData.append("specialOptionEndDate", form.specialOptionEndDate);
 
       imageFiles.forEach((file) => {
         formData.append("images", file);
@@ -836,490 +854,649 @@ export default function AdminaPage() {
           {admin ? (
             <>
               <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(360px,520px)_minmax(0,1fr)]">
-              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
-                <div className="border-b border-white/10 pb-5">
-                  <h2
-                    className="text-3xl leading-none text-white sm:text-4xl"
-                    style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                  >
-                    Add Product
-                  </h2>
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
+                  <div className="border-b border-white/10 pb-5">
+                    <h2
+                      className="text-3xl leading-none text-white sm:text-4xl"
+                      style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                    >
+                      Add Product
+                    </h2>
 
-                  <p className="mt-3 text-sm leading-6 text-white/50">
-                    Add product details, choose a category, and upload up to 6 product
-                    photos.
-                  </p>
-                </div>
+                    <p className="mt-3 text-sm leading-6 text-white/50">
+                      Add product details, choose a category, and upload up to 6 product
+                      photos.
+                    </p>
+                  </div>
 
-                <form className="mt-6 grid min-w-0 gap-5" onSubmit={submitProduct}>
-                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                      Title
-                    </span>
+                  <form className="mt-6 grid min-w-0 gap-5" onSubmit={submitProduct}>
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        Title
+                      </span>
 
-                    <input
-                      name="title"
-                      value={form.title}
-                      onChange={updateField}
-                      required
-                      placeholder="Product name"
-                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                    />
-                  </label>
+                      <input
+                        name="title"
+                        value={form.title}
+                        onChange={updateField}
+                        required
+                        placeholder="Product name"
+                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                      />
+                    </label>
 
-                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                      Description
-                    </span>
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        Description
+                      </span>
 
-                    <textarea
-                      name="description"
-                      value={form.description}
-                      onChange={updateField}
-                      required
-                      rows={5}
-                      placeholder="Short product description"
-                      className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                    />
-                  </label>
+                      <textarea
+                        name="description"
+                        value={form.description}
+                        onChange={updateField}
+                        required
+                        rows={5}
+                        placeholder="Short product description"
+                        className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                      />
+                    </label>
 
-                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                      Category
-                    </span>
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        Category
+                      </span>
 
-                    <input
-                      name="category"
-                      value={form.category}
-                      onChange={updateField}
-                      required
-                      placeholder="Example: Soaps, Salves, Balms"
-                      list="admin-product-categories"
-                      className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                    />
+                      <input
+                        name="category"
+                        value={form.category}
+                        onChange={updateField}
+                        required
+                        placeholder="Example: Soaps, Salves, Balms"
+                        list="admin-product-categories"
+                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                      />
 
-                    <datalist id="admin-product-categories">
-                      {categories.map((category) => (
-                        <option key={category} value={category} />
-                      ))}
-                    </datalist>
-
-                    {categories.length > 0 ? (
-                      <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                      <datalist id="admin-product-categories">
                         {categories.map((category) => (
+                          <option key={category} value={category} />
+                        ))}
+                      </datalist>
+
+                      {categories.length > 0 ? (
+                        <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                          {categories.map((category) => (
+                            <button
+                              key={category}
+                              type="button"
+                              onClick={() => selectExistingCategory(category)}
+                              className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                            >
+                              {category}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </label>
+
+                    <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Price
+                        </span>
+
+                        <input
+                          name="price"
+                          value={form.price}
+                          onChange={updateField}
+                          required
+                          inputMode="decimal"
+                          placeholder="85.00"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+                      </label>
+
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Weight
+                        </span>
+
+                        <input
+                          name="weight"
+                          value={form.weight}
+                          onChange={updateField}
+                          required
+                          placeholder="120g"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+                      </label>
+
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72 sm:col-span-2 lg:col-span-1">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Stock
+                        </span>
+
+                        <input
+                          name="stockAmount"
+                          value={form.stockAmount}
+                          onChange={updateField}
+                          required
+                          inputMode="numeric"
+                          placeholder="12"
+                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid min-w-0 gap-5 sm:grid-cols-2">
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Colors Optional
+                        </span>
+
+                        <textarea
+                          name="colors"
+                          value={form.colors}
+                          onChange={updateField}
+                          rows={3}
+                          placeholder="Example: Red, Blue, Natural"
+                          className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+
+                        <span className="text-xs leading-5 text-white/40">
+                          Separate custom colors with commas or new lines.
+                        </span>
+                      </label>
+
+                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                          Scents Optional
+                        </span>
+
+                        <textarea
+                          name="scents"
+                          value={form.scents}
+                          onChange={updateField}
+                          rows={3}
+                          placeholder="Example: Lavender, Vanilla, Unscented"
+                          className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                        />
+
+                        <span className="text-xs leading-5 text-white/40">
+                          Separate custom scents with commas or new lines.
+                        </span>
+                      </label>
+                    </div>
+
+                    <div className="grid min-w-0 gap-4 rounded-xl border border-white/10 bg-black/35 p-4">
+                      <label className="flex items-start gap-3 text-sm text-white/72">
+                        <input
+                          type="checkbox"
+                          name="specialOptionEnabled"
+                          checked={form.specialOptionEnabled}
+                          onChange={updateField}
+                          className="mt-1 h-4 w-4 accent-white"
+                        />
+
+                        <span>
+                          <span className="block text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                            Special Option
+                          </span>
+                          <span className="mt-1 block text-xs leading-5 text-white/45">
+                            Enable this only for products that should display a special option during a chosen date range.
+                          </span>
+                        </span>
+                      </label>
+
+                      {form.specialOptionEnabled ? (
+                        <div className="grid gap-4 sm:grid-cols-3">
+                          <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                              Label
+                            </span>
+
+                            <input
+                              name="specialOptionLabel"
+                              value={form.specialOptionLabel}
+                              onChange={updateField}
+                              placeholder="Special"
+                              className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            />
+                          </label>
+
+                          <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                              Start Date
+                            </span>
+
+                            <input
+                              type="date"
+                              name="specialOptionStartDate"
+                              value={form.specialOptionStartDate}
+                              onChange={updateField}
+                              required={form.specialOptionEnabled}
+                              className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-white/45"
+                            />
+                          </label>
+
+                          <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                              End Date
+                            </span>
+
+                            <input
+                              type="date"
+                              name="specialOptionEndDate"
+                              value={form.specialOptionEndDate}
+                              onChange={updateField}
+                              required={form.specialOptionEnabled}
+                              className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-white/45"
+                            />
+                          </label>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        Images
+                      </span>
+
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        multiple
+                        onChange={updateImage}
+                        className="sr-only"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={openImagePicker}
+                        onDrop={handleImageDrop}
+                        onDragOver={handleImageDragOver}
+                        onDragLeave={handleImageDragLeave}
+                        className={`mt-1 min-w-0 rounded-2xl border border-dashed px-4 py-8 text-left transition sm:px-6 ${
+                          isImageDropActive
+                            ? "border-white/55 bg-white/10"
+                            : "border-white/20 bg-[linear-gradient(180deg,rgba(18,18,19,0.95),rgba(8,8,9,0.95))] hover:border-white/40 hover:bg-[#161618]"
+                        }`}
+                      >
+                        <div className="pointer-events-none flex flex-col items-center gap-2 text-center">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xl text-white/80">
+                            +
+                          </div>
+                          <div className="text-sm uppercase tracking-[0.16em] text-white/75">
+                            Drop images here
+                          </div>
+                          <p className="text-xs tracking-[0.08em] text-white/55">
+                            or click to browse and add more
+                          </p>
+                          <p className="text-xs text-white/40">
+                            JPG, PNG, WebP · up to {MAX_PRODUCT_IMAGES} images · 4 MB each
+                          </p>
+                        </div>
+                      </button>
+
+                      <div className="mt-1 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                        <span>
+                          {imageFiles.length} / {MAX_PRODUCT_IMAGES} selected
+                        </span>
+                        <div className="flex items-center gap-2">
                           <button
-                            key={category}
                             type="button"
-                            onClick={() => selectExistingCategory(category)}
-                            className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                            onClick={openImagePicker}
+                            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
                           >
-                            {category}
+                            Add More
                           </button>
+                          <button
+                            type="button"
+                            onClick={clearSelectedImages}
+                            disabled={imageFiles.length === 0}
+                            className="rounded-full border border-red-400/25 bg-red-950/25 px-3 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs leading-5 text-white/40">
+                        Tip: You can select files multiple times and they will be added to the same
+                        list.
+                      </p>
+                    </label>
+
+                    {imageFiles.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {imageFiles.map((file, index) => (
+                          <article
+                            key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                            className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-2"
+                          >
+                            <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
+                              <img
+                                src={imagePreviews[index]}
+                                alt={`Selected product preview ${index + 1}`}
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              />
+                              <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/70 backdrop-blur">
+                                {index + 1}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeSelectedImage(index)}
+                                className="absolute right-2 top-2 rounded-full border border-red-300/35 bg-red-950/70 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                            <div className="mt-2 truncate text-xs text-white/68" title={file.name}>
+                              {file.name}
+                            </div>
+                            <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-white/40">
+                              {formatFileSize(file.size)}
+                            </div>
+                          </article>
                         ))}
                       </div>
-                    ) : null}
-                  </label>
-
-                  <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Price
-                      </span>
-
-                      <input
-                        name="price"
-                        value={form.price}
-                        onChange={updateField}
-                        required
-                        inputMode="decimal"
-                        placeholder="85.00"
-                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                      />
-                    </label>
-
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Weight
-                      </span>
-
-                      <input
-                        name="weight"
-                        value={form.weight}
-                        onChange={updateField}
-                        required
-                        placeholder="120g"
-                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                      />
-                    </label>
-
-                    <label className="grid min-w-0 gap-2 text-sm text-white/72 sm:col-span-2 lg:col-span-1">
-                      <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                        Stock
-                      </span>
-
-                      <input
-                        name="stockAmount"
-                        value={form.stockAmount}
-                        onChange={updateField}
-                        required
-                        inputMode="numeric"
-                        placeholder="12"
-                        className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                      />
-                    </label>
-                  </div>
-
-                  <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                      Images
-                    </span>
-
-                    <input
-                      ref={imageInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      multiple
-                      onChange={updateImage}
-                      className="sr-only"
-                    />
+                    ) : (
+                      <div className="rounded-xl border border-white/10 bg-black/35 px-4 py-4 text-xs text-white/45">
+                        No images selected yet.
+                      </div>
+                    )}
 
                     <button
-                      type="button"
-                      onClick={openImagePicker}
-                      onDrop={handleImageDrop}
-                      onDragOver={handleImageDragOver}
-                      onDragLeave={handleImageDragLeave}
-                      className={`mt-1 min-w-0 rounded-2xl border border-dashed px-4 py-8 text-left transition sm:px-6 ${
-                        isImageDropActive
-                          ? "border-white/55 bg-white/10"
-                          : "border-white/20 bg-[linear-gradient(180deg,rgba(18,18,19,0.95),rgba(8,8,9,0.95))] hover:border-white/40 hover:bg-[#161618]"
-                      }`}
+                      type="submit"
+                      disabled={formStatus === "saving"}
+                      className="mt-2 w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55 sm:tracking-[0.22em]"
                     >
-                      <div className="pointer-events-none flex flex-col items-center gap-2 text-center">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xl text-white/80">
-                          +
-                        </div>
-                        <div className="text-sm uppercase tracking-[0.16em] text-white/75">
-                          Drop images here
-                        </div>
-                        <p className="text-xs tracking-[0.08em] text-white/55">
-                          or click to browse and add more
-                        </p>
-                        <p className="text-xs text-white/40">
-                          JPG, PNG, WebP · up to {MAX_PRODUCT_IMAGES} images · 4 MB each
+                      {formStatus === "saving" ? "Saving..." : "Save Product"}
+                    </button>
+                  </form>
+                </section>
+
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
+                  <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5">
+                    <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                      <div className="min-w-0">
+                        <h2
+                          className="text-3xl leading-none text-white sm:text-4xl"
+                          style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                        >
+                          Product Preview
+                        </h2>
+
+                        <p className="mt-3 text-sm leading-6 text-white/50">
+                          Products are grouped by category. Click a category to expand or
+                          collapse its products.
                         </p>
                       </div>
-                    </button>
 
-                    <div className="mt-1 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-[11px] uppercase tracking-[0.18em] text-white/55">
-                      <span>
-                        {imageFiles.length} / {MAX_PRODUCT_IMAGES} selected
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={openImagePicker}
-                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
-                        >
-                          Add More
-                        </button>
-                        <button
-                          type="button"
-                          onClick={clearSelectedImages}
-                          disabled={imageFiles.length === 0}
-                          className="rounded-full border border-red-400/25 bg-red-950/25 px-3 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
-                        >
-                          Clear All
-                        </button>
+                      <div className="shrink-0 self-start rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55 sm:self-auto">
+                        {filteredProducts.length} shown
                       </div>
                     </div>
 
-                    <p className="text-xs leading-5 text-white/40">
-                      Tip: You can select files multiple times and they will be added to the same
-                      list.
-                    </p>
-                  </label>
-
-                  {imageFiles.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                      {imageFiles.map((file, index) => (
-                        <article
-                          key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                          className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-2"
-                        >
-                          <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
-                            <img
-                              src={imagePreviews[index]}
-                              alt={`Selected product preview ${index + 1}`}
-                              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                            />
-                            <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/70 backdrop-blur">
-                              {index + 1}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeSelectedImage(index)}
-                              className="absolute right-2 top-2 rounded-full border border-red-300/35 bg-red-950/70 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                          <div className="mt-2 truncate text-xs text-white/68" title={file.name}>
-                            {file.name}
-                          </div>
-                          <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-white/40">
-                            {formatFileSize(file.size)}
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-white/10 bg-black/35 px-4 py-4 text-xs text-white/45">
-                      No images selected yet.
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={formStatus === "saving"}
-                    className="mt-2 w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55 sm:tracking-[0.22em]"
-                  >
-                    {formStatus === "saving" ? "Saving..." : "Save Product"}
-                  </button>
-                </form>
-              </section>
-
-              <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
-                <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5">
-                  <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0">
-                      <h2
-                        className="text-3xl leading-none text-white sm:text-4xl"
-                        style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                      >
-                        Product Preview
-                      </h2>
-
-                      <p className="mt-3 text-sm leading-6 text-white/50">
-                        Products are grouped by category. Click a category to expand or
-                        collapse its products.
-                      </p>
-                    </div>
-
-                    <div className="shrink-0 self-start rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55 sm:self-auto">
-                      {filteredProducts.length} shown
-                    </div>
-                  </div>
-
-                  <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCategory("all")}
-                      className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
-                        selectedCategory === "all"
-                          ? "border-white bg-white text-black"
-                          : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
-                      }`}
-                    >
-                      All
-                    </button>
-
-                    {categories.map((category) => (
+                    <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                       <button
-                        key={category}
                         type="button"
-                        onClick={() => setSelectedCategory(category)}
+                        onClick={() => setSelectedCategory("all")}
                         className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
-                          selectedCategory === category
+                          selectedCategory === "all"
                             ? "border-white bg-white text-black"
                             : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
                         }`}
                       >
-                        {category}
+                        All
                       </button>
-                    ))}
-                  </div>
-                </div>
 
-                {productsStatus === "loading" ? (
-                  <div className="mt-6 rounded-xl border border-white/10 bg-black p-4 text-white/70">
-                    Loading products...
-                  </div>
-                ) : null}
-
-                {groupedProducts.length > 0 ? (
-                  <div className="mt-6 grid gap-5">
-                    {groupedProducts.map((group) => {
-                      const isOpen = openCategories[group.category] !== false;
-
-                      return (
-                        <section
-                          key={group.category}
-                          className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black/30"
+                      {categories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => setSelectedCategory(category)}
+                          className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                            selectedCategory === category
+                              ? "border-white bg-white text-black"
+                              : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
+                          }`}
                         >
-                          <button
-                            type="button"
-                            onClick={() => toggleCategory(group.category)}
-                            className="flex w-full flex-col gap-4 p-4 text-left transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between"
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {productsStatus === "loading" ? (
+                    <div className="mt-6 rounded-xl border border-white/10 bg-black p-4 text-white/70">
+                      Loading products...
+                    </div>
+                  ) : null}
+
+                  {groupedProducts.length > 0 ? (
+                    <div className="mt-6 grid gap-5">
+                      {groupedProducts.map((group) => {
+                        const isOpen = openCategories[group.category] !== false;
+
+                        return (
+                          <section
+                            key={group.category}
+                            className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black/30"
                           >
-                            <div className="min-w-0">
-                              <h3
-                                className="break-words text-3xl leading-none text-white sm:text-4xl"
-                                style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                              >
-                                {group.category}
-                              </h3>
+                            <button
+                              type="button"
+                              onClick={() => toggleCategory(group.category)}
+                              className="flex w-full flex-col gap-4 p-4 text-left transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between"
+                            >
+                              <div className="min-w-0">
+                                <h3
+                                  className="break-words text-3xl leading-none text-white sm:text-4xl"
+                                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                                >
+                                  {group.category}
+                                </h3>
 
-                              <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/35">
-                                {isOpen ? "Click to collapse" : "Click to expand"}
-                              </p>
-                            </div>
-
-                            <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
-                              <div className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
-                                {group.products.length} items
+                                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/35">
+                                  {isOpen ? "Click to collapse" : "Click to expand"}
+                                </p>
                               </div>
 
-                              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl text-white/70">
-                                {isOpen ? "−" : "+"}
-                              </span>
-                            </div>
-                          </button>
+                              <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
+                                <div className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                                  {group.products.length} items
+                                </div>
 
-                          {isOpen ? (
-                            <div className="grid min-w-0 gap-4 border-t border-white/10 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-2 2xl:grid-cols-3">
-                              {group.products.map((product) => {
-                                const isOutOfStock = Number(product.stockAmount) <= 0;
-                                const isBusy = Boolean(productActionStatus);
-                                const isCurrentBusy = productActionStatus === product.id;
-                                const productImages =
-                                  Array.isArray(product.imageUrls) &&
-                                  product.imageUrls.length > 0
-                                    ? product.imageUrls
-                                    : product.imageUrl
-                                      ? [product.imageUrl]
-                                      : [];
-                                const mainImage = productImages[0];
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xl text-white/70">
+                                  {isOpen ? "−" : "+"}
+                                </span>
+                              </div>
+                            </button>
 
-                                return (
-                                  <article
-                                    key={product.id}
-                                    className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
-                                  >
-                                    <div className="relative overflow-hidden bg-[#101010]">
-                                      {mainImage ? (
-                                        <img
-                                          src={mainImage}
-                                          alt={product.title}
-                                          className={`aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-105 ${
-                                            isOutOfStock ? "opacity-45 grayscale" : ""
-                                          }`}
-                                          loading="lazy"
-                                        />
-                                      ) : (
-                                        <div className="flex aspect-[4/5] w-full items-center justify-center bg-black text-sm text-white/35">
-                                          No image
+                            {isOpen ? (
+                              <div className="grid min-w-0 gap-4 border-t border-white/10 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-2 2xl:grid-cols-3">
+                                {group.products.map((product) => {
+                                  const isOutOfStock = Number(product.stockAmount) <= 0;
+                                  const isBusy = Boolean(productActionStatus);
+                                  const isCurrentBusy = productActionStatus === product.id;
+                                  const colors = getProductList(product.colors);
+                                  const scents = getProductList(product.scents);
+                                  const productImages =
+                                    Array.isArray(product.imageUrls) &&
+                                    product.imageUrls.length > 0
+                                      ? product.imageUrls
+                                      : product.imageUrl
+                                        ? [product.imageUrl]
+                                        : [];
+                                  const mainImage = productImages[0];
+
+                                  return (
+                                    <article
+                                      key={product.id}
+                                      className="group min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black transition duration-300 hover:-translate-y-1 hover:border-white/25"
+                                    >
+                                      <div className="relative overflow-hidden bg-[#101010]">
+                                        {mainImage ? (
+                                          <img
+                                            src={mainImage}
+                                            alt={product.title}
+                                            className={`aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-105 ${
+                                              isOutOfStock ? "opacity-45 grayscale" : ""
+                                            }`}
+                                            loading="lazy"
+                                          />
+                                        ) : (
+                                          <div className="flex aspect-[4/5] w-full items-center justify-center bg-black text-sm text-white/35">
+                                            No image
+                                          </div>
+                                        )}
+
+                                        <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                          {isOutOfStock
+                                            ? "Out of stock"
+                                            : formatStockAmount(product.stockAmount)}
                                         </div>
-                                      )}
 
-                                      <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                                        {isOutOfStock
-                                          ? "Out of stock"
-                                          : formatStockAmount(product.stockAmount)}
+                                        {productImages.length > 1 ? (
+                                          <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                            {productImages.length} photos
+                                          </div>
+                                        ) : null}
+
+                                        {product.category ? (
+                                          <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                            <span className="block truncate">
+                                              {product.category}
+                                            </span>
+                                          </div>
+                                        ) : null}
                                       </div>
 
                                       {productImages.length > 1 ? (
-                                        <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                                          {productImages.length} photos
+                                        <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
+                                          {productImages.slice(0, 4).map((imageUrl, index) => (
+                                            <img
+                                              key={`${product.id}-${imageUrl}-${index}`}
+                                              src={imageUrl}
+                                              alt={`${product.title} thumbnail ${index + 1}`}
+                                              className="aspect-square rounded-lg object-cover"
+                                              loading="lazy"
+                                            />
+                                          ))}
                                         </div>
                                       ) : null}
 
-                                      {product.category ? (
-                                        <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
-                                          <span className="block truncate">
-                                            {product.category}
+                                      <div className="min-w-0 p-4">
+                                        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                          <h3
+                                            className="min-w-0 break-words text-2xl leading-none text-white"
+                                            style={{
+                                              fontFamily: '"Cormorant Garamond", Georgia, serif',
+                                            }}
+                                          >
+                                            {product.title}
+                                          </h3>
+
+                                          <div className="shrink-0 self-start rounded-full border border-white/10 px-3 py-1 text-sm text-white/80 sm:self-auto">
+                                            {formatPrice(product.price)}
+                                          </div>
+                                        </div>
+
+                                        <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
+                                          {product.description}
+                                        </p>
+
+                                        {colors.length > 0 ? (
+                                          <div className="mt-3">
+                                            <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+                                              Colors
+                                            </div>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                              {colors.map((color) => (
+                                                <span
+                                                  key={`${product.id}-admin-color-${color}`}
+                                                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/55"
+                                                >
+                                                  {color}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : null}
+
+                                        {scents.length > 0 ? (
+                                          <div className="mt-3">
+                                            <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+                                              Scents
+                                            </div>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                              {scents.map((scent) => (
+                                                <span
+                                                  key={`${product.id}-admin-scent-${scent}`}
+                                                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/55"
+                                                >
+                                                  {scent}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        ) : null}
+
+                                        {product.specialOption?.enabled ? (
+                                          <div className="mt-3 rounded-xl border border-amber-300/25 bg-amber-950/20 p-3 text-xs leading-5 text-amber-100">
+                                            <div className="font-semibold uppercase tracking-[0.18em]">
+                                              {product.specialOption.label || "Special Option"}
+                                            </div>
+                                            <div className="mt-1 text-amber-100/70">
+                                              {product.specialOption.startDate} to{" "}
+                                              {product.specialOption.endDate}
+                                            </div>
+                                          </div>
+                                        ) : null}
+
+                                        <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+                                          <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                                            {product.weight}
                                           </span>
-                                        </div>
-                                      ) : null}
-                                    </div>
 
-                                    {productImages.length > 1 ? (
-                                      <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
-                                        {productImages.slice(0, 4).map((imageUrl, index) => (
-                                          <img
-                                            key={`${product.id}-${imageUrl}-${index}`}
-                                            src={imageUrl}
-                                            alt={`${product.title} thumbnail ${index + 1}`}
-                                            className="aspect-square rounded-lg object-cover"
-                                            loading="lazy"
-                                          />
-                                        ))}
-                                      </div>
-                                    ) : null}
+                                          <button
+                                            type="button"
+                                            onClick={() => setOutOfStock(product.id)}
+                                            disabled={isBusy || isOutOfStock}
+                                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                          >
+                                            {isCurrentBusy ? "Saving..." : "Out of stock"}
+                                          </button>
 
-                                    <div className="min-w-0 p-4">
-                                      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                        <h3
-                                          className="min-w-0 break-words text-2xl leading-none text-white"
-                                          style={{
-                                            fontFamily: '"Cormorant Garamond", Georgia, serif',
-                                          }}
-                                        >
-                                          {product.title}
-                                        </h3>
-
-                                        <div className="shrink-0 self-start rounded-full border border-white/10 px-3 py-1 text-sm text-white/80 sm:self-auto">
-                                          {formatPrice(product.price)}
+                                          <button
+                                            type="button"
+                                            onClick={() => removeProduct(product.id)}
+                                            disabled={isBusy}
+                                            className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                          >
+                                            Remove
+                                          </button>
                                         </div>
                                       </div>
+                                    </article>
+                                  );
+                                })}
+                              </div>
+                            ) : null}
+                          </section>
+                        );
+                      })}
+                    </div>
+                  ) : null}
 
-                                      <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
-                                        {product.description}
-                                      </p>
-
-                                      <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
-                                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
-                                          {product.weight}
-                                        </span>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => setOutOfStock(product.id)}
-                                          disabled={isBusy || isOutOfStock}
-                                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                        >
-                                          {isCurrentBusy ? "Saving..." : "Out of stock"}
-                                        </button>
-
-                                        <button
-                                          type="button"
-                                          onClick={() => removeProduct(product.id)}
-                                          disabled={isBusy}
-                                          className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                        >
-                                          Remove
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </article>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </section>
-                      );
-                    })}
-                  </div>
-                ) : null}
-
-                {productsStatus === "ready" && groupedProducts.length === 0 ? (
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-black p-6 text-sm leading-6 text-white/65">
-                    {products.length === 0
-                      ? "No products saved yet. Once you add a product, it will appear here."
-                      : "No products match this category filter."}
-                  </div>
-                ) : null}
-              </section>
+                  {productsStatus === "ready" && groupedProducts.length === 0 ? (
+                    <div className="mt-6 rounded-2xl border border-white/10 bg-black p-6 text-sm leading-6 text-white/65">
+                      {products.length === 0
+                        ? "No products saved yet. Once you add a product, it will appear here."
+                        : "No products match this category filter."}
+                    </div>
+                  ) : null}
+                </section>
               </div>
 
               <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] shadow-2xl shadow-black/20">

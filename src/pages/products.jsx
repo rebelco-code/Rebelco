@@ -30,6 +30,38 @@ function getProductImages(product) {
   return [];
 }
 
+function getProductList(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+}
+
+function isSpecialOptionActive(product) {
+  const specialOption = product?.specialOption;
+
+  if (!specialOption?.enabled || !specialOption.startDate || !specialOption.endDate) {
+    return false;
+  }
+
+  const now = new Date();
+  const startDate = new Date(`${specialOption.startDate}T00:00:00`);
+  const endDate = new Date(`${specialOption.endDate}T23:59:59`);
+
+  return now >= startDate && now <= endDate;
+}
+
+function formatDisplayDate(value) {
+  const timestamp = Date.parse(String(value || ""));
+
+  if (!Number.isFinite(timestamp)) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-ZA", {
+    dateStyle: "medium",
+  }).format(new Date(timestamp));
+}
+
 function isUrl(value) {
   try {
     new URL(value);
@@ -160,6 +192,21 @@ export default function ProductsPage() {
 
   const selectedProductImages = useMemo(
     () => (selectedProduct ? getProductImages(selectedProduct) : []),
+    [selectedProduct],
+  );
+
+  const selectedProductColors = useMemo(
+    () => (selectedProduct ? getProductList(selectedProduct.colors) : []),
+    [selectedProduct],
+  );
+
+  const selectedProductScents = useMemo(
+    () => (selectedProduct ? getProductList(selectedProduct.scents) : []),
+    [selectedProduct],
+  );
+
+  const selectedProductHasSpecialOption = useMemo(
+    () => (selectedProduct ? isSpecialOptionActive(selectedProduct) : false),
     [selectedProduct],
   );
 
@@ -605,6 +652,9 @@ export default function ProductsPage() {
                           const isOutOfStock = Number(product.stockAmount) <= 0;
                           const productImages = getProductImages(product);
                           const mainImage = productImages[0];
+                          const colors = getProductList(product.colors);
+                          const scents = getProductList(product.scents);
+                          const hasSpecialOption = isSpecialOptionActive(product);
 
                           return (
                             <article
@@ -630,6 +680,12 @@ export default function ProductsPage() {
                                 {isOutOfStock ? (
                                   <div className="absolute left-3 top-3 border border-white/15 bg-black/70 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75 backdrop-blur">
                                     Out of stock
+                                  </div>
+                                ) : null}
+
+                                {hasSpecialOption ? (
+                                  <div className="absolute left-3 bottom-3 border border-amber-300/40 bg-amber-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-100 backdrop-blur">
+                                    {product.specialOption.label || "Special"}
                                   </div>
                                 ) : null}
 
@@ -682,6 +738,60 @@ export default function ProductsPage() {
                                 >
                                   {product.description}
                                 </p>
+
+                                {colors.length > 0 || scents.length > 0 ? (
+                                  <div className="mt-5 grid gap-3">
+                                    {colors.length > 0 ? (
+                                      <div>
+                                        <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                                          Colors
+                                        </div>
+
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                          {colors.map((color) => (
+                                            <span
+                                              key={`${product.id}-color-${color}`}
+                                              className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                                            >
+                                              {color}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : null}
+
+                                    {scents.length > 0 ? (
+                                      <div>
+                                        <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                                          Scents
+                                        </div>
+
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                          {scents.map((scent) => (
+                                            <span
+                                              key={`${product.id}-scent-${scent}`}
+                                              className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                                            >
+                                              {scent}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+
+                                {hasSpecialOption ? (
+                                  <div className="mt-5 border border-amber-300/25 bg-amber-950/20 p-3 text-sm leading-6 text-amber-100">
+                                    <strong className="block text-xs uppercase tracking-[0.2em]">
+                                      {product.specialOption.label || "Special Option"}
+                                    </strong>
+                                    <span className="mt-1 block text-amber-100/75">
+                                      Available from {formatDisplayDate(product.specialOption.startDate)} to{" "}
+                                      {formatDisplayDate(product.specialOption.endDate)}.
+                                    </span>
+                                  </div>
+                                ) : null}
 
                                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
                                   <div className="text-sm uppercase tracking-[0.2em] text-white/60">
@@ -770,6 +880,12 @@ export default function ProductsPage() {
                         No image
                       </div>
                     )}
+
+                    {selectedProductHasSpecialOption ? (
+                      <div className="absolute left-3 bottom-3 border border-amber-300/40 bg-amber-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-100 backdrop-blur">
+                        {selectedProduct.specialOption.label || "Special"}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="mt-4 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.2em] text-white/60">
@@ -783,9 +899,66 @@ export default function ProductsPage() {
                   >
                     {selectedProduct.description}
                   </p>
+
+                  {selectedProductColors.length > 0 || selectedProductScents.length > 0 ? (
+                    <div className="mt-4 grid gap-3 border-t border-white/10 pt-4">
+                      {selectedProductColors.length > 0 ? (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                            Colors
+                          </div>
+
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {selectedProductColors.map((color) => (
+                              <span
+                                key={`selected-color-${color}`}
+                                className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                              >
+                                {color}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {selectedProductScents.length > 0 ? (
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                            Scents
+                          </div>
+
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {selectedProductScents.map((scent) => (
+                              <span
+                                key={`selected-scent-${scent}`}
+                                className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                              >
+                                {scent}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {selectedProductHasSpecialOption ? (
+                    <div className="mt-4 border border-amber-300/25 bg-amber-950/20 p-3 text-sm leading-6 text-amber-100">
+                      <strong className="block text-xs uppercase tracking-[0.2em]">
+                        {selectedProduct.specialOption.label || "Special Option"}
+                      </strong>
+                      <span className="mt-1 block text-amber-100/75">
+                        Available from {formatDisplayDate(selectedProduct.specialOption.startDate)} to{" "}
+                        {formatDisplayDate(selectedProduct.specialOption.endDate)}.
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
 
-                <form className="grid gap-4 border border-white/10 bg-[#101011] p-4" onSubmit={submitOrder}>
+                <form
+                  className="grid gap-4 border border-white/10 bg-[#101011] p-4"
+                  onSubmit={submitOrder}
+                >
                   <label className="grid gap-2 text-sm text-white/70">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/50">
                       Amount / Quantity
