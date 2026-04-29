@@ -164,6 +164,8 @@ export default function ProductsPage() {
   const pinMapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapMarkerRef = useRef(null);
+  const pudoLookupRequestRef = useRef(0);
+  const pudoLookupCoordsRef = useRef("");
 
   const [products, setProducts] = useState([]);
   const [status, setStatus] = useState("loading");
@@ -408,6 +410,8 @@ export default function ProductsPage() {
       setPudoStatus("idle");
       setOrderError("");
       setOrderMessage("");
+
+      lookupAndSelectClosestPudo(lat, lng);
     });
 
     mapInstanceRef.current = mapInstance;
@@ -443,6 +447,35 @@ export default function ProductsPage() {
 
     mapInstance.setView([latitude, longitude], Math.max(mapInstance.getZoom(), 14));
   }, [orderForm.googleMapsLocation]);
+
+  useEffect(() => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    const parsedLatLng = parseLatLngText(orderForm.googleMapsLocation);
+
+    if (!parsedLatLng) {
+      pudoLookupCoordsRef.current = "";
+      return;
+    }
+
+    const lookupKey = `${parsedLatLng.latitude.toFixed(6)},${parsedLatLng.longitude.toFixed(6)}`;
+
+    if (lookupKey === pudoLookupCoordsRef.current) {
+      return;
+    }
+
+    pudoLookupCoordsRef.current = lookupKey;
+
+    const timeoutId = window.setTimeout(() => {
+      lookupAndSelectClosestPudo(parsedLatLng.latitude, parsedLatLng.longitude);
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [orderForm.googleMapsLocation, selectedProduct]);
 
   function toggleCategory(category) {
     setOpenCategories((current) => ({
@@ -519,6 +552,8 @@ export default function ProductsPage() {
         setPudoMessage("");
         setPudoStatus("idle");
         setLocationStatus("idle");
+
+        lookupAndSelectClosestPudo(latitude, longitude);
       },
       (locationError) => {
         setLocationStatus("idle");
@@ -531,14 +566,9 @@ export default function ProductsPage() {
     );
   }
 
-  async function findClosestPudoLockers() {
-    const parsedLatLng = parseLatLngText(orderForm.googleMapsLocation);
-
-    if (!parsedLatLng) {
-      setOrderError("Pin your location or use your current location before finding PUDO lockers.");
-      return;
-    }
-
+  async function lookupAndSelectClosestPudo(latitude, longitude) {
+    const requestId = Date.now();
+    pudoLookupRequestRef.current = requestId;
     setPudoStatus("loading");
     setPudoMessage("");
     setPudoLockers([]);
@@ -547,8 +577,8 @@ export default function ProductsPage() {
 
     try {
       const queryParams = new URLSearchParams({
-        lat: String(parsedLatLng.latitude),
-        lng: String(parsedLatLng.longitude),
+        lat: String(latitude),
+        lng: String(longitude),
         limit: "5",
       });
 
@@ -561,10 +591,39 @@ export default function ProductsPage() {
       const data = await readJsonResponse(response, "Could not load nearby PUDO lockers.");
       const lockers = Array.isArray(data.lockers) ? data.lockers : [];
 
+      if (pudoLookupRequestRef.current !== requestId) {
+        return;
+      }
+
       setPudoLockers(lockers);
-      setPudoMessage(data.message || (lockers.length ? "" : "No nearby PUDO lockers found."));
+      setPudoMessage(
+        data.message ||
+          (lockers.length ? "Closest PUDO selected automatically." : "No nearby PUDO lockers found."),
+      );
       setPudoStatus("ready");
+
+      if (lockers.length > 0) {
+        const closestLocker = lockers[0];
+
+        setOrderForm((currentForm) => ({
+          ...currentForm,
+          pudoLockerCode: String(closestLocker.code || ""),
+          pudoLockerName: String(closestLocker.name || ""),
+          pudoLockerAddress: String(closestLocker.address || ""),
+        }));
+      } else {
+        setOrderForm((currentForm) => ({
+          ...currentForm,
+          pudoLockerCode: "",
+          pudoLockerName: "",
+          pudoLockerAddress: "",
+        }));
+      }
     } catch (lookupError) {
+      if (pudoLookupRequestRef.current !== requestId) {
+        return;
+      }
+
       setPudoStatus("error");
       setPudoMessage("");
       setOrderError(lookupError.message);
@@ -1374,15 +1433,6 @@ export default function ProductsPage() {
                       {locationStatus === "locating" ? "Locating..." : "Use My Current Location"}
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={findClosestPudoLockers}
-                      disabled={pudoStatus === "loading"}
-                      className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {pudoStatus === "loading" ? "Finding PUDO..." : "Find Closest PUDO"}
-                    </button>
-
                     {googleMapsSearchUrl ? (
                       <a
                         href={googleMapsSearchUrl}
@@ -1405,6 +1455,12 @@ export default function ProductsPage() {
                       </a>
                     ) : null}
                   </div>
+
+                  {pudoStatus === "loading" ? (
+                    <div className="border border-white/10 bg-black p-4 text-sm text-white/60">
+                      Finding closest PUDO locker...
+                    </div>
+                  ) : null}
 
                   {pudoMessage ? (
                     <div className="border border-white/10 bg-black p-4 text-sm text-white/60">
