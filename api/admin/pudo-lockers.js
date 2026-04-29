@@ -84,7 +84,42 @@ function parseJsonSafe(rawValue) {
   }
 }
 
-async function fetchJsonOrThrow(url, options) {
+function parseRemoteMessage(parsedBody, fallback = "") {
+  return (
+    cleanText(
+      parsedBody?.message ||
+        parsedBody?.error ||
+        parsedBody?.errors?.[0]?.message ||
+        parsedBody?.reason ||
+        fallback,
+      220,
+    ) || fallback
+  );
+}
+
+function isNoResultsResponse(statusCode, message) {
+  if (statusCode !== 400 && statusCode !== 404) {
+    return false;
+  }
+
+  const normalizedMessage = cleanText(message, 220).toLowerCase();
+
+  return (
+    normalizedMessage.includes("no pickup points found") ||
+    normalizedMessage.includes("no locker") ||
+    normalizedMessage.includes("no results")
+  );
+}
+
+function isMissingRouteResponse(statusCode, message) {
+  if (statusCode !== 404) {
+    return false;
+  }
+
+  return cleanText(message, 220).toLowerCase().includes("route");
+}
+
+async function fetchJsonResponse(url, options) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => {
     abortController.abort();
@@ -97,21 +132,30 @@ async function fetchJsonOrThrow(url, options) {
     });
     const rawBody = await response.text();
     const parsedBody = parseJsonSafe(rawBody);
+    const fallbackMessage = `HTTP ${response.status}`;
 
-    if (!response.ok) {
-      const remoteMessage =
-        cleanText(
-          parsedBody?.message || parsedBody?.error || parsedBody?.errors?.[0]?.message,
-          200,
-        ) || `HTTP ${response.status}`;
-      throw new Error(remoteMessage);
+    if (response.ok && parsedBody !== null) {
+      return {
+        ok: true,
+        statusCode: response.status,
+        data: parsedBody,
+        message: "",
+      };
     }
 
-    if (parsedBody !== null) {
-      return parsedBody;
-    }
-
-    throw new Error("Expected JSON response.");
+    return {
+      ok: false,
+      statusCode: response.status,
+      data: parsedBody,
+      message: parseRemoteMessage(parsedBody, fallbackMessage),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      statusCode: 0,
+      data: null,
+      message: cleanText(error?.message || "Network request failed.", 220),
+    };
   } finally {
     clearTimeout(timeoutId);
   }
@@ -304,7 +348,29 @@ async function queryPudoLockers(context, apiKey) {
       authMode: "query",
     },
     {
-      provider: "shiplogic",
+      provider: "shiplogic-api-key",
+      url: buildShiplogicUrl(context),
+      headers: {
+        "api-key": apiKey,
+      },
+      authMode: "header",
+    },
+    {
+      provider: "shiplogic-x-api-key",
+      url: buildShiplogicUrl(context),
+      headers: {
+        "x-api-key": apiKey,
+      },
+      authMode: "header",
+    },
+    {
+      provider: "shiplogic-query",
+      url: buildShiplogicUrl(context),
+      headers: {},
+      authMode: "query",
+    },
+    {
+      provider: "shiplogic-bearer",
       url: buildShiplogicUrl(context),
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -312,60 +378,87 @@ async function queryPudoLockers(context, apiKey) {
       authMode: "header",
     },
   ];
-  const errors = [];
+  const diagnostics = [];
+  let sawNoResults = false;
 
   for (const attempt of attempts) {
-    try {
-      const requestUrl = new URL(attempt.url);
+    const requestUrl = new URL(attempt.url);
 
-      if (attempt.authMode === "query") {
-        requestUrl.searchParams.set("api_key", apiKey);
-      }
+    if (attempt.authMode === "query") {
+      requestUrl.searchParams.set("api_key", apiKey);
+    }
 
-      const payload = await fetchJsonOrThrow(requestUrl.toString(), {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          ...attempt.headers,
-        },
-      });
-      const lockers = readArrayResponse(payload)
+    const remoteResponse = await fetchJsonResponse(requestUrl.toString(), {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        ...attempt.headers,
+      },
+    });
+
+    if (remoteResponse.ok) {
+      const lockers = readArrayResponse(remoteResponse.data)
         .map((locker) => normalizeLocker(locker, context))
         .filter(Boolean);
 
-      if (lockers.length > 0) {
-        lockers.sort((a, b) => {
-          if (a.distanceKm === null && b.distanceKm === null) {
-            return a.name.localeCompare(b.name);
-          }
-
-          if (a.distanceKm === null) {
-            return 1;
-          }
-
-          if (b.distanceKm === null) {
-            return -1;
-          }
-
-          return a.distanceKm - b.distanceKm;
-        });
-
-        return {
-          provider: attempt.provider,
-          lockers: lockers.slice(0, context.limit),
-        };
+      if (lockers.length === 0) {
+        sawNoResults = true;
+        diagnostics.push(`${attempt.provider}: no locker data returned`);
+        continue;
       }
 
-      errors.push(`${attempt.provider}: no locker data returned`);
-    } catch (error) {
-      errors.push(`${attempt.provider}: ${cleanText(error?.message || "request failed", 180)}`);
+      lockers.sort((a, b) => {
+        if (a.distanceKm === null && b.distanceKm === null) {
+          return a.name.localeCompare(b.name);
+        }
+
+        if (a.distanceKm === null) {
+          return 1;
+        }
+
+        if (b.distanceKm === null) {
+          return -1;
+        }
+
+        return a.distanceKm - b.distanceKm;
+      });
+
+      return {
+        provider: attempt.provider,
+        lockers: lockers.slice(0, context.limit),
+        message: "",
+      };
     }
+
+    const message = remoteResponse.message || `HTTP ${remoteResponse.statusCode || "0"}`;
+
+    if (isNoResultsResponse(remoteResponse.statusCode, message)) {
+      sawNoResults = true;
+      diagnostics.push(`${attempt.provider}: no lockers for this area`);
+      continue;
+    }
+
+    if (isMissingRouteResponse(remoteResponse.statusCode, message)) {
+      diagnostics.push(`${attempt.provider}: endpoint unavailable`);
+      continue;
+    }
+
+    diagnostics.push(`${attempt.provider}: ${message}`);
   }
 
-  throw new HttpError(
-    502,
-    `Could not load PUDO lockers right now. ${errors.join(" | ") || "Please try again."}`,
-  );
+  if (sawNoResults) {
+    return {
+      provider: "none",
+      lockers: [],
+      message: "No nearby lockers found for this location.",
+    };
+  }
+
+  return {
+    provider: "unavailable",
+    lockers: [],
+    message: `Locker lookup unavailable right now. ${diagnostics.join(" | ")}`,
+  };
 }
 
 export default async function handler(request, response) {
@@ -381,9 +474,9 @@ export default async function handler(request, response) {
     sendJson(response, 200, {
       provider: result.provider,
       lockers: result.lockers,
+      message: result.message || "",
     });
   } catch (error) {
     sendError(response, error);
   }
 }
-

@@ -684,7 +684,7 @@ export default function AdminaPage() {
           status: "ready",
           provider: String(data.provider || ""),
           lockers: Array.isArray(data.lockers) ? data.lockers : [],
-          message: "",
+          message: String(data.message || ""),
         },
       }));
     } catch (lookupError) {
@@ -1456,7 +1456,7 @@ export default function AdminaPage() {
 
                                   {pudoStatus === "ready" && pudoLockers.length === 0 ? (
                                     <div className="mt-2 text-xs text-white/55">
-                                      No nearby lockers found.
+                                      {pudoLookupState.message || "No nearby lockers found."}
                                     </div>
                                   ) : null}
 
