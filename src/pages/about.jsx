@@ -132,7 +132,7 @@ export default function AboutPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 lg:self-stretch">
               <a
                 href={contactLinks.phoneHref}
-                className="border border-white/12 bg-white px-6 py-4 text-center text-black transition hover:bg-[#d9d9d9] sm:px-8 sm:py-5"
+                className="border border-white/12 bg-black px-6 py-4 text-center text-white transition hover:border-white/35 hover:bg-[#1a1a1b] sm:px-8 sm:py-5"
                 style={{ fontFamily: '"Cinzel", Georgia, serif' }}
               >
                 Call Rebelco

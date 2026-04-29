@@ -102,6 +102,7 @@ export default async function handler(request, response) {
   try {
     requireMethod(request, response, ["GET", "POST", "PATCH", "DELETE"]);
     requireAdminSession(request);
+    response.setHeader("Cache-Control", "no-store");
 
     if (request.method === "GET") {
       const products = await readProducts();

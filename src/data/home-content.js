@@ -135,7 +135,7 @@ export const homeCollections = [
     title: "Bath Soaps & Salts",
     subtitle: "Core soap range",
     description:
-      "The deepest category in the CSV, covering shampoo bars and a wide spread of scented soap bars.",
+      "The deepest category in the range, covering shampoo bars and a wide spread of scented soap bars.",
     highlights: [
       "Shampoo Bar",
       "Rainforrest Herbs and Citrus Bar",
@@ -184,5 +184,5 @@ export const homeIntro = {
   eyebrow: "From The Catalogue",
   title: "A broader range than one quick glance suggests.",
   body:
-    "The CSV shows Rebelco as more than a soap brand. It spans grooming, shampoo and bath bars, creams, lip balm, kitchen utility products, candles, and gift-friendly custom work. The homepage should reflect that wider catalogue clearly and cleanly.",
+    "Rebelco is more than a soap brand. It spans grooming, shampoo and bath bars, creams, lip balm, kitchen utility products, candles, and gift-friendly custom work. The homepage should reflect that wider catalogue clearly and cleanly.",
 };

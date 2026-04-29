@@ -1,9 +1,11 @@
-import { list, put } from "@vercel/blob";
+import { BlobPreconditionFailedError, get, put } from "@vercel/blob";
 import { HttpError } from "./errors.js";
 
 const ORDERS_PATH = "products/orders.json";
 const MAX_LOCATION_TEXT_LENGTH = 320;
 const MAX_MAP_LOCATION_LENGTH = 400;
+const MAX_ORDERS_WRITE_RETRIES = 4;
+const WRITE_RETRY_BASE_DELAY_MS = 120;
 
 function getBlobToken() {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
@@ -31,6 +33,21 @@ function parseQuantity(value) {
 
 function cleanMapLocation(value) {
   return cleanText(value, MAX_MAP_LOCATION_LENGTH);
+}
+
+function wait(delayMs) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+function isWriteConflict(error) {
+  if (error instanceof BlobPreconditionFailedError) {
+    return true;
+  }
+
+  const statusCode = Number(error?.statusCode || error?.status);
+  return statusCode === 412;
 }
 
 function buildLegacyCoordinateLocation(order) {
@@ -82,52 +99,65 @@ function normalizeOrder(order) {
   };
 }
 
-async function getOrdersBlob() {
+async function readOrdersSnapshot() {
   const token = getBlobToken();
-  const { blobs } = await list({
-    prefix: ORDERS_PATH,
-    limit: 10,
+  const result = await get(ORDERS_PATH, {
+    access: "private",
     token,
+    useCache: false,
   });
 
-  return blobs.find((blob) => blob.pathname === ORDERS_PATH);
-}
+  if (!result) {
+    return {
+      etag: "",
+      orders: [],
+    };
+  }
 
-async function fetchPrivateBlobJson(blob) {
-  const token = getBlobToken();
-
-  const response = await fetch(blob.downloadUrl || blob.url, {
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
+  if (result.statusCode !== 200 || !result.stream) {
     throw new HttpError(502, "Order catalog could not be read from Blob.");
   }
 
-  return response.json();
+  const rawCatalog = await new Response(result.stream).text();
+  let parsedCatalog = {};
+
+  if (rawCatalog.trim()) {
+    try {
+      parsedCatalog = JSON.parse(rawCatalog);
+    } catch {
+      throw new HttpError(502, "Order catalog is invalid.");
+    }
+  }
+
+  const orders = Array.isArray(parsedCatalog.orders) ? parsedCatalog.orders : [];
+
+  return {
+    etag: String(result.blob?.etag || ""),
+    orders: orders.map(normalizeOrder).filter((order) => order.id && order.productId),
+  };
 }
 
 export async function readOrders() {
   getBlobToken();
-
-  const ordersBlob = await getOrdersBlob();
-
-  if (!ordersBlob) {
-    return [];
-  }
-
-  const orderCatalog = await fetchPrivateBlobJson(ordersBlob);
-  const orders = Array.isArray(orderCatalog.orders) ? orderCatalog.orders : [];
-
-  return orders.map(normalizeOrder).filter((order) => order.id && order.productId);
+  const snapshot = await readOrdersSnapshot();
+  return snapshot.orders;
 }
 
-export async function writeOrders(orders) {
+export async function writeOrders(orders, options = {}) {
   const token = getBlobToken();
   const normalizedOrders = orders.map(normalizeOrder);
+
+  const writeOptions = {
+    access: "private",
+    allowOverwrite: true,
+    cacheControlMaxAge: 60,
+    contentType: "application/json",
+    token,
+  };
+
+  if (options.ifMatch) {
+    writeOptions.ifMatch = options.ifMatch;
+  }
 
   await put(
     ORDERS_PATH,
@@ -140,15 +170,40 @@ export async function writeOrders(orders) {
       2,
     ),
     {
-      access: "private",
-      allowOverwrite: true,
-      cacheControlMaxAge: 60,
-      contentType: "application/json",
-      token,
+      ...writeOptions,
     },
   );
 
   return normalizedOrders;
+}
+
+async function mutateOrdersWithRetry(mutationHandler) {
+  let attempt = 0;
+
+  while (attempt <= MAX_ORDERS_WRITE_RETRIES) {
+    const snapshot = await readOrdersSnapshot();
+    const mutationResult = mutationHandler(snapshot.orders);
+
+    try {
+      const persistedOrders = await writeOrders(mutationResult.orders, {
+        ifMatch: snapshot.etag || undefined,
+      });
+
+      return {
+        ...mutationResult,
+        orders: persistedOrders,
+      };
+    } catch (error) {
+      if (!isWriteConflict(error) || attempt === MAX_ORDERS_WRITE_RETRIES) {
+        throw error;
+      }
+
+      attempt += 1;
+      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt);
+    }
+  }
+
+  throw new HttpError(409, "Order update conflict. Please try again.");
 }
 
 function validateOrderInput(payload) {
@@ -198,13 +253,14 @@ export async function createOrder(product, payload) {
     updatedAt: now,
   });
 
-  const orders = await readOrders();
-  const updatedOrders = [order, ...orders];
-  await writeOrders(updatedOrders);
+  const result = await mutateOrdersWithRetry((orders) => ({
+    order,
+    orders: [order, ...orders],
+  }));
 
   return {
-    order,
-    orders: updatedOrders,
+    order: result.order,
+    orders: result.orders,
   };
 }
 
@@ -233,31 +289,72 @@ export async function updateOrderProofOfPayment(orderId, proofOfPaymentReceived)
 
   const proofValue = parseBoolean(proofOfPaymentReceived, "proofOfPaymentReceived");
   const now = new Date().toISOString();
-  const orders = await readOrders();
-  let updatedOrder = null;
+  const result = await mutateOrdersWithRetry((orders) => {
+    let updatedOrder = null;
 
-  const updatedOrders = orders.map((order) => {
-    if (order.id !== id) {
-      return order;
-    }
+    const updatedOrders = orders.map((order) => {
+      if (order.id !== id) {
+        return order;
+      }
 
-    updatedOrder = normalizeOrder({
-      ...order,
-      proofOfPaymentReceived: proofValue,
-      updatedAt: now,
+      updatedOrder = normalizeOrder({
+        ...order,
+        proofOfPaymentReceived: proofValue,
+        updatedAt: now,
+      });
+
+      return updatedOrder;
     });
 
-    return updatedOrder;
+    if (!updatedOrder) {
+      throw new HttpError(404, "Order was not found.");
+    }
+
+    return {
+      order: updatedOrder,
+      orders: updatedOrders,
+    };
   });
 
-  if (!updatedOrder) {
-    throw new HttpError(404, "Order was not found.");
+  return {
+    order: result.order,
+    orders: result.orders,
+  };
+}
+
+export async function removePaidOrders() {
+  let attempt = 0;
+
+  while (attempt <= MAX_ORDERS_WRITE_RETRIES) {
+    const snapshot = await readOrdersSnapshot();
+    const activeOrders = snapshot.orders.filter((order) => !order.proofOfPaymentReceived);
+    const removedCount = snapshot.orders.length - activeOrders.length;
+
+    if (removedCount === 0) {
+      return {
+        orders: snapshot.orders,
+        removedCount: 0,
+      };
+    }
+
+    try {
+      const persistedOrders = await writeOrders(activeOrders, {
+        ifMatch: snapshot.etag || undefined,
+      });
+
+      return {
+        orders: persistedOrders,
+        removedCount,
+      };
+    } catch (error) {
+      if (!isWriteConflict(error) || attempt === MAX_ORDERS_WRITE_RETRIES) {
+        throw error;
+      }
+
+      attempt += 1;
+      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt);
+    }
   }
 
-  await writeOrders(updatedOrders);
-
-  return {
-    order: updatedOrder,
-    orders: updatedOrders,
-  };
+  throw new HttpError(409, "Order cleanup conflict. Please refresh and try again.");
 }

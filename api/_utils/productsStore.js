@@ -1,10 +1,12 @@
-import { list, put } from "@vercel/blob";
+import { BlobPreconditionFailedError, get, put } from "@vercel/blob";
 import { HttpError } from "./errors.js";
 
 const CATALOG_PATH = "products/catalog.json";
 const IMAGE_PREFIX = "products/images";
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_CATALOG_WRITE_RETRIES = 4;
+const WRITE_RETRY_BASE_DELAY_MS = 120;
 
 export { MAX_IMAGE_SIZE_BYTES };
 
@@ -66,6 +68,21 @@ function getPrivateImageUrl(pathname) {
   }
 
   return `/api/blob/image?pathname=${encodeURIComponent(pathname)}`;
+}
+
+function wait(delayMs) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+function isWriteConflict(error) {
+  if (error instanceof BlobPreconditionFailedError) {
+    return true;
+  }
+
+  const statusCode = Number(error?.statusCode || error?.status);
+  return statusCode === 412;
 }
 
 function normalizeProduct(product) {
@@ -170,51 +187,51 @@ function getImageExtension(image) {
   return "jpg";
 }
 
-async function getCatalogBlob() {
+async function readCatalogSnapshot() {
   const token = getBlobToken();
-
-  const { blobs } = await list({
-    prefix: CATALOG_PATH,
-    limit: 10,
+  const result = await get(CATALOG_PATH, {
+    access: "private",
     token,
+    useCache: false,
   });
 
-  return blobs.find((blob) => blob.pathname === CATALOG_PATH);
-}
+  if (!result) {
+    return {
+      etag: "",
+      products: [],
+    };
+  }
 
-async function fetchPrivateBlobJson(blob) {
-  const token = getBlobToken();
-
-  const response = await fetch(blob.downloadUrl || blob.url, {
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
+  if (result.statusCode !== 200 || !result.stream) {
     throw new HttpError(502, "Product catalog could not be read from Blob.");
   }
 
-  return response.json();
+  const rawCatalog = await new Response(result.stream).text();
+  let parsedCatalog = {};
+
+  if (rawCatalog.trim()) {
+    try {
+      parsedCatalog = JSON.parse(rawCatalog);
+    } catch {
+      throw new HttpError(502, "Product catalog is invalid.");
+    }
+  }
+
+  const products = Array.isArray(parsedCatalog.products) ? parsedCatalog.products : [];
+
+  return {
+    etag: String(result.blob?.etag || ""),
+    products: products.map(normalizeProduct).filter((product) => product.id && product.title),
+  };
 }
 
 export async function readProducts() {
   ensureBlobConfigured();
-
-  const catalogBlob = await getCatalogBlob();
-
-  if (!catalogBlob) {
-    return [];
-  }
-
-  const catalog = await fetchPrivateBlobJson(catalogBlob);
-  const products = Array.isArray(catalog.products) ? catalog.products : [];
-
-  return products.map(normalizeProduct).filter((product) => product.id && product.title);
+  const snapshot = await readCatalogSnapshot();
+  return snapshot.products;
 }
 
-export async function writeProducts(products) {
+export async function writeProducts(products, options = {}) {
   const token = getBlobToken();
 
   const catalog = {
@@ -222,15 +239,52 @@ export async function writeProducts(products) {
     products: products.map(normalizeProduct),
   };
 
-  await put(CATALOG_PATH, JSON.stringify(catalog, null, 2), {
+  const writeOptions = {
     access: "private",
     allowOverwrite: true,
     cacheControlMaxAge: 60,
     contentType: "application/json",
     token,
+  };
+
+  if (options.ifMatch) {
+    writeOptions.ifMatch = options.ifMatch;
+  }
+
+  await put(CATALOG_PATH, JSON.stringify(catalog, null, 2), {
+    ...writeOptions,
   });
 
   return catalog.products;
+}
+
+async function mutateProductsWithRetry(mutationHandler) {
+  let attempt = 0;
+
+  while (attempt <= MAX_CATALOG_WRITE_RETRIES) {
+    const snapshot = await readCatalogSnapshot();
+    const mutationResult = mutationHandler(snapshot.products);
+
+    try {
+      const persistedProducts = await writeProducts(mutationResult.products, {
+        ifMatch: snapshot.etag || undefined,
+      });
+
+      return {
+        ...mutationResult,
+        products: persistedProducts,
+      };
+    } catch (error) {
+      if (!isWriteConflict(error) || attempt === MAX_CATALOG_WRITE_RETRIES) {
+        throw error;
+      }
+
+      attempt += 1;
+      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt);
+    }
+  }
+
+  throw new HttpError(409, "Catalog update conflict. Please try again.");
 }
 
 export async function createProduct(fields, images) {
@@ -267,10 +321,10 @@ export async function createProduct(fields, images) {
     updatedAt: now,
   };
 
-  const products = await readProducts();
-  const updatedProducts = [product, ...products];
-
-  await writeProducts(updatedProducts);
+  await mutateProductsWithRetry((products) => ({
+    product: normalizeProduct(product),
+    products: [product, ...products],
+  }));
 
   return normalizeProduct(product);
 }
@@ -282,20 +336,22 @@ export async function deleteProduct(productId) {
     throw new HttpError(400, "Product ID is required.");
   }
 
-  const products = await readProducts();
-  const existingProduct = products.find((product) => product.id === id);
+  const result = await mutateProductsWithRetry((products) => {
+    const existingProduct = products.find((product) => product.id === id);
 
-  if (!existingProduct) {
-    throw new HttpError(404, "Product was not found.");
-  }
+    if (!existingProduct) {
+      throw new HttpError(404, "Product was not found.");
+    }
 
-  const updatedProducts = products.filter((product) => product.id !== id);
-
-  await writeProducts(updatedProducts);
+    return {
+      deletedProduct: existingProduct,
+      products: products.filter((product) => product.id !== id),
+    };
+  });
 
   return {
-    deletedProduct: existingProduct,
-    products: updatedProducts,
+    deletedProduct: result.deletedProduct,
+    products: result.products,
   };
 }
 
@@ -306,32 +362,36 @@ export async function setProductOutOfStock(productId) {
     throw new HttpError(400, "Product ID is required.");
   }
 
-  const products = await readProducts();
   const now = new Date().toISOString();
-  let updatedProduct = null;
+  const result = await mutateProductsWithRetry((products) => {
+    let updatedProduct = null;
 
-  const updatedProducts = products.map((product) => {
-    if (product.id !== id) {
-      return product;
-    }
+    const updatedProducts = products.map((product) => {
+      if (product.id !== id) {
+        return product;
+      }
 
-    updatedProduct = normalizeProduct({
-      ...product,
-      stockAmount: 0,
-      updatedAt: now,
+      updatedProduct = normalizeProduct({
+        ...product,
+        stockAmount: 0,
+        updatedAt: now,
+      });
+
+      return updatedProduct;
     });
 
-    return updatedProduct;
+    if (!updatedProduct) {
+      throw new HttpError(404, "Product was not found.");
+    }
+
+    return {
+      product: updatedProduct,
+      products: updatedProducts,
+    };
   });
 
-  if (!updatedProduct) {
-    throw new HttpError(404, "Product was not found.");
-  }
-
-  await writeProducts(updatedProducts);
-
   return {
-    product: updatedProduct,
-    products: updatedProducts,
+    product: result.product,
+    products: result.products,
   };
 }

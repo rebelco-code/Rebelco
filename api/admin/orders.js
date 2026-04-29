@@ -1,6 +1,6 @@
 import { requireAdminSession } from "../_utils/adminAuth.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
-import { readOrders, updateOrderProofOfPayment } from "../_utils/ordersStore.js";
+import { removePaidOrders, updateOrderProofOfPayment } from "../_utils/ordersStore.js";
 
 function getOrderId(request) {
   const requestUrl = new URL(request.url, `https://${request.headers.host || "localhost"}`);
@@ -11,9 +11,10 @@ export default async function handler(request, response) {
   try {
     requireMethod(request, response, ["GET", "PATCH"]);
     requireAdminSession(request);
+    response.setHeader("Cache-Control", "no-store");
 
     if (request.method === "GET") {
-      const orders = await readOrders();
+      const { orders } = await removePaidOrders();
       sendJson(response, 200, { orders });
       return;
     }
