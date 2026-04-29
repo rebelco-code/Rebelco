@@ -890,7 +890,7 @@ export default function ProductsPage() {
                         block: "start",
                       });
                     }}
-                    className="border border-emerald-300/40 bg-emerald-950/35 px-4 py-2 text-xs uppercase tracking-[0.22em] text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-900/50"
+                    className="border border-white/20 bg-black px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:border-white/45 hover:bg-[#111213]"
                   >
                     View Cart ({cartTotalQuantity})
                   </button>
@@ -1392,10 +1392,10 @@ export default function ProductsPage() {
                           );
                         })}
 
-                        <div className="rounded-lg border border-emerald-300/30 bg-emerald-950/20 p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-emerald-100/80">
+                        <div className="rounded-lg border border-white/15 bg-black p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/75">
                             <span>{cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"}</span>
-                            <span className="text-lg font-semibold text-emerald-100">
+                            <span className="text-lg font-semibold text-white">
                               Total: {formatPrice(cartTotalPrice)}
                             </span>
                           </div>
@@ -1617,7 +1617,7 @@ export default function ProductsPage() {
                   block: "start",
                 });
               }}
-              className="fixed bottom-5 right-5 z-40 border border-emerald-300/50 bg-emerald-950/90 px-4 py-3 text-xs uppercase tracking-[0.2em] text-emerald-100 shadow-lg shadow-black/40 transition hover:border-emerald-200 hover:bg-emerald-900"
+              className="fixed bottom-5 right-5 z-40 border border-white/20 bg-black/95 px-4 py-3 text-xs uppercase tracking-[0.2em] text-white shadow-lg shadow-black/40 transition hover:border-white/50 hover:bg-[#111213]"
             >
               View Cart ({cartTotalQuantity})
             </button>
