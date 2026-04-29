@@ -84,7 +84,7 @@ export default function Gallery() {
       <div className="absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-black/45 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-b from-transparent via-[#0f0f10]/70 to-[#0f0f10] sm:h-44 lg:h-56" />
 
-      <div className="absolute inset-x-0 top-1/2 z-30 flex -translate-y-1/2 items-center justify-between px-3 sm:px-6">
+      <div className="absolute inset-x-0 top-[44%] z-30 flex -translate-y-1/2 items-center justify-between px-3 sm:top-1/2 sm:px-6">
         <button
           type="button"
           onClick={goToPrevious}
