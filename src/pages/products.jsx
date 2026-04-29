@@ -143,6 +143,16 @@ function shortenDescription(value, maxLength = 180) {
   return `${text.slice(0, maxLength).trimEnd()}...`;
 }
 
+function getEffectiveProductPrice(product) {
+  const specialPrice = getSpecialPrice(product);
+
+  if (specialPrice !== null) {
+    return Number(specialPrice || 0);
+  }
+
+  return Number(product?.price || 0);
+}
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
@@ -163,6 +173,7 @@ export default function ProductsPage() {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [orderForm, setOrderForm] = useState(() => buildInitialOrderForm());
+  const [cartItems, setCartItems] = useState([]);
   const [orderStatus, setOrderStatus] = useState("idle");
   const [locationStatus, setLocationStatus] = useState("idle");
   const [pudoStatus, setPudoStatus] = useState("idle");
@@ -247,6 +258,38 @@ export default function ProductsPage() {
     () => (selectedProduct ? getSpecialPrice(selectedProduct) : null),
     [selectedProduct],
   );
+
+  const cartLines = useMemo(() => {
+    return cartItems
+      .map((item) => {
+        const product = products.find((currentProduct) => currentProduct.id === item.productId);
+
+        if (!product) {
+          return null;
+        }
+
+        return {
+          ...item,
+          product,
+          unitPrice: getEffectiveProductPrice(product),
+        };
+      })
+      .filter(Boolean);
+  }, [cartItems, products]);
+
+  const cartTotalQuantity = useMemo(
+    () => cartLines.reduce((sum, line) => sum + Number(line.quantity || 0), 0),
+    [cartLines],
+  );
+
+  const cartTotalPrice = useMemo(() => {
+    const subtotal = cartLines.reduce(
+      (sum, line) => sum + Number(line.unitPrice || 0) * Number(line.quantity || 0),
+      0,
+    );
+
+    return Math.round(subtotal * 100) / 100;
+  }, [cartLines]);
 
   const googleMapsSearchUrl = useMemo(
     () => buildGoogleMapsSearchUrl(orderForm.googleMapsLocation),
@@ -414,10 +457,10 @@ export default function ProductsPage() {
 
     setSelectedProductId(productId);
     setSelectedImageIndex(0);
-    setOrderForm(buildInitialOrderForm(minimumOrderQuantity));
-    setPudoLockers([]);
-    setPudoMessage("");
-    setPudoStatus("idle");
+    setOrderForm((currentForm) => ({
+      ...currentForm,
+      quantity: String(minimumOrderQuantity),
+    }));
     setOrderError("");
     setOrderMessage("");
 
@@ -540,11 +583,117 @@ export default function ProductsPage() {
     setOrderMessage("");
   }
 
+  function addSelectedProductToCart() {
+    if (!selectedProduct) {
+      setOrderError("Please select a product first.");
+      return;
+    }
+
+    const parsedQuantity = Number.parseInt(String(orderForm.quantity || ""), 10);
+    const minimumOrderQuantity = normalizeMinimumOrderQuantity(
+      selectedProduct.minimumOrderQuantity,
+    );
+
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity < minimumOrderQuantity) {
+      setOrderError(
+        `Minimum order quantity for ${selectedProduct.title} is ${minimumOrderQuantity}.`,
+      );
+      return;
+    }
+
+    if (parsedQuantity > Number(selectedProduct.stockAmount || 0)) {
+      setOrderError("Requested quantity is higher than available stock.");
+      return;
+    }
+
+    setCartItems((currentItems) => {
+      const existingItem = currentItems.find((item) => item.productId === selectedProduct.id);
+
+      if (!existingItem) {
+        return [
+          ...currentItems,
+          {
+            productId: selectedProduct.id,
+            quantity: parsedQuantity,
+          },
+        ];
+      }
+
+      const combinedQuantity = existingItem.quantity + parsedQuantity;
+
+      if (combinedQuantity > Number(selectedProduct.stockAmount || 0)) {
+        setOrderError(
+          `Cart quantity for ${selectedProduct.title} cannot exceed available stock.`,
+        );
+        return currentItems;
+      }
+
+      return currentItems.map((item) =>
+        item.productId === selectedProduct.id
+          ? {
+              ...item,
+              quantity: combinedQuantity,
+            }
+          : item,
+      );
+    });
+
+    setOrderError("");
+    setOrderMessage(`${selectedProduct.title} added to cart.`);
+  }
+
+  function updateCartItemQuantity(productId, quantity) {
+    const product = products.find((currentProduct) => currentProduct.id === productId);
+
+    if (!product) {
+      return;
+    }
+
+    const minimumOrderQuantity = normalizeMinimumOrderQuantity(product.minimumOrderQuantity);
+    const nextQuantity = Number.parseInt(String(quantity || ""), 10);
+
+    if (!Number.isInteger(nextQuantity)) {
+      return;
+    }
+
+    if (nextQuantity < minimumOrderQuantity) {
+      setOrderError(
+        `Minimum order quantity for ${product.title} is ${minimumOrderQuantity}.`,
+      );
+      return;
+    }
+
+    if (nextQuantity > Number(product.stockAmount || 0)) {
+      setOrderError(`Maximum stock for ${product.title} is ${product.stockAmount}.`);
+      return;
+    }
+
+    setCartItems((currentItems) =>
+      currentItems.map((item) =>
+        item.productId === productId
+          ? {
+              ...item,
+              quantity: nextQuantity,
+            }
+          : item,
+      ),
+    );
+    setOrderError("");
+  }
+
+  function removeCartItem(productId) {
+    setCartItems((currentItems) => currentItems.filter((item) => item.productId !== productId));
+  }
+
+  function clearCart() {
+    setCartItems([]);
+  }
+
   async function submitOrder(event) {
     event.preventDefault();
 
-    if (!selectedProduct) {
-      setOrderError("Please select a product first.");
+    if (cartItems.length === 0) {
+      setOrderError("Your cart is empty. Add at least one product before checkout.");
       return;
     }
 
@@ -565,8 +714,7 @@ export default function ProductsPage() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          productId: selectedProduct.id,
-          quantity: orderForm.quantity,
+          items: cartItems,
           locationText: orderForm.locationText,
           googleMapsLocation: orderForm.googleMapsLocation,
           pudoLockerCode: orderForm.pudoLockerCode,
@@ -576,8 +724,13 @@ export default function ProductsPage() {
       });
 
       const data = await readJsonResponse(response, "Could not place order.");
-      setOrderMessage(data.message || "Order placed successfully.");
+      setOrderMessage(
+        `${
+          data.message || "Order placed successfully."
+        } Please send proof of payment so we can organize delivery.`,
+      );
       setOrderForm(buildInitialOrderForm(selectedProductMinimumOrderQuantity));
+      clearCart();
       setPudoLockers([]);
       setPudoMessage("");
       setPudoStatus("idle");
@@ -896,7 +1049,7 @@ export default function ProductsPage() {
                                   disabled={isOutOfStock}
                                   className="mt-4 w-full border border-white/12 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-45"
                                 >
-                                  {isOutOfStock ? "Out of stock" : "Place Order"}
+                                  {isOutOfStock ? "Out of stock" : "Add to cart"}
                                 </button>
                               </div>
                             </article>
@@ -934,7 +1087,8 @@ export default function ProductsPage() {
                   className="mt-4 max-w-2xl text-base leading-7 text-white/58"
                   style={{ fontFamily: '"Alegreya", Georgia, serif' }}
                 >
-                  Confirm your quantity, pin your location, then choose the closest PUDO locker.
+                  Add products to cart, confirm delivery location, then place the order. Proof of
+                  payment must be sent before we organize delivery.
                 </p>
               </div>
 
@@ -1079,6 +1233,94 @@ export default function ProductsPage() {
                     </span>
                   </label>
 
+                  <button
+                    type="button"
+                    onClick={addSelectedProductToCart}
+                    disabled={!selectedProduct || orderStatus === "saving"}
+                    className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Add Selected Product To Cart
+                  </button>
+
+                  <div className="border border-white/10 bg-black p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                        Cart
+                      </span>
+                      {cartItems.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={clearCart}
+                          className="text-[10px] uppercase tracking-[0.18em] text-white/65 underline-offset-4 hover:text-white hover:underline"
+                        >
+                          Clear cart
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {cartLines.length === 0 ? (
+                      <p className="mt-3 text-sm text-white/55">No products in cart yet.</p>
+                    ) : (
+                      <div className="mt-3 grid gap-3">
+                        {cartLines.map((line) => {
+                          const minQty = normalizeMinimumOrderQuantity(
+                            line.product.minimumOrderQuantity,
+                          );
+                          const maxQty = Math.max(minQty, Number(line.product.stockAmount || 0));
+
+                          return (
+                            <div
+                              key={`cart-${line.productId}`}
+                              className="grid gap-2 border border-white/10 bg-[#101011] p-3"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-sm font-semibold text-white">
+                                    {line.product.title}
+                                  </div>
+                                  <div className="text-xs text-white/55">
+                                    {formatPrice(line.unitPrice)} each
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeCartItem(line.productId)}
+                                  className="text-[10px] uppercase tracking-[0.16em] text-red-200/80 underline-offset-4 hover:text-red-100 hover:underline"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="number"
+                                  min={minQty}
+                                  max={maxQty}
+                                  step="1"
+                                  value={line.quantity}
+                                  onChange={(event) =>
+                                    updateCartItemQuantity(line.productId, event.target.value)
+                                  }
+                                  className="w-24 border border-white/10 bg-black px-3 py-2 text-sm text-white outline-none transition focus:border-white/45"
+                                />
+                                <span className="text-xs text-white/50">
+                                  Line total: {formatPrice(line.unitPrice * line.quantity)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-sm text-white/75">
+                          <span>{cartTotalQuantity} items</span>
+                          <span className="font-semibold text-white">
+                            Total: {formatPrice(cartTotalPrice)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <label className="grid gap-2 text-sm text-white/70">
                     <span className="text-xs uppercase tracking-[0.2em] text-white/50">
                       Location Text
@@ -1213,12 +1455,17 @@ export default function ProductsPage() {
                     </div>
                   ) : null}
 
+                  <div className="border border-amber-300/30 bg-amber-950/20 p-4 text-sm text-amber-100">
+                    Important: send your proof of payment after placing the order. Delivery is
+                    only organized once payment proof has been received and confirmed.
+                  </div>
+
                   <button
                     type="submit"
                     disabled={orderStatus === "saving"}
                     className="border border-white bg-white px-6 py-4 text-center text-sm uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                   >
-                    {orderStatus === "saving" ? "Placing Order..." : "Confirm Place Order"}
+                    {orderStatus === "saving" ? "Placing Order..." : "Place Cart Order"}
                   </button>
                 </form>
               </div>

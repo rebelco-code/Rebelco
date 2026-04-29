@@ -720,6 +720,41 @@ export default function AdminaPage() {
     }
   }
 
+  async function setDeliveryOrganized(orderId, deliveryOrganized) {
+    if (orderActionStatus) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setOrderActionStatus(orderId);
+
+    try {
+      const data = await fetchJsonWithRetry(
+        `/api/admin/orders?id=${encodeURIComponent(orderId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            id: orderId,
+            action: "set-delivery-organized",
+            deliveryOrganized,
+          }),
+        },
+        "Order could not be updated.",
+      );
+
+      setOrders(data.orders || []);
+      setMessage("Order delivery status updated.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setOrderActionStatus("");
+    }
+  }
+
   async function lookupPudoLockers(order) {
     const orderId = String(order?.id || "").trim();
 
@@ -1674,7 +1709,8 @@ export default function AdminaPage() {
                     </h2>
 
                     <p className="mt-2 text-sm leading-6 text-white/50">
-                      Customer orders with quantity, location, and proof-of-payment status.
+                      Customer orders with quantity, location, proof-of-payment, and delivery
+                      organization status.
                     </p>
                   </div>
 
@@ -1705,7 +1741,7 @@ export default function AdminaPage() {
                           <th className="px-4 py-3 font-semibold">Location (Text)</th>
                           <th className="px-4 py-3 font-semibold">Google Maps Location</th>
                           <th className="px-4 py-3 font-semibold">PUDO Lockers</th>
-                          <th className="px-4 py-3 font-semibold">Proof Received</th>
+                          <th className="px-4 py-3 font-semibold">Payment & Delivery</th>
                         </tr>
                       </thead>
 
@@ -1896,24 +1932,51 @@ export default function AdminaPage() {
                               </td>
 
                               <td className="px-4 py-4">
-                                <label className="flex items-center gap-3 text-xs uppercase tracking-[0.14em] text-white/70">
-                                  <input
-                                    type="checkbox"
-                                    checked={Boolean(order.proofOfPaymentReceived)}
-                                    onChange={(event) =>
-                                      setProofOfPaymentReceived(order.id, event.target.checked)
-                                    }
-                                    disabled={isBusy}
-                                    className="h-4 w-4 cursor-pointer rounded border border-white/20 bg-black"
-                                  />
-                                  <span>
-                                    {isCurrentBusy
-                                      ? "Saving..."
-                                      : order.proofOfPaymentReceived
-                                        ? "Received"
-                                        : "Not received"}
-                                  </span>
-                                </label>
+                                <div className="min-w-[220px] space-y-2">
+                                  <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs">
+                                    <label className="flex items-center gap-3 uppercase tracking-[0.14em] text-white/70">
+                                      <input
+                                        type="checkbox"
+                                        checked={Boolean(order.proofOfPaymentReceived)}
+                                        onChange={(event) =>
+                                          setProofOfPaymentReceived(order.id, event.target.checked)
+                                        }
+                                        disabled={isBusy}
+                                        className="h-4 w-4 cursor-pointer rounded border border-white/20 bg-black"
+                                      />
+                                      <span>
+                                        {isCurrentBusy
+                                          ? "Saving..."
+                                          : order.proofOfPaymentReceived
+                                            ? "Proof received"
+                                            : "Awaiting proof"}
+                                      </span>
+                                    </label>
+                                  </div>
+
+                                  <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs">
+                                    <label className="flex items-center gap-3 uppercase tracking-[0.14em] text-white/70">
+                                      <input
+                                        type="checkbox"
+                                        checked={Boolean(order.deliveryOrganized)}
+                                        onChange={(event) =>
+                                          setDeliveryOrganized(order.id, event.target.checked)
+                                        }
+                                        disabled={isBusy || !order.proofOfPaymentReceived}
+                                        className="h-4 w-4 cursor-pointer rounded border border-white/20 bg-black"
+                                      />
+                                      <span>
+                                        {isCurrentBusy
+                                          ? "Saving..."
+                                          : order.deliveryOrganized
+                                            ? "Delivery organized"
+                                            : order.proofOfPaymentReceived
+                                              ? "Ready to organize"
+                                              : "Locked until proof"}
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
                               </td>
                             </tr>
                           );

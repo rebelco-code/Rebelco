@@ -128,6 +128,7 @@ function normalizeOrder(order) {
     pudoLockerName: cleanText(order.pudoLockerName, MAX_PUDO_NAME_LENGTH),
     pudoLockerAddress: cleanText(order.pudoLockerAddress, MAX_PUDO_ADDRESS_LENGTH),
     proofOfPaymentReceived: Boolean(order.proofOfPaymentReceived),
+    deliveryOrganized: Boolean(order.deliveryOrganized),
     createdAt: String(order.createdAt || ""),
     updatedAt: String(order.updatedAt || ""),
   };
@@ -297,6 +298,7 @@ export async function createOrder(product, payload) {
     pudoLockerName: payload.pudoLockerName,
     pudoLockerAddress: payload.pudoLockerAddress,
     proofOfPaymentReceived: false,
+    deliveryOrganized: false,
     createdAt: now,
     updatedAt: now,
   });
@@ -349,6 +351,57 @@ export async function updateOrderProofOfPayment(orderId, proofOfPaymentReceived)
       updatedOrder = normalizeOrder({
         ...order,
         proofOfPaymentReceived: proofValue,
+        deliveryOrganized: proofValue ? Boolean(order.deliveryOrganized) : false,
+        updatedAt: now,
+      });
+
+      return updatedOrder;
+    });
+
+    if (!updatedOrder) {
+      throw new HttpError(404, "Order was not found.");
+    }
+
+    return {
+      order: updatedOrder,
+      orders: updatedOrders,
+    };
+  });
+
+  return {
+    order: result.order,
+    orders: result.orders,
+  };
+}
+
+export async function updateOrderDeliveryOrganized(orderId, deliveryOrganized) {
+  const id = String(orderId || "").trim();
+
+  if (!id) {
+    throw new HttpError(400, "Order ID is required.");
+  }
+
+  const deliveryValue = parseBoolean(deliveryOrganized, "deliveryOrganized");
+  const now = new Date().toISOString();
+
+  const result = await mutateOrdersWithRetry((orders) => {
+    let updatedOrder = null;
+
+    const updatedOrders = orders.map((order) => {
+      if (order.id !== id) {
+        return order;
+      }
+
+      if (deliveryValue && !order.proofOfPaymentReceived) {
+        throw new HttpError(
+          400,
+          "Delivery can only be organized after proof of payment is received.",
+        );
+      }
+
+      updatedOrder = normalizeOrder({
+        ...order,
+        deliveryOrganized: deliveryValue,
         updatedAt: now,
       });
 

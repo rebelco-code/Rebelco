@@ -1,6 +1,10 @@
 import { requireAdminSession } from "../_utils/adminAuth.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
-import { readOrders, removePaidOrders, updateOrderProofOfPayment } from "../_utils/ordersStore.js";
+import {
+  readOrders,
+  updateOrderDeliveryOrganized,
+  updateOrderProofOfPayment,
+} from "../_utils/ordersStore.js";
 
 function getOrderId(request) {
   const requestUrl = new URL(request.url, `https://${request.headers.host || "localhost"}`);
@@ -35,15 +39,13 @@ export default async function handler(request, response) {
       let orders = [];
 
       try {
-        const cleanupResult = await removePaidOrders();
-        orders = cleanupResult.orders;
+        orders = await readOrders();
       } catch (error) {
         if (!isBlobEtagConflict(error)) {
           throw error;
         }
 
-        const latestOrders = await readOrders();
-        orders = latestOrders.filter((order) => !order.proofOfPaymentReceived);
+        orders = await readOrders();
       }
 
       sendJson(response, 200, { orders });
@@ -52,9 +54,18 @@ export default async function handler(request, response) {
 
     const body = await readJsonBody(request);
     const orderId = body.id || getOrderId(request);
-    const proofOfPaymentReceived =
-      body.proofOfPaymentReceived ?? body.hasProofOfPayment ?? body.proofReceived;
-    const result = await updateOrderProofOfPayment(orderId, proofOfPaymentReceived);
+    const action = String(body.action || "").trim().toLowerCase();
+    let result;
+
+    if (action === "set-delivery-organized") {
+      const deliveryOrganized =
+        body.deliveryOrganized ?? body.isDeliveryOrganized ?? body.deliveryReady;
+      result = await updateOrderDeliveryOrganized(orderId, deliveryOrganized);
+    } else {
+      const proofOfPaymentReceived =
+        body.proofOfPaymentReceived ?? body.hasProofOfPayment ?? body.proofReceived;
+      result = await updateOrderProofOfPayment(orderId, proofOfPaymentReceived);
+    }
 
     sendJson(response, 200, result);
   } catch (error) {
