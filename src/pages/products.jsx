@@ -748,6 +748,18 @@ export default function ProductsPage() {
     setCartItems([]);
   }
 
+  function openBasket() {
+    if (!selectedProduct && products.length > 0) {
+      selectProductForOrder(products[0].id);
+      return;
+    }
+
+    orderSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   async function submitOrder(event) {
     event.preventDefault();
 
@@ -884,12 +896,7 @@ export default function ProductsPage() {
                 {cartTotalQuantity > 0 ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      orderSectionRef.current?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                    }}
+                    onClick={openBasket}
                     className="border border-white/20 bg-black px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:border-white/45 hover:bg-[#111213]"
                   >
                     View Cart ({cartTotalQuantity})
@@ -1608,20 +1615,30 @@ export default function ProductsPage() {
             </section>
           ) : null}
 
-          {cartTotalQuantity > 0 ? (
-            <button
-              type="button"
-              onClick={() => {
-                orderSectionRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                });
-              }}
-              className="fixed bottom-5 right-5 z-40 border border-white/20 bg-black/95 px-4 py-3 text-xs uppercase tracking-[0.2em] text-white shadow-lg shadow-black/40 transition hover:border-white/50 hover:bg-[#111213]"
+          <button
+            type="button"
+            onClick={openBasket}
+            aria-label="View basket"
+            className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/95 text-white shadow-lg shadow-black/40 transition hover:border-white/50 hover:bg-[#111213]"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              View Cart ({cartTotalQuantity})
-            </button>
-          ) : null}
+              <circle cx="9" cy="20" r="1.2" />
+              <circle cx="17" cy="20" r="1.2" />
+              <path d="M3 4h2l2.3 10.2a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 8H7" />
+            </svg>
+            <span className="absolute -right-1.5 -top-1.5 min-w-[1.25rem] rounded-full border border-white/20 bg-white px-1 py-0.5 text-center text-[10px] font-semibold leading-none text-black">
+              {cartTotalQuantity}
+            </span>
+          </button>
 
           <div className="mt-14">
             <Footer />
