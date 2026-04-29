@@ -421,3 +421,18 @@ export async function findNearbyPudoLockers(context) {
       : "PUDO lockers were fetched, but none had usable latitude/longitude coordinates.",
   };
 }
+
+export async function runPudoHealthCheck() {
+  const result = await fetchPudoLockers();
+  const ok = Array.isArray(result.lockers) && result.lockers.length > 0;
+
+  return {
+    provider: "api-pudo",
+    ok,
+    lockerCount: ok ? result.lockers.length : 0,
+    diagnostics: result.diagnostics,
+    message: ok
+      ? "PUDO provider reachable and locker data returned."
+      : "PUDO provider check failed. Review diagnostics for the failing attempt details.",
+  };
+}
