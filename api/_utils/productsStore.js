@@ -543,3 +543,45 @@ export async function setProductOutOfStock(productId) {
     products: result.products,
   };
 }
+
+export async function updateProductStock(productId, stockAmountValue) {
+  const id = String(productId || "").trim();
+
+  if (!id) {
+    throw new HttpError(400, "Product ID is required.");
+  }
+
+  const stockAmount = parseStockAmount(stockAmountValue);
+  const now = new Date().toISOString();
+  const result = await mutateProductsWithRetry((products) => {
+    let updatedProduct = null;
+
+    const updatedProducts = products.map((product) => {
+      if (product.id !== id) {
+        return product;
+      }
+
+      updatedProduct = normalizeProduct({
+        ...product,
+        stockAmount,
+        updatedAt: now,
+      });
+
+      return updatedProduct;
+    });
+
+    if (!updatedProduct) {
+      throw new HttpError(404, "Product was not found.");
+    }
+
+    return {
+      product: updatedProduct,
+      products: updatedProducts,
+    };
+  });
+
+  return {
+    product: result.product,
+    products: result.products,
+  };
+}

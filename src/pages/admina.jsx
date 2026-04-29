@@ -165,6 +165,7 @@ export default function AdminaPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [openCategories, setOpenCategories] = useState({});
   const [productActionStatus, setProductActionStatus] = useState("");
+  const [stockUpdateByProduct, setStockUpdateByProduct] = useState({});
   const [orderActionStatus, setOrderActionStatus] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -679,6 +680,61 @@ export default function AdminaPage() {
 
       setProducts(data.products || []);
       setMessage("Product removed.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setProductActionStatus("");
+    }
+  }
+
+  function updateStockInput(productId, value) {
+    setStockUpdateByProduct((current) => ({
+      ...current,
+      [productId]: value,
+    }));
+  }
+
+  async function updateProductStockAmount(productId) {
+    if (productActionStatus) {
+      return;
+    }
+
+    const enteredValue = stockUpdateByProduct[productId];
+    const stockAmount = String(enteredValue ?? "").trim();
+
+    if (!stockAmount) {
+      setError("Enter a stock amount before saving.");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setProductActionStatus(productId);
+
+    try {
+      const data = await fetchJsonWithRetry(
+        `/api/admin/products?id=${encodeURIComponent(productId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            id: productId,
+            action: "set-stock-amount",
+            stockAmount,
+          }),
+        },
+        "Product stock could not be updated.",
+      );
+
+      setProducts(data.products || []);
+      setStockUpdateByProduct((current) => {
+        const next = { ...current };
+        delete next[productId];
+        return next;
+      });
+      setMessage("Product stock updated.");
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -1511,6 +1567,10 @@ export default function AdminaPage() {
                                   const isOutOfStock = Number(product.stockAmount) <= 0;
                                   const isBusy = Boolean(productActionStatus);
                                   const isCurrentBusy = productActionStatus === product.id;
+                                  const stockDraftValue = String(
+                                    stockUpdateByProduct[product.id] ??
+                                      Math.max(0, Number(product.stockAmount) || 0),
+                                  );
                                   const colors = getProductList(product.colors);
                                   const scents = getProductList(product.scents);
                                   const discountAmount = Number(
@@ -1652,6 +1712,33 @@ export default function AdminaPage() {
                                             ) : null}
                                           </div>
                                         ) : null}
+
+                                        <div className="mt-3 grid gap-2 border-t border-white/10 pt-3">
+                                          <div className="text-[10px] uppercase tracking-[0.16em] text-white/45">
+                                            Update Stock
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              step="1"
+                                              value={stockDraftValue}
+                                              onChange={(event) =>
+                                                updateStockInput(product.id, event.target.value)
+                                              }
+                                              disabled={isBusy}
+                                              className="w-24 rounded-full border border-white/10 bg-black px-3 py-1.5 text-xs text-white outline-none transition focus:border-white/45 disabled:cursor-not-allowed disabled:opacity-50"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => updateProductStockAmount(product.id)}
+                                              disabled={isBusy}
+                                              className="rounded-full border border-emerald-300/25 bg-emerald-950/20 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-emerald-100/80 transition hover:border-emerald-200/55 hover:text-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                            >
+                                              {isCurrentBusy ? "Saving..." : "Save stock"}
+                                            </button>
+                                          </div>
+                                        </div>
 
                                         <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5 border-t border-white/10 pt-3">
                                           <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-white/50">

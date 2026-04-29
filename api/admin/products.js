@@ -8,6 +8,7 @@ import {
   MAX_IMAGE_SIZE_BYTES,
   readProducts,
   setProductOutOfStock,
+  updateProductStock,
 } from "../_utils/productsStore.js";
 
 const MAX_PRODUCT_IMAGES = 6;
@@ -123,12 +124,15 @@ export default async function handler(request, response) {
     if (request.method === "PATCH") {
       const body = await readJsonBody(request);
       const productId = body.id || getProductId(request);
+      let result;
 
-      if (body.action !== "set-out-of-stock") {
+      if (body.action === "set-out-of-stock") {
+        result = await setProductOutOfStock(productId);
+      } else if (body.action === "set-stock-amount") {
+        result = await updateProductStock(productId, body.stockAmount);
+      } else {
         throw new HttpError(400, "Unsupported product action.");
       }
-
-      const result = await setProductOutOfStock(productId);
 
       sendJson(response, 200, result);
       return;
