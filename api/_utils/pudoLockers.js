@@ -5,7 +5,7 @@ const MAX_LIMIT = 12;
 const REQUEST_TIMEOUT_MS = 3_500;
 const MAX_PROVIDER_ATTEMPTS = 5;
 const MAX_PROVIDER_LOOKUP_MS = 12_000;
-const LOCKERS_DATA_URL = "https://www.api-pudo.co.za/api/v1/lockers-data";
+const DEFAULT_PUDO_API_BASE_URL = "https://api-sandbox.pudo.co.za";
 
 function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
@@ -18,6 +18,26 @@ function maskSecret(value) {
   if (text.length <= 8) return `present(length=${text.length})`;
 
   return `present(length=${text.length}, preview=${text.slice(0, 4)}...${text.slice(-4)})`;
+}
+
+function getPudoApiBaseUrl() {
+  const configuredBaseUrl = String(process.env.PUDO_API_BASE_URL || "").trim();
+  const baseUrl = configuredBaseUrl || DEFAULT_PUDO_API_BASE_URL;
+  return baseUrl.replace(/\/+$/, "");
+}
+
+function getLockerDataUrls(apiBaseUrl) {
+  const cleanedBaseUrl = apiBaseUrl.replace(/\/+$/, "");
+  const urls = [];
+
+  if (cleanedBaseUrl.endsWith("/api/v1")) {
+    urls.push(`${cleanedBaseUrl}/lockers-data`);
+  } else {
+    urls.push(`${cleanedBaseUrl}/lockers-data`);
+    urls.push(`${cleanedBaseUrl}/api/v1/lockers-data`);
+  }
+
+  return Array.from(new Set(urls));
 }
 
 function parseNumber(value, min, max, fieldName) {
@@ -138,6 +158,10 @@ async function fetchJsonAttempt(attempt) {
       arrayPayload,
     };
   } catch (error) {
+    const errorSummary = error?.cause?.message
+      ? `${error?.message || "Network request failed."} | ${error.cause.message}`
+      : error?.message || "Network request failed.";
+
     return {
       label: attempt.label,
       ok: false,
@@ -152,7 +176,7 @@ async function fetchJsonAttempt(attempt) {
       responseAllowedMethods: "",
       parsedShape: "error",
       arrayLength: null,
-      bodyPreview: cleanText(error?.message || "Network request failed.", 500),
+      bodyPreview: cleanText(errorSummary, 500),
       arrayPayload: null,
     };
   } finally {
@@ -163,38 +187,41 @@ async function fetchJsonAttempt(attempt) {
 async function fetchPudoLockers() {
   const apiKey = String(process.env.PUDO_API_KEY || "").trim();
   const bearerToken = String(process.env.PUDO_BEARER_TOKEN || process.env.PUDO_API_TOKEN || "").trim();
+  const apiBaseUrl = getPudoApiBaseUrl();
+  const lockerDataUrls = getLockerDataUrls(apiBaseUrl);
 
   console.warn("[pudo-lockers] auth env check", {
+    PUDO_API_BASE_URL: apiBaseUrl,
     PUDO_API_KEY: maskSecret(apiKey),
     PUDO_BEARER_TOKEN_or_PUDO_API_TOKEN: maskSecret(bearerToken),
   });
 
-  const attempts = [
+  const attempts = lockerDataUrls.flatMap((lockerDataUrl) => [
     {
       label: "lockers-no-auth",
-      url: LOCKERS_DATA_URL,
+      url: lockerDataUrl,
       headers: {},
     },
     ...(apiKey
       ? [
           {
             label: "lockers-header-x-pudo-key",
-            url: LOCKERS_DATA_URL,
+            url: lockerDataUrl,
             headers: { "x-pudo-key": apiKey },
           },
           {
             label: "lockers-header-x-api-key",
-            url: LOCKERS_DATA_URL,
+            url: lockerDataUrl,
             headers: { "x-api-key": apiKey },
           },
           {
             label: "lockers-header-api-key",
-            url: LOCKERS_DATA_URL,
+            url: lockerDataUrl,
             headers: { "api-key": apiKey },
           },
           {
             label: "lockers-query-api-key",
-            url: `${LOCKERS_DATA_URL}?api_key=${encodeURIComponent(apiKey)}`,
+            url: `${lockerDataUrl}?api_key=${encodeURIComponent(apiKey)}`,
             headers: {},
           },
         ]
@@ -203,17 +230,17 @@ async function fetchPudoLockers() {
       ? [
           {
             label: "lockers-auth-bearer-token",
-            url: LOCKERS_DATA_URL,
+            url: lockerDataUrl,
             headers: { Authorization: `Bearer ${bearerToken}` },
           },
           {
             label: "lockers-query-token",
-            url: `${LOCKERS_DATA_URL}?token=${encodeURIComponent(bearerToken)}`,
+            url: `${lockerDataUrl}?token=${encodeURIComponent(bearerToken)}`,
             headers: {},
           },
         ]
       : []),
-  ];
+  ]);
 
   const diagnostics = [];
   const startedAt = Date.now();
