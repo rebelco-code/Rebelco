@@ -388,8 +388,12 @@ async function mutateProductsWithRetry(mutationHandler) {
         products: persistedProducts,
       };
     } catch (error) {
-      if (!isWriteConflict(error) || attempt === MAX_CATALOG_WRITE_RETRIES) {
+      if (!isWriteConflict(error)) {
         throw error;
+      }
+
+      if (attempt === MAX_CATALOG_WRITE_RETRIES) {
+        break;
       }
 
       attempt += 1;
@@ -397,7 +401,14 @@ async function mutateProductsWithRetry(mutationHandler) {
     }
   }
 
-  throw new HttpError(409, "Catalog update conflict. Please try again.");
+  const fallbackSnapshot = await readCatalogSnapshot();
+  const fallbackMutationResult = mutationHandler(fallbackSnapshot.products);
+  const persistedProducts = await writeProducts(fallbackMutationResult.products);
+
+  return {
+    ...fallbackMutationResult,
+    products: persistedProducts,
+  };
 }
 
 export async function createProduct(fields, images) {
