@@ -36,36 +36,6 @@ function isUrl(value) {
   }
 }
 
-function extractGoogleMapsQuery(value) {
-  const trimmedValue = String(value || "").trim();
-
-  if (!trimmedValue) {
-    return "";
-  }
-
-  if (!isUrl(trimmedValue)) {
-    return trimmedValue;
-  }
-
-  try {
-    const parsedUrl = new URL(trimmedValue);
-    const queryValue = parsedUrl.searchParams.get("q") || parsedUrl.searchParams.get("query");
-
-    if (queryValue) {
-      return queryValue;
-    }
-
-    if (parsedUrl.pathname.includes("/place/")) {
-      const pathAfterPlace = parsedUrl.pathname.split("/place/")[1] || "";
-      return decodeURIComponent(pathAfterPlace.split("/")[0]).replace(/\+/g, " ");
-    }
-  } catch {
-    return trimmedValue;
-  }
-
-  return trimmedValue;
-}
-
 function buildGoogleMapsSearchUrl(value) {
   const trimmedValue = String(value || "").trim();
 
@@ -79,17 +49,6 @@ function buildGoogleMapsSearchUrl(value) {
 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedValue)}`;
 }
-
-function buildGoogleMapsEmbedUrl(value) {
-  const locationQuery = extractGoogleMapsQuery(value);
-
-  if (!locationQuery) {
-    return "";
-  }
-
-  return `https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&output=embed`;
-}
-
 function parseLatLngText(value) {
   const match = String(value || "")
     .trim()
@@ -201,11 +160,6 @@ export default function ProductsPage() {
 
   const googleMapsSearchUrl = useMemo(
     () => buildGoogleMapsSearchUrl(orderForm.googleMapsLocation),
-    [orderForm.googleMapsLocation],
-  );
-
-  const googleMapsEmbedUrl = useMemo(
-    () => buildGoogleMapsEmbedUrl(orderForm.googleMapsLocation),
     [orderForm.googleMapsLocation],
   );
 
@@ -856,21 +810,6 @@ export default function ProductsPage() {
                       </a>
                     ) : null}
                   </div>
-
-                  {googleMapsEmbedUrl ? (
-                    <div className="border border-white/10 bg-black p-2">
-                      <iframe
-                        title="Selected Google Maps location"
-                        src={googleMapsEmbedUrl}
-                        className="h-56 w-full border-0"
-                        loading="lazy"
-                      />
-                    </div>
-                  ) : (
-                    <div className="border border-white/10 bg-black/40 p-4 text-sm text-white/50">
-                      Add a Google Maps location to preview it here.
-                    </div>
-                  )}
 
                   <button
                     type="submit"
