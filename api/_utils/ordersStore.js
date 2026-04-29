@@ -4,7 +4,7 @@ import { HttpError } from "./errors.js";
 const ORDERS_PATH = "products/orders.json";
 const MAX_LOCATION_TEXT_LENGTH = 320;
 const MAX_MAP_LOCATION_LENGTH = 400;
-const MAX_ORDERS_WRITE_RETRIES = 4;
+const MAX_ORDERS_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
 
 function getBlobToken() {
@@ -41,13 +41,41 @@ function wait(delayMs) {
   });
 }
 
+function stringifyErrorField(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
 function isWriteConflict(error) {
   if (error instanceof BlobPreconditionFailedError) {
     return true;
   }
 
-  const statusCode = Number(error?.statusCode || error?.status);
-  return statusCode === 412;
+  const statusCode = Number(error?.statusCode || error?.status || error?.response?.status);
+
+  if (statusCode === 412) {
+    return true;
+  }
+
+  const errorName = stringifyErrorField(error?.name);
+  const errorCode = stringifyErrorField(error?.code);
+  const errorMessage = stringifyErrorField(error?.message);
+  const hintText = `${errorName} ${errorCode} ${errorMessage}`;
+
+  if (hintText.includes("blobpreconditionfailederror")) {
+    return true;
+  }
+
+  if (hintText.includes("precondition failed") || hintText.includes("etag mismatch")) {
+    return true;
+  }
+
+  if (error?.cause && error !== error.cause) {
+    return isWriteConflict(error.cause);
+  }
+
+  return false;
 }
 
 function buildLegacyCoordinateLocation(order) {
@@ -199,7 +227,7 @@ async function mutateOrdersWithRetry(mutationHandler) {
       }
 
       attempt += 1;
-      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt);
+      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt + Math.floor(Math.random() * 80));
     }
   }
 
@@ -352,7 +380,7 @@ export async function removePaidOrders() {
       }
 
       attempt += 1;
-      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt);
+      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt + Math.floor(Math.random() * 80));
     }
   }
 

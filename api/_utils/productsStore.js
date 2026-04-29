@@ -5,7 +5,7 @@ const CATALOG_PATH = "products/catalog.json";
 const IMAGE_PREFIX = "products/images";
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_CATALOG_WRITE_RETRIES = 4;
+const MAX_CATALOG_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
 
 export { MAX_IMAGE_SIZE_BYTES };
@@ -76,13 +76,41 @@ function wait(delayMs) {
   });
 }
 
+function stringifyErrorField(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
 function isWriteConflict(error) {
   if (error instanceof BlobPreconditionFailedError) {
     return true;
   }
 
-  const statusCode = Number(error?.statusCode || error?.status);
-  return statusCode === 412;
+  const statusCode = Number(error?.statusCode || error?.status || error?.response?.status);
+
+  if (statusCode === 412) {
+    return true;
+  }
+
+  const errorName = stringifyErrorField(error?.name);
+  const errorCode = stringifyErrorField(error?.code);
+  const errorMessage = stringifyErrorField(error?.message);
+  const hintText = `${errorName} ${errorCode} ${errorMessage}`;
+
+  if (hintText.includes("blobpreconditionfailederror")) {
+    return true;
+  }
+
+  if (hintText.includes("precondition failed") || hintText.includes("etag mismatch")) {
+    return true;
+  }
+
+  if (error?.cause && error !== error.cause) {
+    return isWriteConflict(error.cause);
+  }
+
+  return false;
 }
 
 function normalizeProduct(product) {
@@ -280,7 +308,7 @@ async function mutateProductsWithRetry(mutationHandler) {
       }
 
       attempt += 1;
-      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt);
+      await wait(WRITE_RETRY_BASE_DELAY_MS * attempt + Math.floor(Math.random() * 80));
     }
   }
 
