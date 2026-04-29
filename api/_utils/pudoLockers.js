@@ -55,11 +55,7 @@ export function parsePudoQueryParams(request) {
     throw new HttpError(400, "Customer coordinates are required.");
   }
 
-  return {
-    lat,
-    lng,
-    limit,
-  };
+  return { lat, lng, limit };
 }
 
 function parseJsonSafe(rawValue) {
@@ -74,7 +70,35 @@ function parseJsonSafe(rawValue) {
   }
 }
 
-async function fetchJson(url, headers = {}) {
+function extractArrayFromPayload(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+
+  if (Array.isArray(payload?.lockers)) {
+    return payload.lockers;
+  }
+
+  if (Array.isArray(payload?.results)) {
+    return payload.results;
+  }
+
+  if (Array.isArray(payload?.pickup_points)) {
+    return payload.pickup_points;
+  }
+
+  if (Array.isArray(payload?.pickupPoints)) {
+    return payload.pickupPoints;
+  }
+
+  return null;
+}
+
+async function fetchJsonAttempt(url, headers = {}) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => {
     abortController.abort();
@@ -92,14 +116,25 @@ async function fetchJson(url, headers = {}) {
 
     const rawBody = await response.text();
     const parsedBody = parseJsonSafe(rawBody);
+    const arrayPayload = extractArrayFromPayload(parsedBody);
 
-    if (response.ok && parsedBody) {
-      return parsedBody;
-    }
-
-    return null;
-  } catch {
-    return null;
+    return {
+      ok: response.ok,
+      status: response.status,
+      url,
+      parsedBody,
+      arrayPayload,
+      bodyPreview: cleanText(rawBody, 220),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      url,
+      parsedBody: null,
+      arrayPayload: null,
+      bodyPreview: cleanText(error?.message || "Network request failed.", 220),
+    };
   } finally {
     clearTimeout(timeoutId);
   }
@@ -110,22 +145,32 @@ async function fetchPudoLockers() {
 
   const attempts = [
     {
+      label: "www-no-auth",
       url: "https://www.api-pudo.co.za/lockers-data",
       headers: {},
     },
     {
+      label: "root-no-auth",
       url: "https://api-pudo.co.za/lockers-data",
       headers: {},
     },
     {
+      label: "www-api-key-header",
       url: "https://www.api-pudo.co.za/lockers-data",
       headers: apiKey ? { "api-key": apiKey } : {},
     },
     {
+      label: "root-api-key-header",
       url: "https://api-pudo.co.za/lockers-data",
       headers: apiKey ? { "api-key": apiKey } : {},
     },
     {
+      label: "www-x-api-key-header",
+      url: "https://www.api-pudo.co.za/lockers-data",
+      headers: apiKey ? { "x-api-key": apiKey } : {},
+    },
+    {
+      label: "www-query-api-key",
       url: apiKey
         ? `https://www.api-pudo.co.za/lockers-data?api_key=${encodeURIComponent(apiKey)}`
         : "https://www.api-pudo.co.za/lockers-data",
@@ -133,27 +178,27 @@ async function fetchPudoLockers() {
     },
   ];
 
+  const diagnostics = [];
+
   for (const attempt of attempts) {
-    const payload = await fetchJson(attempt.url, attempt.headers);
+    const result = await fetchJsonAttempt(attempt.url, attempt.headers);
 
-    if (Array.isArray(payload)) {
-      return payload;
+    if (result.ok && Array.isArray(result.arrayPayload)) {
+      return {
+        lockers: result.arrayPayload,
+        diagnostics,
+      };
     }
 
-    if (Array.isArray(payload?.data)) {
-      return payload.data;
-    }
-
-    if (Array.isArray(payload?.lockers)) {
-      return payload.lockers;
-    }
-
-    if (Array.isArray(payload?.results)) {
-      return payload.results;
-    }
+    diagnostics.push(
+      `${attempt.label}: HTTP ${result.status}; body: ${result.bodyPreview || "empty"}`,
+    );
   }
 
-  return [];
+  return {
+    lockers: [],
+    diagnostics,
+  };
 }
 
 function pickNumber(...values) {
@@ -218,9 +263,20 @@ function normalizeLocker(rawLocker, context) {
 }
 
 export async function findNearbyPudoLockers(context) {
-  const rawLockers = await fetchPudoLockers();
+  const result = await fetchPudoLockers();
 
-  const lockers = rawLockers
+  if (!result.lockers.length) {
+    console.warn("[pudo-lockers] failed to fetch lockers", result.diagnostics);
+
+    return {
+      provider: "api-pudo",
+      lockers: [],
+      message:
+        "Could not fetch PUDO lockers from the provider. Check Vercel logs for [pudo-lockers] diagnostics.",
+    };
+  }
+
+  const lockers = result.lockers
     .map((locker) => normalizeLocker(locker, context))
     .filter(Boolean)
     .sort((a, b) => a.distanceKm - b.distanceKm)
@@ -229,6 +285,8 @@ export async function findNearbyPudoLockers(context) {
   return {
     provider: "api-pudo",
     lockers,
-    message: lockers.length ? "" : "No nearby PUDO lockers found.",
+    message: lockers.length
+      ? ""
+      : "PUDO lockers were fetched, but none had usable latitude/longitude coordinates.",
   };
 }
