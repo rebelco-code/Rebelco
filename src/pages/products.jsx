@@ -1403,34 +1403,34 @@ export default function ProductsPage() {
                       </div>
                     )}
 
-                    <div className="mt-4 overflow-hidden rounded-xl border border-emerald-300/25 bg-gradient-to-br from-emerald-950/35 via-[#111315] to-black">
-                      <div className="border-b border-emerald-300/25 bg-emerald-900/20 px-4 py-3">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100/85">
+                    <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-[#0b0c0d]">
+                      <div className="border-b border-white/10 bg-black/45 px-4 py-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">
                           Bank Transfer Details
                         </div>
-                        <div className="mt-1 text-xs text-emerald-100/70">
+                        <div className="mt-1 text-xs text-white/55">
                           Use these details for EFT payment.
                         </div>
                       </div>
 
                       <div className="grid gap-2 p-4 sm:grid-cols-2">
-                        <div className="rounded-lg border border-white/10 bg-black/35 p-2.5">
+                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
                           <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">Bank</div>
                           <div className="mt-1 text-sm font-semibold text-white">Capitec</div>
                         </div>
-                        <div className="rounded-lg border border-white/10 bg-black/35 p-2.5">
+                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
                           <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
                             Account Holder
                           </div>
                           <div className="mt-1 text-sm font-semibold text-white">Mrs CM Badenhorst</div>
                         </div>
-                        <div className="rounded-lg border border-white/10 bg-black/35 p-2.5">
+                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
                           <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
                             Account Type
                           </div>
                           <div className="mt-1 text-sm font-semibold text-white">Savings account</div>
                         </div>
-                        <div className="rounded-lg border border-white/10 bg-black/35 p-2.5">
+                        <div className="rounded-lg border border-white/10 bg-black p-2.5">
                           <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
                             Branch Code
                           </div>
@@ -1439,16 +1439,16 @@ export default function ProductsPage() {
                       </div>
 
                       <div className="px-4 pb-4">
-                        <div className="rounded-lg border border-emerald-300/30 bg-emerald-950/25 p-3">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-emerald-100/75">
+                        <div className="rounded-lg border border-white/20 bg-black p-3">
+                          <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">
                             Account Number
                           </div>
-                          <div className="mt-1 text-lg font-semibold tracking-[0.08em] text-emerald-100">
+                          <div className="mt-1 text-lg font-semibold tracking-[0.08em] text-white">
                             1989018740
                           </div>
                         </div>
 
-                        <div className="mt-2 rounded-lg border border-white/10 bg-black/35 p-3 text-xs text-white/75">
+                        <div className="mt-2 rounded-lg border border-white/10 bg-black p-3 text-xs text-white/75">
                           <strong className="text-white">Reference:</strong> Your name / order number
                         </div>
                       </div>
