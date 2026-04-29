@@ -33,8 +33,8 @@ function getLockerDataUrls(apiBaseUrl) {
   if (cleanedBaseUrl.endsWith("/api/v1")) {
     urls.push(`${cleanedBaseUrl}/lockers-data`);
   } else {
-    urls.push(`${cleanedBaseUrl}/lockers-data`);
     urls.push(`${cleanedBaseUrl}/api/v1/lockers-data`);
+    urls.push(`${cleanedBaseUrl}/lockers-data`);
   }
 
   return Array.from(new Set(urls));
@@ -197,35 +197,6 @@ async function fetchPudoLockers() {
   });
 
   const attempts = lockerDataUrls.flatMap((lockerDataUrl) => [
-    {
-      label: "lockers-no-auth",
-      url: lockerDataUrl,
-      headers: {},
-    },
-    ...(apiKey
-      ? [
-          {
-            label: "lockers-header-x-pudo-key",
-            url: lockerDataUrl,
-            headers: { "x-pudo-key": apiKey },
-          },
-          {
-            label: "lockers-header-x-api-key",
-            url: lockerDataUrl,
-            headers: { "x-api-key": apiKey },
-          },
-          {
-            label: "lockers-header-api-key",
-            url: lockerDataUrl,
-            headers: { "api-key": apiKey },
-          },
-          {
-            label: "lockers-query-api-key",
-            url: `${lockerDataUrl}?api_key=${encodeURIComponent(apiKey)}`,
-            headers: {},
-          },
-        ]
-      : []),
     ...(bearerToken
       ? [
           {
@@ -240,6 +211,35 @@ async function fetchPudoLockers() {
           },
         ]
       : []),
+    ...(apiKey
+      ? [
+          {
+            label: "lockers-header-api-key",
+            url: lockerDataUrl,
+            headers: { "api-key": apiKey },
+          },
+          {
+            label: "lockers-header-x-api-key",
+            url: lockerDataUrl,
+            headers: { "x-api-key": apiKey },
+          },
+          {
+            label: "lockers-header-x-pudo-key",
+            url: lockerDataUrl,
+            headers: { "x-pudo-key": apiKey },
+          },
+          {
+            label: "lockers-query-api-key",
+            url: `${lockerDataUrl}?api_key=${encodeURIComponent(apiKey)}`,
+            headers: {},
+          },
+        ]
+      : []),
+    {
+      label: "lockers-no-auth",
+      url: lockerDataUrl,
+      headers: {},
+    },
   ]);
 
   const diagnostics = [];
