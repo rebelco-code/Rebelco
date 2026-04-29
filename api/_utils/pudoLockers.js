@@ -4,14 +4,21 @@ const DEFAULT_LIMIT = 6;
 const MAX_LIMIT = 12;
 const REQUEST_TIMEOUT_MS = 12_000;
 
-function cleanText(value, maxLength = 200) {
+function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function maskSecret(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return "missing";
+  if (text.length <= 8) return `present(length=${text.length})`;
+
+  return `present(length=${text.length}, preview=${text.slice(0, 4)}...${text.slice(-4)})`;
+}
+
 function parseNumber(value, min, max, fieldName) {
-  if (value === null || value === undefined || value === "") {
-    return null;
-  }
+  if (value === null || value === undefined || value === "") return null;
 
   const parsed = Number.parseFloat(String(value));
 
@@ -27,9 +34,7 @@ function parseNumber(value, min, max, fieldName) {
 }
 
 function parseLimit(value) {
-  if (value === null || value === undefined || value === "") {
-    return DEFAULT_LIMIT;
-  }
+  if (value === null || value === undefined || value === "") return DEFAULT_LIMIT;
 
   const parsed = Number.parseInt(String(value), 10);
 
@@ -79,18 +84,31 @@ function extractArrayFromPayload(payload) {
   return null;
 }
 
-async function fetchJsonAttempt(url, headers = {}) {
+function describePayloadShape(payload) {
+  if (payload === null) return "null";
+  if (Array.isArray(payload)) return `array(length=${payload.length})`;
+
+  if (typeof payload === "object") {
+    return `object(keys=${Object.keys(payload).slice(0, 20).join(",")})`;
+  }
+
+  return typeof payload;
+}
+
+async function fetchJsonAttempt(attempt) {
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => {
     abortController.abort();
   }, REQUEST_TIMEOUT_MS);
 
+  const startedAt = Date.now();
+
   try {
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await fetch(attempt.url, {
+      method: attempt.method || "GET",
       headers: {
         Accept: "application/json",
-        ...headers,
+        ...attempt.headers,
       },
       signal: abortController.signal,
     });
@@ -100,17 +118,39 @@ async function fetchJsonAttempt(url, headers = {}) {
     const arrayPayload = extractArrayFromPayload(parsedBody);
 
     return {
+      label: attempt.label,
       ok: response.ok,
       status: response.status,
+      statusText: response.statusText,
+      durationMs: Date.now() - startedAt,
+      url: attempt.url.replace(/([?&](api_key|token|key)=)[^&]+/gi, "$1***"),
+      requestHeaders: Object.keys(attempt.headers || {}),
+      responseContentType: response.headers.get("content-type") || "",
+      responseServer: response.headers.get("server") || "",
+      responseWwwAuthenticate: response.headers.get("www-authenticate") || "",
+      responseAllowedMethods: response.headers.get("allow") || "",
+      parsedShape: describePayloadShape(parsedBody),
+      arrayLength: Array.isArray(arrayPayload) ? arrayPayload.length : null,
+      bodyPreview: cleanText(rawBody, 500),
       arrayPayload,
-      bodyPreview: cleanText(rawBody, 220),
     };
   } catch (error) {
     return {
+      label: attempt.label,
       ok: false,
       status: 0,
+      statusText: "",
+      durationMs: Date.now() - startedAt,
+      url: attempt.url.replace(/([?&](api_key|token|key)=)[^&]+/gi, "$1***"),
+      requestHeaders: Object.keys(attempt.headers || {}),
+      responseContentType: "",
+      responseServer: "",
+      responseWwwAuthenticate: "",
+      responseAllowedMethods: "",
+      parsedShape: "error",
+      arrayLength: null,
+      bodyPreview: cleanText(error?.message || "Network request failed.", 500),
       arrayPayload: null,
-      bodyPreview: cleanText(error?.message || "Network request failed.", 220),
     };
   } finally {
     clearTimeout(timeoutId);
@@ -119,60 +159,61 @@ async function fetchJsonAttempt(url, headers = {}) {
 
 async function fetchPudoLockers() {
   const apiKey = String(process.env.PUDO_API_KEY || "").trim();
+  const bearerToken = String(process.env.PUDO_BEARER_TOKEN || process.env.PUDO_API_TOKEN || "").trim();
+
+  console.warn("[pudo-lockers] auth env check", {
+    PUDO_API_KEY: maskSecret(apiKey),
+    PUDO_BEARER_TOKEN_or_PUDO_API_TOKEN: maskSecret(bearerToken),
+  });
 
   const attempts = [
     {
-      label: "www-v1-no-auth",
+      label: "v1-no-auth",
       url: "https://www.api-pudo.co.za/api/v1/lockers-data",
       headers: {},
     },
     {
-      label: "root-v1-no-auth",
-      url: "https://api-pudo.co.za/api/v1/lockers-data",
-      headers: {},
-    },
-    {
-      label: "www-v1-api-key-header",
+      label: "v1-api-key-header-api-key",
       url: "https://www.api-pudo.co.za/api/v1/lockers-data",
       headers: apiKey ? { "api-key": apiKey } : {},
     },
     {
-      label: "root-v1-api-key-header",
-      url: "https://api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { "api-key": apiKey } : {},
-    },
-    {
-      label: "www-v1-x-api-key-header",
+      label: "v1-api-key-header-x-api-key",
       url: "https://www.api-pudo.co.za/api/v1/lockers-data",
       headers: apiKey ? { "x-api-key": apiKey } : {},
     },
     {
-      label: "root-v1-x-api-key-header",
-      url: "https://api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { "x-api-key": apiKey } : {},
-    },
-    {
-      label: "www-v1-bearer",
+      label: "v1-authorization-bearer-api-key",
       url: "https://www.api-pudo.co.za/api/v1/lockers-data",
       headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
     },
     {
-      label: "root-v1-bearer",
-      url: "https://api-pudo.co.za/api/v1/lockers-data",
-      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+      label: "v1-authorization-bearer-token",
+      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
+      headers: bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {},
     },
     {
-      label: "www-v1-query-api-key",
+      label: "v1-authorization-raw-api-key",
+      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
+      headers: apiKey ? { Authorization: apiKey } : {},
+    },
+    {
+      label: "v1-authorization-raw-token",
+      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
+      headers: bearerToken ? { Authorization: bearerToken } : {},
+    },
+    {
+      label: "v1-query-api-key",
       url: apiKey
         ? `https://www.api-pudo.co.za/api/v1/lockers-data?api_key=${encodeURIComponent(apiKey)}`
         : "https://www.api-pudo.co.za/api/v1/lockers-data",
       headers: {},
     },
     {
-      label: "root-v1-query-api-key",
-      url: apiKey
-        ? `https://api-pudo.co.za/api/v1/lockers-data?api_key=${encodeURIComponent(apiKey)}`
-        : "https://api-pudo.co.za/api/v1/lockers-data",
+      label: "v1-query-token",
+      url: bearerToken
+        ? `https://www.api-pudo.co.za/api/v1/lockers-data?token=${encodeURIComponent(bearerToken)}`
+        : "https://www.api-pudo.co.za/api/v1/lockers-data",
       headers: {},
     },
   ];
@@ -180,18 +221,35 @@ async function fetchPudoLockers() {
   const diagnostics = [];
 
   for (const attempt of attempts) {
-    const result = await fetchJsonAttempt(attempt.url, attempt.headers);
+    const result = await fetchJsonAttempt(attempt);
+
+    diagnostics.push({
+      label: result.label,
+      status: result.status,
+      statusText: result.statusText,
+      durationMs: result.durationMs,
+      url: result.url,
+      requestHeaders: result.requestHeaders,
+      responseContentType: result.responseContentType,
+      responseServer: result.responseServer,
+      responseWwwAuthenticate: result.responseWwwAuthenticate,
+      responseAllowedMethods: result.responseAllowedMethods,
+      parsedShape: result.parsedShape,
+      arrayLength: result.arrayLength,
+      bodyPreview: result.bodyPreview,
+    });
 
     if (result.ok && Array.isArray(result.arrayPayload)) {
+      console.warn("[pudo-lockers] successful provider attempt", {
+        label: result.label,
+        arrayLength: result.arrayPayload.length,
+      });
+
       return {
         lockers: result.arrayPayload,
         diagnostics,
       };
     }
-
-    diagnostics.push(
-      `${attempt.label}: HTTP ${result.status}; body: ${result.bodyPreview || "empty"}`,
-    );
   }
 
   return {
@@ -275,9 +333,18 @@ export async function findNearbyPudoLockers(context) {
     };
   }
 
-  const lockers = result.lockers
+  const normalizedLockers = result.lockers
     .map((locker) => normalizeLocker(locker, context))
-    .filter(Boolean)
+    .filter(Boolean);
+
+  if (!normalizedLockers.length) {
+    console.warn("[pudo-lockers] fetched lockers but none normalized", {
+      rawCount: result.lockers.length,
+      sample: result.lockers.slice(0, 3),
+    });
+  }
+
+  const lockers = normalizedLockers
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, context.limit);
 
