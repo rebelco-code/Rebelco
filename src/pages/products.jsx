@@ -176,6 +176,7 @@ export default function ProductsPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [orderForm, setOrderForm] = useState(() => buildInitialOrderForm());
   const [cartItems, setCartItems] = useState([]);
+  const [isTrolleyOpen, setIsTrolleyOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState("idle");
   const [locationStatus, setLocationStatus] = useState("idle");
   const [pudoStatus, setPudoStatus] = useState("idle");
@@ -758,6 +759,15 @@ export default function ProductsPage() {
       behavior: "smooth",
       block: "start",
     });
+  }
+
+  function toggleTrolley() {
+    setIsTrolleyOpen((current) => !current);
+  }
+
+  function openBasketFromTrolley() {
+    setIsTrolleyOpen(false);
+    openBasket();
   }
 
   async function submitOrder(event) {
@@ -1615,30 +1625,84 @@ export default function ProductsPage() {
             </section>
           ) : null}
 
-          <button
-            type="button"
-            onClick={openBasket}
-            aria-label="View basket"
-            className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/95 text-white shadow-lg shadow-black/40 transition hover:border-white/50 hover:bg-[#111213]"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+          <div className="fixed bottom-5 right-5 z-40">
+            {isTrolleyOpen ? (
+              <div className="mb-3 w-72 rounded-xl border border-white/15 bg-black/95 p-3 text-white shadow-xl shadow-black/60">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs uppercase tracking-[0.16em] text-white/60">Trolley</span>
+                  <span className="text-xs text-white/70">
+                    {cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"}
+                  </span>
+                </div>
+
+                {cartLines.length === 0 ? (
+                  <p className="mt-2 text-xs text-white/55">Your basket is empty.</p>
+                ) : (
+                  <>
+                    <div className="mt-2 grid gap-2">
+                      {cartLines.slice(0, 3).map((line) => (
+                        <div
+                          key={`trolley-${line.productId}`}
+                          className="rounded-lg border border-white/10 bg-[#111213] px-2.5 py-2 text-xs"
+                        >
+                          <div className="font-semibold text-white">{line.product.title}</div>
+                          <div className="mt-0.5 text-white/60">
+                            {line.quantity} x {formatPrice(line.unitPrice)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {cartLines.length > 3 ? (
+                      <div className="mt-2 text-[11px] text-white/50">
+                        +{cartLines.length - 3} more item{cartLines.length - 3 === 1 ? "" : "s"}
+                      </div>
+                    ) : null}
+
+                    <div className="mt-3 rounded-lg border border-white/15 bg-[#111213] px-3 py-2 text-sm">
+                      <div className="flex items-center justify-between text-white/75">
+                        <span>Total</span>
+                        <span className="font-semibold text-white">{formatPrice(cartTotalPrice)}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={openBasketFromTrolley}
+                      className="mt-3 w-full rounded-lg border border-white/20 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-black transition hover:bg-[#e8e8e8]"
+                    >
+                      Open Basket
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={toggleTrolley}
+              aria-label="View trolley"
+              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/95 text-white shadow-lg shadow-black/40 transition hover:border-white/50 hover:bg-[#111213]"
             >
-              <circle cx="9" cy="20" r="1.2" />
-              <circle cx="17" cy="20" r="1.2" />
-              <path d="M3 4h2l2.3 10.2a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 8H7" />
-            </svg>
-            <span className="absolute -right-1.5 -top-1.5 min-w-[1.25rem] rounded-full border border-white/20 bg-white px-1 py-0.5 text-center text-[10px] font-semibold leading-none text-black">
-              {cartTotalQuantity}
-            </span>
-          </button>
+              <svg
+                viewBox="0 0 24 24"
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="9" cy="20" r="1.2" />
+                <circle cx="17" cy="20" r="1.2" />
+                <path d="M3 4h2l2.3 10.2a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 8H7" />
+              </svg>
+              <span className="absolute -right-1.5 -top-1.5 min-w-[1.25rem] rounded-full border border-white/20 bg-white px-1 py-0.5 text-center text-[10px] font-semibold leading-none text-black">
+                {cartTotalQuantity}
+              </span>
+            </button>
+          </div>
 
           <div className="mt-14">
             <Footer />
