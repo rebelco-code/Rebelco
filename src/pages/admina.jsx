@@ -807,8 +807,8 @@ export default function AdminaPage() {
     <div className="min-h-screen overflow-x-hidden bg-[#0f0f10] text-white">
       <Navbar className="border-b border-white/10 bg-[#0f0f10]/95 backdrop-blur" />
 
-      <main className="w-full px-3 py-4 sm:px-5 sm:py-6 md:px-6 lg:px-10">
-        <div className="mx-auto w-full max-w-7xl">
+      <main className="w-full px-2 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:px-10">
+        <div className="w-full">
           <header className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-5 lg:p-6">
             <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
