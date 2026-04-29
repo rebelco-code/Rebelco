@@ -71,29 +71,12 @@ function parseJsonSafe(rawValue) {
 }
 
 function extractArrayFromPayload(payload) {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  if (Array.isArray(payload?.data)) {
-    return payload.data;
-  }
-
-  if (Array.isArray(payload?.lockers)) {
-    return payload.lockers;
-  }
-
-  if (Array.isArray(payload?.results)) {
-    return payload.results;
-  }
-
-  if (Array.isArray(payload?.pickup_points)) {
-    return payload.pickup_points;
-  }
-
-  if (Array.isArray(payload?.pickupPoints)) {
-    return payload.pickupPoints;
-  }
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.lockers)) return payload.lockers;
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.pickup_points)) return payload.pickup_points;
+  if (Array.isArray(payload?.pickupPoints)) return payload.pickupPoints;
 
   return null;
 }
@@ -145,35 +128,50 @@ async function fetchPudoLockers() {
 
   const attempts = [
     {
-      label: "www-no-auth",
-      url: "https://www.api-pudo.co.za/lockers-data",
+      label: "www-api-lockers-data-no-auth",
+      url: "https://www.api-pudo.co.za/api/lockers-data",
       headers: {},
     },
     {
-      label: "root-no-auth",
-      url: "https://api-pudo.co.za/lockers-data",
+      label: "root-api-lockers-data-no-auth",
+      url: "https://api-pudo.co.za/api/lockers-data",
       headers: {},
     },
     {
-      label: "www-api-key-header",
-      url: "https://www.api-pudo.co.za/lockers-data",
+      label: "www-v1-lockers-data-no-auth",
+      url: "https://www.api-pudo.co.za/api/v1/lockers-data",
+      headers: {},
+    },
+    {
+      label: "root-v1-lockers-data-no-auth",
+      url: "https://api-pudo.co.za/api/v1/lockers-data",
+      headers: {},
+    },
+    {
+      label: "www-api-lockers-data-api-key",
+      url: "https://www.api-pudo.co.za/api/lockers-data",
       headers: apiKey ? { "api-key": apiKey } : {},
     },
     {
-      label: "root-api-key-header",
-      url: "https://api-pudo.co.za/lockers-data",
+      label: "root-api-lockers-data-api-key",
+      url: "https://api-pudo.co.za/api/lockers-data",
       headers: apiKey ? { "api-key": apiKey } : {},
     },
     {
-      label: "www-x-api-key-header",
-      url: "https://www.api-pudo.co.za/lockers-data",
+      label: "www-api-lockers-data-x-api-key",
+      url: "https://www.api-pudo.co.za/api/lockers-data",
       headers: apiKey ? { "x-api-key": apiKey } : {},
     },
     {
-      label: "www-query-api-key",
+      label: "www-api-lockers-data-bearer",
+      url: "https://www.api-pudo.co.za/api/lockers-data",
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+    },
+    {
+      label: "www-api-lockers-data-query-api-key",
       url: apiKey
-        ? `https://www.api-pudo.co.za/lockers-data?api_key=${encodeURIComponent(apiKey)}`
-        : "https://www.api-pudo.co.za/lockers-data",
+        ? `https://www.api-pudo.co.za/api/lockers-data?api_key=${encodeURIComponent(apiKey)}`
+        : "https://www.api-pudo.co.za/api/lockers-data",
       headers: {},
     },
   ];
