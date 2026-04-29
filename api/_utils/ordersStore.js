@@ -222,8 +222,12 @@ async function mutateOrdersWithRetry(mutationHandler) {
         orders: persistedOrders,
       };
     } catch (error) {
-      if (!isWriteConflict(error) || attempt === MAX_ORDERS_WRITE_RETRIES) {
+      if (!isWriteConflict(error)) {
         throw error;
+      }
+
+      if (attempt === MAX_ORDERS_WRITE_RETRIES) {
+        break;
       }
 
       attempt += 1;
@@ -231,7 +235,16 @@ async function mutateOrdersWithRetry(mutationHandler) {
     }
   }
 
-  throw new HttpError(409, "Order update conflict. Please try again.");
+  // Final safety fallback: re-read latest state and persist without an ETag precondition.
+  // This prevents checkout failures if conditional writes keep colliding.
+  const fallbackSnapshot = await readOrdersSnapshot();
+  const fallbackMutationResult = mutationHandler(fallbackSnapshot.orders);
+  const persistedOrders = await writeOrders(fallbackMutationResult.orders);
+
+  return {
+    ...fallbackMutationResult,
+    orders: persistedOrders,
+  };
 }
 
 function validateOrderInput(payload) {
@@ -375,8 +388,12 @@ export async function removePaidOrders() {
         removedCount,
       };
     } catch (error) {
-      if (!isWriteConflict(error) || attempt === MAX_ORDERS_WRITE_RETRIES) {
+      if (!isWriteConflict(error)) {
         throw error;
+      }
+
+      if (attempt === MAX_ORDERS_WRITE_RETRIES) {
+        break;
       }
 
       attempt += 1;
@@ -384,5 +401,23 @@ export async function removePaidOrders() {
     }
   }
 
-  throw new HttpError(409, "Order cleanup conflict. Please refresh and try again.");
+  const fallbackSnapshot = await readOrdersSnapshot();
+  const fallbackActiveOrders = fallbackSnapshot.orders.filter(
+    (order) => !order.proofOfPaymentReceived,
+  );
+  const fallbackRemovedCount = fallbackSnapshot.orders.length - fallbackActiveOrders.length;
+
+  if (fallbackRemovedCount === 0) {
+    return {
+      orders: fallbackSnapshot.orders,
+      removedCount: 0,
+    };
+  }
+
+  const persistedOrders = await writeOrders(fallbackActiveOrders);
+
+  return {
+    orders: persistedOrders,
+    removedCount: fallbackRemovedCount,
+  };
 }
