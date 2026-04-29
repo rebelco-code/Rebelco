@@ -62,6 +62,17 @@ function formatDisplayDate(value) {
   }).format(new Date(timestamp));
 }
 
+function getSpecialPrice(product) {
+  const price = Number(product?.price || 0);
+  const discountAmount = Number(product?.specialOption?.discountAmount || 0);
+
+  if (!isSpecialOptionActive(product) || discountAmount <= 0) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((price - discountAmount) * 100) / 100);
+}
+
 function isUrl(value) {
   try {
     new URL(value);
@@ -207,6 +218,11 @@ export default function ProductsPage() {
 
   const selectedProductHasSpecialOption = useMemo(
     () => (selectedProduct ? isSpecialOptionActive(selectedProduct) : false),
+    [selectedProduct],
+  );
+
+  const selectedProductSpecialPrice = useMemo(
+    () => (selectedProduct ? getSpecialPrice(selectedProduct) : null),
     [selectedProduct],
   );
 
@@ -655,6 +671,7 @@ export default function ProductsPage() {
                           const colors = getProductList(product.colors);
                           const scents = getProductList(product.scents);
                           const hasSpecialOption = isSpecialOptionActive(product);
+                          const specialPrice = getSpecialPrice(product);
 
                           return (
                             <article
@@ -722,9 +739,20 @@ export default function ProductsPage() {
                                   </h3>
 
                                   <div className="shrink-0 text-right">
-                                    <div className="text-base text-white">
-                                      {formatPrice(product.price)}
-                                    </div>
+                                    {specialPrice !== null ? (
+                                      <>
+                                        <div className="text-base text-amber-100">
+                                          {formatPrice(specialPrice)}
+                                        </div>
+                                        <div className="text-xs text-white/35 line-through">
+                                          {formatPrice(product.price)}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="text-base text-white">
+                                        {formatPrice(product.price)}
+                                      </div>
+                                    )}
 
                                     <div className="mt-1 text-xs uppercase tracking-[0.18em] text-white/50">
                                       {product.weight}
@@ -790,6 +818,11 @@ export default function ProductsPage() {
                                       Available from {formatDisplayDate(product.specialOption.startDate)} to{" "}
                                       {formatDisplayDate(product.specialOption.endDate)}.
                                     </span>
+                                    {Number(product.specialOption.discountAmount) > 0 ? (
+                                      <span className="mt-1 block font-semibold text-amber-100">
+                                        Save {formatPrice(product.specialOption.discountAmount)}
+                                      </span>
+                                    ) : null}
                                   </div>
                                 ) : null}
 
@@ -889,8 +922,19 @@ export default function ProductsPage() {
                   </div>
 
                   <div className="mt-4 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.2em] text-white/60">
-                    {formatPrice(selectedProduct.price)} • {selectedProduct.weight} •{" "}
-                    {selectedProduct.category || "Uncategorised"}
+                    {selectedProductSpecialPrice !== null ? (
+                      <>
+                        <span className="text-amber-100">
+                          {formatPrice(selectedProductSpecialPrice)}
+                        </span>{" "}
+                        <span className="text-white/35 line-through">
+                          {formatPrice(selectedProduct.price)}
+                        </span>
+                      </>
+                    ) : (
+                      formatPrice(selectedProduct.price)
+                    )}{" "}
+                    • {selectedProduct.weight} • {selectedProduct.category || "Uncategorised"}
                   </div>
 
                   <p
@@ -951,6 +995,11 @@ export default function ProductsPage() {
                         Available from {formatDisplayDate(selectedProduct.specialOption.startDate)} to{" "}
                         {formatDisplayDate(selectedProduct.specialOption.endDate)}.
                       </span>
+                      {Number(selectedProduct.specialOption.discountAmount) > 0 ? (
+                        <span className="mt-1 block font-semibold text-amber-100">
+                          Save {formatPrice(selectedProduct.specialOption.discountAmount)}
+                        </span>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

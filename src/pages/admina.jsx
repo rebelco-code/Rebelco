@@ -16,6 +16,7 @@ const initialForm = {
   specialOptionLabel: "Special",
   specialOptionStartDate: "",
   specialOptionEndDate: "",
+  specialOptionDiscountAmount: "",
 };
 
 const initialLoginForm = {
@@ -585,6 +586,7 @@ export default function AdminaPage() {
       formData.append("specialOptionLabel", form.specialOptionLabel);
       formData.append("specialOptionStartDate", form.specialOptionStartDate);
       formData.append("specialOptionEndDate", form.specialOptionEndDate);
+      formData.append("specialOptionDiscountAmount", form.specialOptionDiscountAmount);
 
       imageFiles.forEach((file) => {
         formData.append("images", file);
@@ -799,10 +801,10 @@ export default function AdminaPage() {
     <div className="min-h-screen overflow-x-hidden bg-[#0f0f10] text-white">
       <Navbar className="border-b border-white/10 bg-[#0f0f10]/95 backdrop-blur" />
 
-      <main className="w-full px-3 py-5 sm:px-5 sm:py-7 md:px-6 lg:px-10">
+      <main className="w-full px-3 py-4 sm:px-5 sm:py-6 md:px-6 lg:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <header className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
-            <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <header className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-5 lg:p-6">
+            <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <p
                   className="break-words text-[10px] uppercase tracking-[0.35em] text-white/45 sm:text-xs sm:tracking-[0.45em]"
@@ -812,26 +814,25 @@ export default function AdminaPage() {
                 </p>
 
                 <h1
-                  className="mt-3 break-words text-4xl leading-none text-white sm:text-5xl lg:text-6xl"
+                  className="mt-2 break-words text-4xl leading-none text-white sm:text-5xl lg:text-6xl"
                   style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                 >
                   Product Admin
                 </h1>
 
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55">
-                  Add products, upload multiple photos, manage stock, remove old items, and
-                  organise the catalog by category.
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">
+                  Add products, manage specials, upload photos, and review orders.
                 </p>
               </div>
 
               {admin ? (
-                <div className="flex w-full min-w-0 flex-col gap-3 rounded-xl border border-white/10 bg-black/35 p-3 sm:w-auto sm:min-w-[260px] sm:p-4">
+                <div className="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-white/10 bg-black/35 p-3 sm:w-auto sm:min-w-[260px]">
                   <div className="min-w-0 truncate text-sm text-white/65">{admin.email}</div>
 
                   <button
                     type="button"
                     onClick={signOut}
-                    className="w-full shrink-0 rounded-lg border border-white/15 bg-black px-5 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white transition hover:border-white/35 hover:bg-white hover:text-black"
+                    className="w-full shrink-0 rounded-lg border border-white/15 bg-black px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-white hover:text-black"
                   >
                     Sign out
                   </button>
@@ -841,13 +842,13 @@ export default function AdminaPage() {
           </header>
 
           {sessionStatus === "checking" ? (
-            <section className="mt-6 rounded-2xl border border-white/10 bg-[#151516] p-5 text-white/70 sm:p-6">
+            <section className="mt-4 rounded-2xl border border-white/10 bg-[#151516] p-4 text-white/70">
               Checking admin session...
             </section>
           ) : null}
 
           {sessionStatus === "signed-out" ? (
-            <section className="mx-auto mt-6 w-full max-w-md rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:max-w-xl sm:p-8">
+            <section className="mx-auto mt-5 w-full max-w-md rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:max-w-xl sm:p-6">
               <h2
                 className="text-3xl leading-none text-white sm:text-4xl"
                 style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
@@ -855,13 +856,13 @@ export default function AdminaPage() {
                 Admin Sign In
               </h2>
 
-              <p className="mt-3 text-sm leading-6 text-white/55">
+              <p className="mt-2 text-sm leading-6 text-white/55">
                 Sign in with your admin email and password to manage products.
               </p>
 
-              <form className="mt-6 grid gap-5" onSubmit={submitLogin}>
-                <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+              <form className="mt-5 grid gap-4" onSubmit={submitLogin}>
+                <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em]">
                     Email
                   </span>
 
@@ -872,12 +873,12 @@ export default function AdminaPage() {
                     onChange={updateLoginField}
                     required
                     autoComplete="username"
-                    className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                    className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                   />
                 </label>
 
-                <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em]">
                     Password
                   </span>
 
@@ -888,14 +889,14 @@ export default function AdminaPage() {
                     onChange={updateLoginField}
                     required
                     autoComplete="current-password"
-                    className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                    className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                   />
                 </label>
 
                 <button
                   type="submit"
                   disabled={loginStatus === "loading"}
-                  className="w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                  className="w-full rounded-xl border border-white bg-white px-5 py-3.5 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                 >
                   {loginStatus === "loading" ? "Signing in..." : "Sign in"}
                 </button>
@@ -904,22 +905,22 @@ export default function AdminaPage() {
           ) : null}
 
           {error ? (
-            <div className="mt-6 rounded-xl border border-red-400/30 bg-red-950/25 p-4 text-sm leading-6 text-red-100">
+            <div className="mt-4 rounded-xl border border-red-400/30 bg-red-950/25 p-3 text-sm leading-6 text-red-100">
               {error}
             </div>
           ) : null}
 
           {message ? (
-            <div className="mt-6 rounded-xl border border-emerald-400/30 bg-emerald-950/25 p-4 text-sm leading-6 text-emerald-100">
+            <div className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-950/25 p-3 text-sm leading-6 text-emerald-100">
               {message}
             </div>
           ) : null}
 
           {admin ? (
             <>
-              <div className="mt-6 grid w-full min-w-0 gap-6 2xl:grid-cols-[minmax(380px,540px)_minmax(0,1fr)]">
-                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
-                  <div className="border-b border-white/10 pb-5">
+              <div className="mt-5 grid w-full min-w-0 gap-5 2xl:grid-cols-[minmax(360px,500px)_minmax(0,1fr)]">
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-5">
+                  <div className="border-b border-white/10 pb-4">
                     <h2
                       className="text-3xl leading-none text-white sm:text-4xl"
                       style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
@@ -927,107 +928,105 @@ export default function AdminaPage() {
                       Add Product
                     </h2>
 
-                    <p className="mt-3 text-sm leading-6 text-white/50">
-                      Complete each section below to create a polished product listing.
+                    <p className="mt-2 text-sm leading-6 text-white/50">
+                      Compact product creation with options and special discounts.
                     </p>
                   </div>
 
-                  <form className="mt-6 grid min-w-0 gap-6" onSubmit={submitProduct}>
-                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
-                          Product Details
+                  <form className="mt-5 grid min-w-0 gap-4" onSubmit={submitProduct}>
+                    <section className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div className="mb-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                          Product Info
                         </h3>
-                        <p className="mt-2 text-xs leading-5 text-white/40">
-                          Add the main information customers will see in the catalogue.
+                        <p className="mt-1 text-xs text-white/38">
+                          Name, description, and collection.
                         </p>
                       </div>
 
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Title
-                        </span>
+                      <div className="grid gap-3">
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                            Title
+                          </span>
+                          <input
+                            name="title"
+                            value={form.title}
+                            onChange={updateField}
+                            required
+                            placeholder="Product name"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+                        </label>
 
-                        <input
-                          name="title"
-                          value={form.title}
-                          onChange={updateField}
-                          required
-                          placeholder="Product name"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-                      </label>
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                            Description
+                          </span>
+                          <textarea
+                            name="description"
+                            value={form.description}
+                            onChange={updateField}
+                            required
+                            rows={3}
+                            placeholder="Short product description"
+                            className="resize-none rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm leading-6 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
+                        </label>
 
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Description
-                        </span>
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                            Category
+                          </span>
+                          <input
+                            name="category"
+                            value={form.category}
+                            onChange={updateField}
+                            required
+                            placeholder="Example: Soaps, Salves, Balms"
+                            list="admin-product-categories"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                          />
 
-                        <textarea
-                          name="description"
-                          value={form.description}
-                          onChange={updateField}
-                          required
-                          rows={5}
-                          placeholder="Short product description"
-                          className="min-w-0 resize-none rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base leading-7 text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-                      </label>
-
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                          Category
-                        </span>
-
-                        <input
-                          name="category"
-                          value={form.category}
-                          onChange={updateField}
-                          required
-                          placeholder="Example: Soaps, Salves, Balms"
-                          list="admin-product-categories"
-                          className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
-                        />
-
-                        <datalist id="admin-product-categories">
-                          {categories.map((category) => (
-                            <option key={category} value={category} />
-                          ))}
-                        </datalist>
-
-                        {categories.length > 0 ? (
-                          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                          <datalist id="admin-product-categories">
                             {categories.map((category) => (
-                              <button
-                                key={category}
-                                type="button"
-                                onClick={() => selectExistingCategory(category)}
-                                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
-                              >
-                                {category}
-                              </button>
+                              <option key={category} value={category} />
                             ))}
-                          </div>
-                        ) : null}
-                      </label>
+                          </datalist>
+
+                          {categories.length > 0 ? (
+                            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                              {categories.map((category) => (
+                                <button
+                                  key={category}
+                                  type="button"
+                                  onClick={() => selectExistingCategory(category)}
+                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/52 transition hover:border-white/25 hover:text-white"
+                                >
+                                  {category}
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
+                        </label>
+                      </div>
                     </section>
 
-                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
-                          Pricing & Stock
+                    <section className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div className="mb-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                          Price, Stock & Options
                         </h3>
-                        <p className="mt-2 text-xs leading-5 text-white/40">
-                          Set the product price, weight, and available stock.
+                        <p className="mt-1 text-xs text-white/38">
+                          Add pricing, stock, colors, and scents.
                         </p>
                       </div>
 
-                      <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Price
                           </span>
-
                           <input
                             name="price"
                             value={form.price}
@@ -1035,30 +1034,28 @@ export default function AdminaPage() {
                             required
                             inputMode="decimal"
                             placeholder="85.00"
-                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
 
-                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Weight
                           </span>
-
                           <input
                             name="weight"
                             value={form.weight}
                             onChange={updateField}
                             required
                             placeholder="120g"
-                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
 
-                        <label className="grid min-w-0 gap-2 text-sm text-white/72 sm:col-span-2 lg:col-span-1">
-                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Stock
                           </span>
-
                           <input
                             name="stockAmount"
                             value={form.stockAmount}
@@ -1066,35 +1063,23 @@ export default function AdminaPage() {
                             required
                             inputMode="numeric"
                             placeholder="12"
-                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
                         </label>
                       </div>
-                    </section>
 
-                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
-                          Options
-                        </h3>
-                        <p className="mt-2 text-xs leading-5 text-white/40">
-                          Add optional colors and scents. Customers will only see these when values are added.
-                        </p>
-                      </div>
-
-                      <div className="grid min-w-0 gap-5 sm:grid-cols-2">
-                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Colors
                           </span>
-
                           <input
                             name="colors"
                             value={form.colors}
                             onChange={updateField}
-                            placeholder="Example: Red, Blue, Natural"
+                            placeholder="Red, Blue, Natural"
                             list="admin-product-colors"
-                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
 
                           <datalist id="admin-product-colors">
@@ -1104,37 +1089,32 @@ export default function AdminaPage() {
                           </datalist>
 
                           {colorOptions.length > 0 ? (
-                            <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                               {colorOptions.map((color) => (
                                 <button
                                   key={color}
                                   type="button"
                                   onClick={() => selectExistingColor(color)}
-                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/52 transition hover:border-white/25 hover:text-white"
                                 >
                                   {color}
                                 </button>
                               ))}
                             </div>
                           ) : null}
-
-                          <span className="text-xs leading-5 text-white/40">
-                            Type custom colors or choose existing ones. Separate multiple colors with commas.
-                          </span>
                         </label>
 
-                        <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                          <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        <label className="grid gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Scents
                           </span>
-
                           <input
                             name="scents"
                             value={form.scents}
                             onChange={updateField}
-                            placeholder="Example: Lavender, Vanilla, Unscented"
+                            placeholder="Lavender, Vanilla, Unscented"
                             list="admin-product-scents"
-                            className="min-w-0 rounded-xl border border-white/10 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
+                            className="rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/45"
                           />
 
                           <datalist id="admin-product-scents">
@@ -1144,110 +1124,118 @@ export default function AdminaPage() {
                           </datalist>
 
                           {scentOptions.length > 0 ? (
-                            <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
+                            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
                               {scentOptions.map((scent) => (
                                 <button
                                   key={scent}
                                   type="button"
                                   onClick={() => selectExistingScent(scent)}
-                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white"
+                                  className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/52 transition hover:border-white/25 hover:text-white"
                                 >
                                   {scent}
                                 </button>
                               ))}
                             </div>
                           ) : null}
-
-                          <span className="text-xs leading-5 text-white/40">
-                            Type custom scents or choose existing ones. Separate multiple scents with commas.
-                          </span>
                         </label>
                       </div>
                     </section>
 
-                    <section className="grid gap-5 rounded-2xl border border-amber-300/15 bg-amber-950/10 p-4 sm:p-5">
-                      <div className="flex items-start justify-between gap-4">
+                    <section className="rounded-2xl border border-amber-300/15 bg-amber-950/10 p-4">
+                      <div className="mb-4 flex items-center justify-between gap-4">
                         <div>
-                          <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-100/80">
-                            Special Option
+                          <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-100/80">
+                            Special
                           </h3>
-                          <p className="mt-2 text-xs leading-5 text-amber-100/45">
-                            Show a special label for this product only during the selected date range.
+                          <p className="mt-1 text-xs text-amber-100/45">
+                            Optional discount shown only during selected dates.
                           </p>
                         </div>
 
-                        <label className="flex shrink-0 items-center gap-3 rounded-full border border-amber-300/20 bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.16em] text-amber-100/75">
+                        <label className="flex shrink-0 items-center gap-2 rounded-full border border-amber-300/20 bg-black/40 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-amber-100/75">
                           <input
                             type="checkbox"
                             name="specialOptionEnabled"
                             checked={form.specialOptionEnabled}
                             onChange={updateField}
-                            className="h-4 w-4 accent-amber-200"
+                            className="h-3.5 w-3.5 accent-amber-200"
                           />
                           Enable
                         </label>
                       </div>
 
                       {form.specialOptionEnabled ? (
-                        <div className="grid gap-4 sm:grid-cols-3">
-                          <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
+                        <div className="grid gap-3 sm:grid-cols-4">
+                          <label className="grid gap-1.5 text-sm text-white/72">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
                               Label
                             </span>
-
                             <input
                               name="specialOptionLabel"
                               value={form.specialOptionLabel}
                               onChange={updateField}
                               placeholder="Special"
-                              className="min-w-0 rounded-xl border border-amber-300/15 bg-black px-4 py-3.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
+                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
                             />
                           </label>
 
-                          <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                              Start Date
+                          <label className="grid gap-1.5 text-sm text-white/72">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
+                              Discount
                             </span>
+                            <input
+                              name="specialOptionDiscountAmount"
+                              value={form.specialOptionDiscountAmount}
+                              onChange={updateField}
+                              required={form.specialOptionEnabled}
+                              inputMode="decimal"
+                              placeholder="15.00"
+                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-amber-200/45"
+                            />
+                          </label>
 
+                          <label className="grid gap-1.5 text-sm text-white/72">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
+                              Start
+                            </span>
                             <input
                               type="date"
                               name="specialOptionStartDate"
                               value={form.specialOptionStartDate}
                               onChange={updateField}
                               required={form.specialOptionEnabled}
-                              className="min-w-0 rounded-xl border border-amber-300/15 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-amber-200/45"
+                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-amber-200/45"
                             />
                           </label>
 
-                          <label className="grid min-w-0 gap-2 text-sm text-white/72">
-                            <span className="text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-[0.22em]">
-                              End Date
+                          <label className="grid gap-1.5 text-sm text-white/72">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-100/60">
+                              End
                             </span>
-
                             <input
                               type="date"
                               name="specialOptionEndDate"
                               value={form.specialOptionEndDate}
                               onChange={updateField}
                               required={form.specialOptionEnabled}
-                              className="min-w-0 rounded-xl border border-amber-300/15 bg-black px-4 py-3.5 text-base text-white outline-none transition focus:border-amber-200/45"
+                              className="rounded-xl border border-amber-300/15 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-amber-200/45"
                             />
                           </label>
                         </div>
                       ) : null}
                     </section>
 
-                    <section className="grid gap-5 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
-                      <div>
-                        <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
+                    <section className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div className="mb-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
                           Images
                         </h3>
-                        <p className="mt-2 text-xs leading-5 text-white/40">
-                          Upload up to {MAX_PRODUCT_IMAGES} product images. The first image is used as the main image.
+                        <p className="mt-1 text-xs text-white/38">
+                          Upload up to {MAX_PRODUCT_IMAGES}. First image is the main image.
                         </p>
                       </div>
 
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <label className="grid gap-2 text-sm text-white/72">
                         <span className="sr-only">Images</span>
 
                         <input
@@ -1265,58 +1253,55 @@ export default function AdminaPage() {
                           onDrop={handleImageDrop}
                           onDragOver={handleImageDragOver}
                           onDragLeave={handleImageDragLeave}
-                          className={`mt-1 min-w-0 rounded-2xl border border-dashed px-4 py-8 text-left transition sm:px-6 ${
+                          className={`rounded-2xl border border-dashed px-4 py-6 text-left transition ${
                             isImageDropActive
                               ? "border-white/55 bg-white/10"
-                              : "border-white/20 bg-[linear-gradient(180deg,rgba(18,18,19,0.95),rgba(8,8,9,0.95))] hover:border-white/40 hover:bg-[#161618]"
+                              : "border-white/20 bg-black hover:border-white/40 hover:bg-[#161618]"
                           }`}
                         >
-                          <div className="pointer-events-none flex flex-col items-center gap-2 text-center">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xl text-white/80">
+                          <div className="pointer-events-none flex flex-col items-center gap-1.5 text-center">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-lg text-white/80">
                               +
                             </div>
-                            <div className="text-sm uppercase tracking-[0.16em] text-white/75">
+                            <div className="text-xs uppercase tracking-[0.16em] text-white/75">
                               Drop images here
                             </div>
-                            <p className="text-xs tracking-[0.08em] text-white/55">
-                              or click to browse and add more
-                            </p>
-                            <p className="text-xs text-white/40">
-                              JPG, PNG, WebP · up to {MAX_PRODUCT_IMAGES} images · 4 MB each
+                            <p className="text-xs text-white/45">
+                              or click to browse · JPG, PNG, WebP · 4 MB each
                             </p>
                           </div>
                         </button>
 
-                        <div className="mt-1 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-[10px] uppercase tracking-[0.16em] text-white/52">
                           <span>
                             {imageFiles.length} / {MAX_PRODUCT_IMAGES} selected
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <button
                               type="button"
                               onClick={openImagePicker}
-                              className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
+                              className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
                             >
-                              Add More
+                              Add
                             </button>
                             <button
                               type="button"
                               onClick={clearSelectedImages}
                               disabled={imageFiles.length === 0}
-                              className="rounded-full border border-red-400/25 bg-red-950/25 px-3 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
+                              className="rounded-full border border-red-400/25 bg-red-950/25 px-2.5 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
                             >
-                              Clear All
+                              Clear
                             </button>
                           </div>
                         </div>
                       </label>
 
                       {imageFiles.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
                           {imageFiles.map((file, index) => (
                             <article
                               key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                              className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-2"
+                              className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-1.5"
                             >
                               <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
                                 <img
@@ -1324,38 +1309,38 @@ export default function AdminaPage() {
                                   alt={`Selected product preview ${index + 1}`}
                                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                                 />
-                                <div className="absolute left-2 top-2 rounded-full border border-white/20 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-white/70 backdrop-blur">
+                                <div className="absolute left-1.5 top-1.5 rounded-full border border-white/20 bg-black/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-white/70 backdrop-blur">
                                   {index + 1}
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => removeSelectedImage(index)}
-                                  className="absolute right-2 top-2 rounded-full border border-red-300/35 bg-red-950/70 px-2 py-1 text-[10px] uppercase tracking-[0.16em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
+                                  className="absolute right-1.5 top-1.5 rounded-full border border-red-300/35 bg-red-950/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
                                 >
-                                  Remove
+                                  X
                                 </button>
                               </div>
-                              <div className="mt-2 truncate text-xs text-white/68" title={file.name}>
+                              <div className="mt-1 truncate text-[10px] text-white/60" title={file.name}>
                                 {file.name}
                               </div>
-                              <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-white/40">
+                              <div className="text-[9px] uppercase tracking-[0.12em] text-white/35">
                                 {formatFileSize(file.size)}
                               </div>
                             </article>
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-xl border border-white/10 bg-black/35 px-4 py-4 text-xs text-white/45">
+                        <div className="mt-3 rounded-xl border border-white/10 bg-black/35 px-3.5 py-3 text-xs text-white/45">
                           No images selected yet.
                         </div>
                       )}
                     </section>
 
-                    <div className="sticky bottom-3 z-10 rounded-2xl border border-white/10 bg-[#151516]/95 p-3 shadow-2xl shadow-black/40 backdrop-blur">
+                    <div className="sticky bottom-3 z-10 rounded-2xl border border-white/10 bg-[#151516]/95 p-2.5 shadow-2xl shadow-black/40 backdrop-blur">
                       <button
                         type="submit"
                         disabled={formStatus === "saving"}
-                        className="w-full rounded-xl border border-white bg-white px-5 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55 sm:tracking-[0.22em]"
+                        className="w-full rounded-xl border border-white bg-white px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
                       >
                         {formStatus === "saving" ? "Saving Product..." : "Save Product"}
                       </button>
@@ -1363,9 +1348,9 @@ export default function AdminaPage() {
                   </form>
                 </section>
 
-                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:p-8">
-                  <div className="flex min-w-0 flex-col gap-4 border-b border-white/10 pb-5">
-                    <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-5">
+                  <div className="flex min-w-0 flex-col gap-3 border-b border-white/10 pb-4">
+                    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div className="min-w-0">
                         <h2
                           className="text-3xl leading-none text-white sm:text-4xl"
@@ -1374,13 +1359,12 @@ export default function AdminaPage() {
                           Product Preview
                         </h2>
 
-                        <p className="mt-3 text-sm leading-6 text-white/50">
-                          Products are grouped by category. Click a category to expand or
-                          collapse its products.
+                        <p className="mt-2 text-sm leading-6 text-white/50">
+                          Products are grouped by category.
                         </p>
                       </div>
 
-                      <div className="shrink-0 self-start rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55 sm:self-auto">
+                      <div className="shrink-0 self-start rounded-full border border-white/10 bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/55 sm:self-auto">
                         {filteredProducts.length} shown
                       </div>
                     </div>
@@ -1389,7 +1373,7 @@ export default function AdminaPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedCategory("all")}
-                        className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                        className={`shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
                           selectedCategory === "all"
                             ? "border-white bg-white text-black"
                             : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
@@ -1403,7 +1387,7 @@ export default function AdminaPage() {
                           key={category}
                           type="button"
                           onClick={() => setSelectedCategory(category)}
-                          className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition ${
+                          className={`shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
                             selectedCategory === category
                               ? "border-white bg-white text-black"
                               : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
@@ -1416,13 +1400,13 @@ export default function AdminaPage() {
                   </div>
 
                   {productsStatus === "loading" ? (
-                    <div className="mt-6 rounded-xl border border-white/10 bg-black p-4 text-white/70">
+                    <div className="mt-4 rounded-xl border border-white/10 bg-black p-3 text-sm text-white/70">
                       Loading products...
                     </div>
                   ) : null}
 
                   {groupedProducts.length > 0 ? (
-                    <div className="mt-6 grid gap-5">
+                    <div className="mt-4 grid gap-4">
                       {groupedProducts.map((group) => {
                         const isOpen = openCategories[group.category] !== false;
 
@@ -1434,23 +1418,23 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={() => toggleCategory(group.category)}
-                              className="flex w-full flex-col gap-4 p-4 text-left transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between"
+                              className="flex w-full flex-col gap-3 p-3 text-left transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between"
                             >
                               <div className="min-w-0">
                                 <h3
-                                  className="break-words text-3xl leading-none text-white sm:text-4xl"
+                                  className="break-words text-3xl leading-none text-white"
                                   style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                                 >
                                   {group.category}
                                 </h3>
 
-                                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-white/35">
+                                <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/35">
                                   {isOpen ? "Click to collapse" : "Click to expand"}
                                 </p>
                               </div>
 
-                              <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
-                                <div className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                              <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
+                                <div className="rounded-full border border-white/10 bg-black px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-white/50">
                                   {group.products.length} items
                                 </div>
 
@@ -1461,13 +1445,16 @@ export default function AdminaPage() {
                             </button>
 
                             {isOpen ? (
-                              <div className="grid min-w-0 gap-4 border-t border-white/10 p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-2 2xl:grid-cols-3">
+                              <div className="grid min-w-0 gap-3 border-t border-white/10 p-3 sm:grid-cols-2 2xl:grid-cols-3">
                                 {group.products.map((product) => {
                                   const isOutOfStock = Number(product.stockAmount) <= 0;
                                   const isBusy = Boolean(productActionStatus);
                                   const isCurrentBusy = productActionStatus === product.id;
                                   const colors = getProductList(product.colors);
                                   const scents = getProductList(product.scents);
+                                  const discountAmount = Number(
+                                    product.specialOption?.discountAmount || 0,
+                                  );
                                   const productImages =
                                     Array.isArray(product.imageUrls) &&
                                     product.imageUrls.length > 0
@@ -1498,20 +1485,29 @@ export default function AdminaPage() {
                                           </div>
                                         )}
 
-                                        <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                        <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur">
                                           {isOutOfStock
                                             ? "Out of stock"
                                             : formatStockAmount(product.stockAmount)}
                                         </div>
 
                                         {productImages.length > 1 ? (
-                                          <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                          <div className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur">
                                             {productImages.length} photos
                                           </div>
                                         ) : null}
 
-                                        {product.category ? (
-                                          <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                        {product.specialOption?.enabled ? (
+                                          <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-amber-300/25 bg-amber-950/80 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-100 backdrop-blur">
+                                            <span className="block truncate">
+                                              {product.specialOption.label || "Special"}
+                                              {discountAmount > 0
+                                                ? ` · Save ${formatPrice(discountAmount)}`
+                                                : ""}
+                                            </span>
+                                          </div>
+                                        ) : product.category ? (
+                                          <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur">
                                             <span className="block truncate">
                                               {product.category}
                                             </span>
@@ -1519,22 +1515,8 @@ export default function AdminaPage() {
                                         ) : null}
                                       </div>
 
-                                      {productImages.length > 1 ? (
-                                        <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
-                                          {productImages.slice(0, 4).map((imageUrl, index) => (
-                                            <img
-                                              key={`${product.id}-${imageUrl}-${index}`}
-                                              src={imageUrl}
-                                              alt={`${product.title} thumbnail ${index + 1}`}
-                                              className="aspect-square rounded-lg object-cover"
-                                              loading="lazy"
-                                            />
-                                          ))}
-                                        </div>
-                                      ) : null}
-
-                                      <div className="min-w-0 p-4">
-                                        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                      <div className="min-w-0 p-3">
+                                        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                           <h3
                                             className="min-w-0 break-words text-2xl leading-none text-white"
                                             style={{
@@ -1544,25 +1526,25 @@ export default function AdminaPage() {
                                             {product.title}
                                           </h3>
 
-                                          <div className="shrink-0 self-start rounded-full border border-white/10 px-3 py-1 text-sm text-white/80 sm:self-auto">
+                                          <div className="shrink-0 self-start rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/80 sm:self-auto">
                                             {formatPrice(product.price)}
                                           </div>
                                         </div>
 
-                                        <p className="mt-3 line-clamp-3 break-words text-sm leading-6 text-white/55">
+                                        <p className="mt-2 line-clamp-2 break-words text-xs leading-5 text-white/55">
                                           {product.description}
                                         </p>
 
                                         {colors.length > 0 ? (
-                                          <div className="mt-3">
-                                            <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+                                          <div className="mt-2">
+                                            <div className="text-[9px] uppercase tracking-[0.16em] text-white/35">
                                               Colors
                                             </div>
-                                            <div className="mt-2 flex flex-wrap gap-2">
+                                            <div className="mt-1.5 flex flex-wrap gap-1.5">
                                               {colors.map((color) => (
                                                 <span
                                                   key={`${product.id}-admin-color-${color}`}
-                                                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/55"
+                                                  className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/55"
                                                 >
                                                   {color}
                                                 </span>
@@ -1572,15 +1554,15 @@ export default function AdminaPage() {
                                         ) : null}
 
                                         {scents.length > 0 ? (
-                                          <div className="mt-3">
-                                            <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+                                          <div className="mt-2">
+                                            <div className="text-[9px] uppercase tracking-[0.16em] text-white/35">
                                               Scents
                                             </div>
-                                            <div className="mt-2 flex flex-wrap gap-2">
+                                            <div className="mt-1.5 flex flex-wrap gap-1.5">
                                               {scents.map((scent) => (
                                                 <span
                                                   key={`${product.id}-admin-scent-${scent}`}
-                                                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/55"
+                                                  className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-white/55"
                                                 >
                                                   {scent}
                                                 </span>
@@ -1590,19 +1572,24 @@ export default function AdminaPage() {
                                         ) : null}
 
                                         {product.specialOption?.enabled ? (
-                                          <div className="mt-3 rounded-xl border border-amber-300/25 bg-amber-950/20 p-3 text-xs leading-5 text-amber-100">
-                                            <div className="font-semibold uppercase tracking-[0.18em]">
+                                          <div className="mt-2 rounded-xl border border-amber-300/25 bg-amber-950/20 p-2 text-[10px] leading-4 text-amber-100">
+                                            <div className="font-semibold uppercase tracking-[0.16em]">
                                               {product.specialOption.label || "Special Option"}
                                             </div>
                                             <div className="mt-1 text-amber-100/70">
                                               {product.specialOption.startDate} to{" "}
                                               {product.specialOption.endDate}
                                             </div>
+                                            {discountAmount > 0 ? (
+                                              <div className="mt-1 font-semibold text-amber-100">
+                                                Save {formatPrice(discountAmount)}
+                                              </div>
+                                            ) : null}
                                           </div>
                                         ) : null}
 
-                                        <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2 border-t border-white/10 pt-4">
-                                          <span className="rounded-full bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                                        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5 border-t border-white/10 pt-3">
+                                          <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-white/50">
                                             {product.weight}
                                           </span>
 
@@ -1610,7 +1597,7 @@ export default function AdminaPage() {
                                             type="button"
                                             onClick={() => setOutOfStock(product.id)}
                                             disabled={isBusy || isOutOfStock}
-                                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                            className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-white/55 transition hover:border-amber-200/50 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
                                           >
                                             {isCurrentBusy ? "Saving..." : "Out of stock"}
                                           </button>
@@ -1619,7 +1606,7 @@ export default function AdminaPage() {
                                             type="button"
                                             onClick={() => removeProduct(product.id)}
                                             disabled={isBusy}
-                                            className="rounded-full border border-red-400/20 bg-red-950/20 px-3 py-1 text-xs uppercase tracking-[0.16em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                            className="rounded-full border border-red-400/20 bg-red-950/20 px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] text-red-100/75 transition hover:border-red-300/50 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-40"
                                           >
                                             Remove
                                           </button>
@@ -1637,7 +1624,7 @@ export default function AdminaPage() {
                   ) : null}
 
                   {productsStatus === "ready" && groupedProducts.length === 0 ? (
-                    <div className="mt-6 rounded-2xl border border-white/10 bg-black p-6 text-sm leading-6 text-white/65">
+                    <div className="mt-4 rounded-2xl border border-white/10 bg-black p-4 text-sm leading-6 text-white/65">
                       {products.length === 0
                         ? "No products saved yet. Once you add a product, it will appear here."
                         : "No products match this category filter."}
@@ -1646,8 +1633,8 @@ export default function AdminaPage() {
                 </section>
               </div>
 
-              <section className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] shadow-2xl shadow-black/20">
-                <div className="flex flex-col gap-4 border-b border-white/10 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+              <section className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] shadow-2xl shadow-black/20">
+                <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <h2
                       className="text-3xl leading-none text-white sm:text-4xl"
@@ -1656,22 +1643,22 @@ export default function AdminaPage() {
                       Orders
                     </h2>
 
-                    <p className="mt-3 text-sm leading-6 text-white/50">
+                    <p className="mt-2 text-sm leading-6 text-white/50">
                       Customer orders with quantity, location, and proof-of-payment status.
                     </p>
                   </div>
 
-                  <div className="self-start rounded-full border border-white/10 bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/55 sm:self-auto">
+                  <div className="self-start rounded-full border border-white/10 bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/55 sm:self-auto">
                     {orders.length} total
                   </div>
                 </div>
 
                 {ordersStatus === "loading" ? (
-                  <div className="p-6 text-sm text-white/70">Loading orders...</div>
+                  <div className="p-5 text-sm text-white/70">Loading orders...</div>
                 ) : null}
 
                 {ordersStatus === "ready" && orders.length === 0 ? (
-                  <div className="p-6 text-sm text-white/65">
+                  <div className="p-5 text-sm text-white/65">
                     No orders yet. New orders from the product page will appear here.
                   </div>
                 ) : null}

@@ -57,11 +57,26 @@ function parseBoolean(value) {
   return value === true || String(value || "").toLowerCase() === "true";
 }
 
+function parseMoney(value) {
+  const money = Number.parseFloat(
+    String(value || "")
+      .replace(/[^\d.,-]/g, "")
+      .replace(",", "."),
+  );
+
+  if (!Number.isFinite(money) || money < 0) {
+    return null;
+  }
+
+  return Math.round(money * 100) / 100;
+}
+
 function normalizeSpecialOption(value = {}) {
   const enabled = parseBoolean(value.enabled);
   const label = cleanText(value.label || "Special", 80);
   const startDate = cleanText(value.startDate, 20);
   const endDate = cleanText(value.endDate, 20);
+  const discountAmount = parseMoney(value.discountAmount);
 
   if (!enabled || !startDate || !endDate) {
     return {
@@ -69,6 +84,7 @@ function normalizeSpecialOption(value = {}) {
       label: "",
       startDate: "",
       endDate: "",
+      discountAmount: 0,
     };
   }
 
@@ -83,26 +99,27 @@ function normalizeSpecialOption(value = {}) {
     throw new HttpError(400, "Special option start date must be before the end date.");
   }
 
+  if (discountAmount === null) {
+    throw new HttpError(400, "Enter a valid special discount amount.");
+  }
+
   return {
     enabled: true,
     label: label || "Special",
     startDate,
     endDate,
+    discountAmount,
   };
 }
 
 function parsePrice(value) {
-  const cleanedValue = String(value || "")
-    .replace(/[^\d.,-]/g, "")
-    .replace(",", ".");
+  const price = parseMoney(value);
 
-  const price = Number.parseFloat(cleanedValue);
-
-  if (!Number.isFinite(price) || price < 0) {
+  if (price === null) {
     throw new HttpError(400, "Enter a valid product price.");
   }
 
-  return Math.round(price * 100) / 100;
+  return price;
 }
 
 function parseStockAmount(value) {
@@ -221,6 +238,7 @@ function validateProductInput(fields, images) {
     label: fields.specialOptionLabel,
     startDate: fields.specialOptionStartDate,
     endDate: fields.specialOptionEndDate,
+    discountAmount: fields.specialOptionDiscountAmount,
   });
 
   if (!title) {
