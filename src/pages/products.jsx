@@ -851,33 +851,50 @@ export default function ProductsPage() {
 
           {products.length > 0 ? (
             <section className="mt-8 border border-white/10 bg-[#151516] p-4 sm:p-5">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("all")}
-                  className={`border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
-                    selectedCategory === "all"
-                      ? "border-white bg-white text-black"
-                      : "border-white/10 bg-black text-white/55 hover:border-white/30 hover:text-white"
-                  }`}
-                >
-                  All
-                </button>
-
-                {categories.map((category) => (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={category}
                     type="button"
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => setSelectedCategory("all")}
                     className={`border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
-                      selectedCategory === category
+                      selectedCategory === "all"
                         ? "border-white bg-white text-black"
                         : "border-white/10 bg-black text-white/55 hover:border-white/30 hover:text-white"
                     }`}
                   >
-                    {category}
+                    All
                   </button>
-                ))}
+
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => setSelectedCategory(category)}
+                      className={`border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
+                        selectedCategory === category
+                          ? "border-white bg-white text-black"
+                          : "border-white/10 bg-black text-white/55 hover:border-white/30 hover:text-white"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+
+                {cartTotalQuantity > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      orderSectionRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }}
+                    className="border border-emerald-300/40 bg-emerald-950/35 px-4 py-2 text-xs uppercase tracking-[0.22em] text-emerald-100 transition hover:border-emerald-200/70 hover:bg-emerald-900/50"
+                  >
+                    View Cart ({cartTotalQuantity})
+                  </button>
+                ) : null}
               </div>
             </section>
           ) : null}
@@ -1526,6 +1543,21 @@ export default function ProductsPage() {
                 </form>
               </div>
             </section>
+          ) : null}
+
+          {cartTotalQuantity > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                orderSectionRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }}
+              className="fixed bottom-5 right-5 z-40 border border-emerald-300/50 bg-emerald-950/90 px-4 py-3 text-xs uppercase tracking-[0.2em] text-emerald-100 shadow-lg shadow-black/40 transition hover:border-emerald-200 hover:bg-emerald-900"
+            >
+              View Cart ({cartTotalQuantity})
+            </button>
           ) : null}
 
           <div className="mt-14">
