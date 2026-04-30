@@ -291,7 +291,7 @@ function normalizeProduct(product) {
   };
 }
 
-function validateProductInput(fields, images) {
+function validateProductFields(fields) {
   const title = cleanText(fields.title, 120);
   const description = cleanText(fields.description, 1000);
   const category = cleanText(fields.category, 80);
@@ -325,6 +325,23 @@ function validateProductInput(fields, images) {
     throw new HttpError(400, "Product weight is required.");
   }
 
+  return {
+    title,
+    description,
+    category,
+    price,
+    weight,
+    stockAmount,
+    minimumOrderQuantity,
+    colors,
+    scents,
+    specialOption,
+  };
+}
+
+function validateProductInput(fields, images) {
+  const productFields = validateProductFields(fields);
+
   if (!Array.isArray(images) || images.length === 0) {
     throw new HttpError(400, "At least one product image is required.");
   }
@@ -343,18 +360,7 @@ function validateProductInput(fields, images) {
     }
   });
 
-  return {
-    title,
-    description,
-    category,
-    price,
-    weight,
-    stockAmount,
-    minimumOrderQuantity,
-    colors,
-    scents,
-    specialOption,
-  };
+  return productFields;
 }
 
 function getImageExtension(image) {
@@ -609,6 +615,48 @@ export async function updateProductStock(productId, stockAmountValue) {
       updatedProduct = normalizeProduct({
         ...product,
         stockAmount,
+        updatedAt: now,
+      });
+
+      return updatedProduct;
+    });
+
+    if (!updatedProduct) {
+      throw new HttpError(404, "Product was not found.");
+    }
+
+    return {
+      product: updatedProduct,
+      products: updatedProducts,
+    };
+  });
+
+  return {
+    product: result.product,
+    products: result.products,
+  };
+}
+
+export async function updateProductDetails(productId, fields) {
+  const id = String(productId || "").trim();
+
+  if (!id) {
+    throw new HttpError(400, "Product ID is required.");
+  }
+
+  const productFields = validateProductFields(fields || {});
+  const now = new Date().toISOString();
+  const result = await mutateProductsWithRetry((products) => {
+    let updatedProduct = null;
+
+    const updatedProducts = products.map((product) => {
+      if (product.id !== id) {
+        return product;
+      }
+
+      updatedProduct = normalizeProduct({
+        ...product,
+        ...productFields,
         updatedAt: now,
       });
 

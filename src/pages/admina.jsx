@@ -147,6 +147,53 @@ function getProductList(value) {
     : [];
 }
 
+function serializeProductList(value) {
+  return getProductList(value).join(", ");
+}
+
+function buildProductFieldsPayload(form) {
+  return {
+    title: form.title,
+    description: form.description,
+    category: form.category,
+    price: form.price,
+    weight: form.weight,
+    stockAmount: form.stockAmount,
+    minimumOrderQuantity: form.minimumOrderQuantity,
+    colors: form.colors,
+    scents: form.scents,
+    specialOptionEnabled: String(form.specialOptionEnabled),
+    specialOptionLabel: form.specialOptionLabel,
+    specialOptionStartDate: form.specialOptionStartDate,
+    specialOptionEndDate: form.specialOptionEndDate,
+    specialOptionDiscountAmount: form.specialOptionDiscountAmount,
+  };
+}
+
+function buildFormFromProduct(product) {
+  const specialOption = product?.specialOption || {};
+  const specialOptionEnabled = Boolean(specialOption.enabled);
+
+  return {
+    title: String(product?.title || ""),
+    description: String(product?.description || ""),
+    category: String(product?.category || ""),
+    price: String(product?.price ?? ""),
+    weight: String(product?.weight || ""),
+    stockAmount: String(product?.stockAmount ?? ""),
+    minimumOrderQuantity: String(Math.max(1, Number(product?.minimumOrderQuantity) || 1)),
+    colors: serializeProductList(product?.colors),
+    scents: serializeProductList(product?.scents),
+    specialOptionEnabled,
+    specialOptionLabel: String(specialOption.label || "Special"),
+    specialOptionStartDate: specialOptionEnabled ? String(specialOption.startDate || "") : "",
+    specialOptionEndDate: specialOptionEnabled ? String(specialOption.endDate || "") : "",
+    specialOptionDiscountAmount: specialOptionEnabled
+      ? String(specialOption.discountAmount ?? "")
+      : "",
+  };
+}
+
 export default function AdminaPage() {
   const imageInputRef = useRef(null);
 
@@ -160,6 +207,7 @@ export default function AdminaPage() {
   const [productsStatus, setProductsStatus] = useState("idle");
   const [orders, setOrders] = useState([]);
   const [ordersStatus, setOrdersStatus] = useState("idle");
+  const [editingProductId, setEditingProductId] = useState("");
   const [formStatus, setFormStatus] = useState("idle");
   const [loginStatus, setLoginStatus] = useState("idle");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -240,6 +288,8 @@ export default function AdminaPage() {
       products: categoryProducts,
     }));
   }, [filteredProducts]);
+
+  const isEditingProduct = Boolean(editingProductId);
 
   const loadProducts = useCallback(async () => {
     setProductsStatus("loading");
@@ -442,6 +492,11 @@ export default function AdminaPage() {
   }
 
   function addImages(incomingFiles) {
+    if (isEditingProduct) {
+      setError("Image changes are disabled while editing product details.");
+      return;
+    }
+
     if (!incomingFiles.length) {
       return;
     }
@@ -521,6 +576,10 @@ export default function AdminaPage() {
   }
 
   function openImagePicker() {
+    if (isEditingProduct) {
+      return;
+    }
+
     imageInputRef.current?.click();
   }
 
@@ -557,14 +616,37 @@ export default function AdminaPage() {
   }
 
   function resetForm() {
+    setEditingProductId("");
     setForm(initialForm);
     clearSelectedImages();
+  }
+
+  function startEditingProduct(product) {
+    if (!product?.id) {
+      return;
+    }
+
+    setEditingProductId(product.id);
+    setForm(buildFormFromProduct(product));
+    clearSelectedImages();
+    setError("");
+    setMessage(`Editing "${product.title}". Save changes to update this product.`);
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
+
+  function cancelEditingProduct() {
+    resetForm();
+    setError("");
+    setMessage("Edit cancelled.");
   }
 
   async function submitProduct(event) {
     event.preventDefault();
 
-    if (imageFiles.length === 0) {
+    if (!isEditingProduct && imageFiles.length === 0) {
       setError("Add at least one product image before saving.");
       return;
     }
@@ -574,44 +656,58 @@ export default function AdminaPage() {
     setFormStatus("saving");
 
     try {
-      const formData = new FormData();
+      const fieldsPayload = buildProductFieldsPayload(form);
 
-      formData.append("title", form.title);
-      formData.append("description", form.description);
-      formData.append("category", form.category);
-      formData.append("price", form.price);
-      formData.append("weight", form.weight);
-      formData.append("stockAmount", form.stockAmount);
-      formData.append("minimumOrderQuantity", form.minimumOrderQuantity);
-      formData.append("colors", form.colors);
-      formData.append("scents", form.scents);
-      formData.append("specialOptionEnabled", String(form.specialOptionEnabled));
-      formData.append("specialOptionLabel", form.specialOptionLabel);
-      formData.append("specialOptionStartDate", form.specialOptionStartDate);
-      formData.append("specialOptionEndDate", form.specialOptionEndDate);
-      formData.append("specialOptionDiscountAmount", form.specialOptionDiscountAmount);
+      if (isEditingProduct) {
+        const data = await fetchJsonWithRetry(
+          `/api/admin/products?id=${encodeURIComponent(editingProductId)}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            cache: "no-store",
+            body: JSON.stringify({
+              id: editingProductId,
+              action: "update-product-details",
+              fields: fieldsPayload,
+            }),
+          },
+          "Product could not be updated.",
+        );
 
-      imageFiles.forEach((file) => {
-        formData.append("images", file);
-      });
+        setProducts(data.products || []);
+        const updatedTitle = String(data.product?.title || form.title || "Product");
+        resetForm();
+        setMessage(`"${updatedTitle}" updated.`);
+      } else {
+        const formData = new FormData();
 
-      const response = await fetch("/api/admin/products", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
+        Object.entries(fieldsPayload).forEach(([name, value]) => {
+          formData.append(name, value);
+        });
 
-      const data = await readJsonResponse(
-        response,
-        "Admin API is available through Vercel dev or a deployed Vercel site.",
-      );
+        imageFiles.forEach((file) => {
+          formData.append("images", file);
+        });
 
-      setProducts(data.products || []);
-      resetForm();
-      setMessage("Product saved.");
-      setFormStatus("idle");
+        const response = await fetch("/api/admin/products", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+
+        const data = await readJsonResponse(
+          response,
+          "Admin API is available through Vercel dev or a deployed Vercel site.",
+        );
+
+        setProducts(data.products || []);
+        resetForm();
+        setMessage("Product saved.");
+      }
     } catch (saveError) {
       setError(saveError.message);
+    } finally {
       setFormStatus("idle");
     }
   }
@@ -1019,17 +1115,31 @@ export default function AdminaPage() {
             <>
               <div className="mt-5 grid w-full min-w-0 gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
                 <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20">
-                  <div className="border-b border-white/10 pb-4">
-                    <h2
-                      className="text-3xl leading-none text-white sm:text-4xl"
-                      style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                    >
-                      Add Product
-                    </h2>
+                  <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
+                    <div>
+                      <h2
+                        className="text-3xl leading-none text-white sm:text-4xl"
+                        style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                      >
+                        {isEditingProduct ? "Edit Product" : "Add Product"}
+                      </h2>
 
-                    <p className="mt-2 text-sm leading-6 text-white/50">
-                      Compact product creation with options and special discounts.
-                    </p>
+                      <p className="mt-2 text-sm leading-6 text-white/50">
+                        {isEditingProduct
+                          ? "Update product details and save changes."
+                          : "Compact product creation with options and special discounts."}
+                      </p>
+                    </div>
+
+                    {isEditingProduct ? (
+                      <button
+                        type="button"
+                        onClick={cancelEditingProduct}
+                        className="rounded-full border border-red-300/30 bg-red-950/20 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-100/80 transition hover:border-red-200/50 hover:text-red-100"
+                      >
+                        Cancel Edit
+                      </button>
+                    ) : null}
                   </div>
 
                   <form className="mt-5 grid min-w-0 gap-4" onSubmit={submitProduct}>
@@ -1348,7 +1458,9 @@ export default function AdminaPage() {
                           Images
                         </h3>
                         <p className="mt-1 text-xs text-white/38">
-                          Upload up to {MAX_PRODUCT_IMAGES}. First image is the main image.
+                          {isEditingProduct
+                            ? "Images stay unchanged in edit mode. Cancel edit to upload for a new product."
+                            : `Upload up to ${MAX_PRODUCT_IMAGES}. First image is the main image.`}
                         </p>
                       </div>
 
@@ -1361,6 +1473,7 @@ export default function AdminaPage() {
                           accept="image/png,image/jpeg,image/webp"
                           multiple
                           onChange={updateImage}
+                          disabled={isEditingProduct}
                           className="sr-only"
                         />
 
@@ -1370,7 +1483,12 @@ export default function AdminaPage() {
                           onDrop={handleImageDrop}
                           onDragOver={handleImageDragOver}
                           onDragLeave={handleImageDragLeave}
+                          disabled={isEditingProduct}
                           className={`rounded-2xl border border-dashed px-4 py-6 text-left transition ${
+                            isEditingProduct
+                              ? "cursor-not-allowed border-white/10 bg-black/30 opacity-60"
+                              : ""
+                          } ${
                             isImageDropActive
                               ? "border-white/55 bg-white/10"
                               : "border-white/20 bg-black hover:border-white/40 hover:bg-[#161618]"
@@ -1397,6 +1515,7 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={openImagePicker}
+                              disabled={isEditingProduct}
                               className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
                             >
                               Add
@@ -1404,7 +1523,7 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={clearSelectedImages}
-                              disabled={imageFiles.length === 0}
+                              disabled={isEditingProduct || imageFiles.length === 0}
                               className="rounded-full border border-red-400/25 bg-red-950/25 px-2.5 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
                             >
                               Clear
@@ -1454,13 +1573,32 @@ export default function AdminaPage() {
                     </section>
 
                     <div className="sticky bottom-3 z-10 rounded-2xl border border-white/10 bg-[#151516]/95 p-2.5 shadow-2xl shadow-black/40 backdrop-blur">
-                      <button
-                        type="submit"
-                        disabled={formStatus === "saving"}
-                        className="w-full rounded-xl border border-white bg-white px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
-                      >
-                        {formStatus === "saving" ? "Saving Product..." : "Save Product"}
-                      </button>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="submit"
+                          disabled={formStatus === "saving"}
+                          className="w-full rounded-xl border border-white bg-white px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                        >
+                          {formStatus === "saving"
+                            ? isEditingProduct
+                              ? "Saving Changes..."
+                              : "Saving Product..."
+                            : isEditingProduct
+                              ? "Save Changes"
+                              : "Save Product"}
+                        </button>
+
+                        {isEditingProduct ? (
+                          <button
+                            type="button"
+                            onClick={cancelEditingProduct}
+                            disabled={formStatus === "saving"}
+                            className="w-full rounded-xl border border-white/15 bg-black px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/80 transition hover:border-white/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Cancel Edit
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   </form>
                 </section>
@@ -1744,6 +1882,19 @@ export default function AdminaPage() {
                                           <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-white/50">
                                             {product.weight}
                                           </span>
+
+                                          <button
+                                            type="button"
+                                            onClick={() => startEditingProduct(product)}
+                                            disabled={isBusy}
+                                            className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                                              editingProductId === product.id
+                                                ? "border-white bg-white text-black"
+                                                : "border-white/10 bg-white/5 text-white/65 hover:border-white/35 hover:text-white"
+                                            }`}
+                                          >
+                                            {editingProductId === product.id ? "Editing" : "Edit"}
+                                          </button>
 
                                           <button
                                             type="button"
