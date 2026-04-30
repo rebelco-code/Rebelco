@@ -123,6 +123,25 @@ export default async function handler(request, response) {
     }
 
     if (request.method === "PATCH") {
+      const contentType = request.headers["content-type"] || "";
+
+      if (contentType.includes("multipart/form-data")) {
+        const { fields, images } = await parseMultipartForm(request);
+        const productId = fields.id || getProductId(request);
+        const action = String(fields.action || "").trim().toLowerCase();
+
+        if (action !== "update-product-details") {
+          throw new HttpError(400, "Unsupported product action.");
+        }
+
+        const result = await updateProductDetails(productId, fields, images, {
+          existingImagePathnames: fields.existingImagePathnames,
+        });
+
+        sendJson(response, 200, result);
+        return;
+      }
+
       const body = await readJsonBody(request);
       const productId = body.id || getProductId(request);
       let result;

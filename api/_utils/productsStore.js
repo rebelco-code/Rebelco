@@ -4,6 +4,7 @@ import { HttpError } from "./errors.js";
 const CATALOG_PATH = "products/catalog.json";
 const IMAGE_PREFIX = "products/images";
 const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_PRODUCT_IMAGES = 6;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_CATALOG_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
@@ -342,7 +343,17 @@ function validateProductFields(fields) {
 function validateProductInput(fields, images) {
   const productFields = validateProductFields(fields);
 
-  if (!Array.isArray(images) || images.length === 0) {
+  validateProductImages(images, { requireAtLeastOne: true });
+
+  return productFields;
+}
+
+function validateProductImages(images, { requireAtLeastOne = true } = {}) {
+  if (!Array.isArray(images)) {
+    throw new HttpError(400, "Product images must be provided as a list.");
+  }
+
+  if (requireAtLeastOne && images.length === 0) {
     throw new HttpError(400, "At least one product image is required.");
   }
 
@@ -359,8 +370,46 @@ function validateProductInput(fields, images) {
       throw new HttpError(400, "Product images must be JPG, PNG, or WebP.");
     }
   });
+}
 
-  return productFields;
+function parseExistingImagePathnames(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  let parsedValue = value;
+
+  if (typeof parsedValue === "string") {
+    const trimmedValue = parsedValue.trim();
+
+    if (!trimmedValue) {
+      return [];
+    }
+
+    try {
+      parsedValue = JSON.parse(trimmedValue);
+    } catch {
+      parsedValue = trimmedValue.split(/[\n,]+/);
+    }
+  }
+
+  if (!Array.isArray(parsedValue)) {
+    throw new HttpError(400, "existingImagePathnames must be a list.");
+  }
+
+  const cleanedPathnames = parsedValue
+    .map((pathname) => String(pathname || "").trim())
+    .filter(Boolean);
+
+  const hasInvalidPathname = cleanedPathnames.some(
+    (pathname) => !pathname.startsWith(`${IMAGE_PREFIX}/`),
+  );
+
+  if (hasInvalidPathname) {
+    throw new HttpError(400, "One or more existing image pathnames are invalid.");
+  }
+
+  return Array.from(new Set(cleanedPathnames)).slice(0, MAX_PRODUCT_IMAGES);
 }
 
 function getImageExtension(image) {
@@ -637,7 +686,7 @@ export async function updateProductStock(productId, stockAmountValue) {
   };
 }
 
-export async function updateProductDetails(productId, fields) {
+export async function updateProductDetails(productId, fields, images = [], options = {}) {
   const id = String(productId || "").trim();
 
   if (!id) {
@@ -645,6 +694,27 @@ export async function updateProductDetails(productId, fields) {
   }
 
   const productFields = validateProductFields(fields || {});
+  validateProductImages(images, { requireAtLeastOne: false });
+  const existingImagePathnamesOverride = parseExistingImagePathnames(
+    options.existingImagePathnames,
+  );
+  const token = getBlobToken();
+  const uploadedImagePathnames = (
+    await Promise.all(
+      images.map(async (image, index) => {
+        const imagePathname = `${IMAGE_PREFIX}/${id}-updated-${Date.now()}-${index + 1}.${getImageExtension(image)}`;
+
+        const uploadedImage = await put(imagePathname, image.buffer, {
+          access: "private",
+          addRandomSuffix: true,
+          contentType: image.mimeType,
+          token,
+        });
+
+        return uploadedImage.pathname;
+      }),
+    )
+  ).filter(Boolean);
   const now = new Date().toISOString();
   const result = await mutateProductsWithRetry((products) => {
     let updatedProduct = null;
@@ -654,9 +724,48 @@ export async function updateProductDetails(productId, fields) {
         return product;
       }
 
+      const currentImagePathnames = Array.isArray(product.imagePathnames)
+        ? product.imagePathnames.map(String).filter(Boolean)
+        : product.imagePathname
+          ? [String(product.imagePathname)]
+          : [];
+      const currentRawImageUrls = Array.isArray(product.imageUrls)
+        ? product.imageUrls.map(String).filter(Boolean)
+        : product.imageUrl
+          ? [String(product.imageUrl)]
+          : [];
+      const shouldUpdateImages =
+        existingImagePathnamesOverride !== null || uploadedImagePathnames.length > 0;
+
+      let nextImagePathnames = currentImagePathnames;
+      let nextRawImageUrls = currentRawImageUrls;
+
+      if (shouldUpdateImages) {
+        const retainedPathnames =
+          existingImagePathnamesOverride === null
+            ? currentImagePathnames
+            : existingImagePathnamesOverride;
+        const combinedPathnames = [...retainedPathnames, ...uploadedImagePathnames];
+
+        if (combinedPathnames.length > MAX_PRODUCT_IMAGES) {
+          throw new HttpError(400, `You can save up to ${MAX_PRODUCT_IMAGES} images per product.`);
+        }
+
+        nextImagePathnames = combinedPathnames;
+        nextRawImageUrls = [];
+      }
+
+      if (!nextImagePathnames.length && !nextRawImageUrls.length) {
+        throw new HttpError(400, "At least one product image is required.");
+      }
+
       updatedProduct = normalizeProduct({
         ...product,
         ...productFields,
+        imagePathname: nextImagePathnames[0] || "",
+        imagePathnames: nextImagePathnames,
+        imageUrl: nextRawImageUrls[0] || "",
+        imageUrls: nextRawImageUrls,
         updatedAt: now,
       });
 

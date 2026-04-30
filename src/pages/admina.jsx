@@ -147,6 +147,29 @@ function getProductList(value) {
     : [];
 }
 
+function getProductImages(product) {
+  const imageUrls = Array.isArray(product?.imageUrls)
+    ? product.imageUrls.map((url) => String(url || "").trim()).filter(Boolean)
+    : [];
+  const imagePathnames = Array.isArray(product?.imagePathnames)
+    ? product.imagePathnames.map((pathname) => String(pathname || "").trim()).filter(Boolean)
+    : [];
+
+  if (!imageUrls.length && product?.imageUrl) {
+    imageUrls.push(String(product.imageUrl).trim());
+  }
+
+  if (!imagePathnames.length && product?.imagePathname) {
+    imagePathnames.push(String(product.imagePathname).trim());
+  }
+
+  return imageUrls.map((url, index) => ({
+    key: `${imagePathnames[index] || url || `image-${index}`}-${index}`,
+    url,
+    pathname: imagePathnames[index] || "",
+  }));
+}
+
 function serializeProductList(value) {
   return getProductList(value).join(", ");
 }
@@ -203,6 +226,8 @@ export default function AdminaPage() {
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [editingExistingImages, setEditingExistingImages] = useState([]);
+  const [editingHasUntrackedImages, setEditingHasUntrackedImages] = useState(false);
   const [sessionStatus, setSessionStatus] = useState("checking");
   const [productsStatus, setProductsStatus] = useState("idle");
   const [orders, setOrders] = useState([]);
@@ -290,6 +315,8 @@ export default function AdminaPage() {
   }, [filteredProducts]);
 
   const isEditingProduct = Boolean(editingProductId);
+  const canEditExistingImages = isEditingProduct && !editingHasUntrackedImages;
+  const totalSelectedImageCount = editingExistingImages.length + imageFiles.length;
 
   const loadProducts = useCallback(async () => {
     setProductsStatus("loading");
@@ -482,7 +509,8 @@ export default function AdminaPage() {
   }
 
   function setSelectedImages(nextFiles) {
-    const limitedFiles = nextFiles.slice(0, MAX_PRODUCT_IMAGES);
+    const maxSelectable = Math.max(0, MAX_PRODUCT_IMAGES - editingExistingImages.length);
+    const limitedFiles = nextFiles.slice(0, maxSelectable);
 
     setImageFiles(limitedFiles);
     setImagePreviews((currentPreviews) => {
@@ -492,11 +520,6 @@ export default function AdminaPage() {
   }
 
   function addImages(incomingFiles) {
-    if (isEditingProduct) {
-      setError("Image changes are disabled while editing product details.");
-      return;
-    }
-
     if (!incomingFiles.length) {
       return;
     }
@@ -505,6 +528,7 @@ export default function AdminaPage() {
     let tooLargeCount = 0;
     let duplicateCount = 0;
     let overflowCount = 0;
+    const existingCount = editingExistingImages.length;
     const nextSelectedFiles = [...imageFiles];
 
     incomingFiles.forEach((file) => {
@@ -530,7 +554,7 @@ export default function AdminaPage() {
         return;
       }
 
-      if (nextSelectedFiles.length >= MAX_PRODUCT_IMAGES) {
+      if (nextSelectedFiles.length + existingCount >= MAX_PRODUCT_IMAGES) {
         overflowCount += 1;
         return;
       }
@@ -576,10 +600,6 @@ export default function AdminaPage() {
   }
 
   function openImagePicker() {
-    if (isEditingProduct) {
-      return;
-    }
-
     imageInputRef.current?.click();
   }
 
@@ -595,6 +615,12 @@ export default function AdminaPage() {
   function removeSelectedImage(indexToRemove) {
     const remainingFiles = imageFiles.filter((_, index) => index !== indexToRemove);
     setSelectedImages(remainingFiles);
+  }
+
+  function removeEditingExistingImage(keyToRemove) {
+    setEditingExistingImages((currentImages) =>
+      currentImages.filter((image) => image.key !== keyToRemove),
+    );
   }
 
   function handleImageDrop(event) {
@@ -617,6 +643,8 @@ export default function AdminaPage() {
 
   function resetForm() {
     setEditingProductId("");
+    setEditingExistingImages([]);
+    setEditingHasUntrackedImages(false);
     setForm(initialForm);
     clearSelectedImages();
   }
@@ -628,6 +656,9 @@ export default function AdminaPage() {
 
     setEditingProductId(product.id);
     setForm(buildFormFromProduct(product));
+    const existingImages = getProductImages(product).slice(0, MAX_PRODUCT_IMAGES);
+    setEditingExistingImages(existingImages);
+    setEditingHasUntrackedImages(existingImages.some((image) => !image.pathname));
     clearSelectedImages();
     setError("");
     setMessage(`Editing "${product.title}". Save changes to update this product.`);
@@ -651,6 +682,11 @@ export default function AdminaPage() {
       return;
     }
 
+    if (isEditingProduct && totalSelectedImageCount === 0) {
+      setError("Keep at least one product image or add a new one before saving.");
+      return;
+    }
+
     setError("");
     setMessage("");
     setFormStatus("saving");
@@ -659,19 +695,37 @@ export default function AdminaPage() {
       const fieldsPayload = buildProductFieldsPayload(form);
 
       if (isEditingProduct) {
-        const data = await fetchJsonWithRetry(
-          `/api/admin/products?id=${encodeURIComponent(editingProductId)}`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            cache: "no-store",
-            body: JSON.stringify({
-              id: editingProductId,
-              action: "update-product-details",
-              fields: fieldsPayload,
-            }),
-          },
+        const formData = new FormData();
+
+        formData.append("id", editingProductId);
+        formData.append("action", "update-product-details");
+        Object.entries(fieldsPayload).forEach(([name, value]) => {
+          formData.append(name, value);
+        });
+
+        if (canEditExistingImages) {
+          formData.append(
+            "existingImagePathnames",
+            JSON.stringify(
+              editingExistingImages
+                .map((image) => String(image.pathname || "").trim())
+                .filter(Boolean),
+            ),
+          );
+        }
+
+        imageFiles.forEach((file) => {
+          formData.append("images", file);
+        });
+
+        const response = await fetch("/api/admin/products", {
+          method: "PATCH",
+          body: formData,
+          credentials: "include",
+        });
+
+        const data = await readJsonResponse(
+          response,
           "Product could not be updated.",
         );
 
@@ -1459,9 +1513,15 @@ export default function AdminaPage() {
                         </h3>
                         <p className="mt-1 text-xs text-white/38">
                           {isEditingProduct
-                            ? "Images stay unchanged in edit mode. Cancel edit to upload for a new product."
+                            ? "Manage existing images and add more (up to 6 total)."
                             : `Upload up to ${MAX_PRODUCT_IMAGES}. First image is the main image.`}
                         </p>
+                        {isEditingProduct && !canEditExistingImages ? (
+                          <p className="mt-2 text-xs text-amber-100/70">
+                            This product has legacy image references. You can add images, but existing
+                            image removal is disabled for safety.
+                          </p>
+                        ) : null}
                       </div>
 
                       <label className="grid min-w-0 gap-2 text-sm text-white/72">
@@ -1473,7 +1533,6 @@ export default function AdminaPage() {
                           accept="image/png,image/jpeg,image/webp"
                           multiple
                           onChange={updateImage}
-                          disabled={isEditingProduct}
                           className="sr-only"
                         />
 
@@ -1483,12 +1542,7 @@ export default function AdminaPage() {
                           onDrop={handleImageDrop}
                           onDragOver={handleImageDragOver}
                           onDragLeave={handleImageDragLeave}
-                          disabled={isEditingProduct}
                           className={`rounded-2xl border border-dashed px-4 py-6 text-left transition ${
-                            isEditingProduct
-                              ? "cursor-not-allowed border-white/10 bg-black/30 opacity-60"
-                              : ""
-                          } ${
                             isImageDropActive
                               ? "border-white/55 bg-white/10"
                               : "border-white/20 bg-black hover:border-white/40 hover:bg-[#161618]"
@@ -1509,13 +1563,12 @@ export default function AdminaPage() {
 
                         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-[10px] uppercase tracking-[0.16em] text-white/52">
                           <span>
-                            {imageFiles.length} / {MAX_PRODUCT_IMAGES} selected
+                            {totalSelectedImageCount} / {MAX_PRODUCT_IMAGES} selected
                           </span>
                           <div className="flex items-center gap-1.5">
                             <button
                               type="button"
                               onClick={openImagePicker}
-                              disabled={isEditingProduct}
                               className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
                             >
                               Add
@@ -1523,17 +1576,60 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={clearSelectedImages}
-                              disabled={isEditingProduct || imageFiles.length === 0}
+                              disabled={imageFiles.length === 0}
                               className="rounded-full border border-red-400/25 bg-red-950/25 px-2.5 py-1 text-[10px] text-red-100/80 transition hover:border-red-300/45 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-45"
                             >
-                              Clear
+                              Clear New
                             </button>
                           </div>
                         </div>
                       </label>
 
+                      {editingExistingImages.length > 0 ? (
+                        <div className="mt-3">
+                          <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-white/50">
+                            Existing Images ({editingExistingImages.length})
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                            {editingExistingImages.map((image, index) => (
+                              <article
+                                key={image.key}
+                                className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-1.5"
+                              >
+                                <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
+                                  <img
+                                    src={image.url}
+                                    alt={`Existing product preview ${index + 1}`}
+                                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                  />
+                                  <div className="absolute left-1.5 top-1.5 rounded-full border border-white/20 bg-black/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-white/70 backdrop-blur">
+                                    {index + 1}
+                                  </div>
+                                  {canEditExistingImages ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeEditingExistingImage(image.key)}
+                                      className="absolute right-1.5 top-1.5 rounded-full border border-red-300/35 bg-red-950/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-red-100 transition hover:border-red-200/60 hover:bg-red-900/80"
+                                    >
+                                      X
+                                    </button>
+                                  ) : null}
+                                </div>
+                                <div className="mt-1 truncate text-[10px] text-white/45">
+                                  {image.pathname ? "Tracked image" : "Legacy image"}
+                                </div>
+                              </article>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
                       {imageFiles.length > 0 ? (
-                        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                        <div className="mt-3">
+                          <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-white/50">
+                            New Images ({imageFiles.length})
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                           {imageFiles.map((file, index) => (
                             <article
                               key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
@@ -1546,7 +1642,7 @@ export default function AdminaPage() {
                                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                                 />
                                 <div className="absolute left-1.5 top-1.5 rounded-full border border-white/20 bg-black/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-white/70 backdrop-blur">
-                                  {index + 1}
+                                  {editingExistingImages.length + index + 1}
                                 </div>
                                 <button
                                   type="button"
@@ -1564,10 +1660,13 @@ export default function AdminaPage() {
                               </div>
                             </article>
                           ))}
+                          </div>
                         </div>
                       ) : (
                         <div className="mt-3 rounded-xl border border-white/10 bg-black/35 px-3.5 py-3 text-xs text-white/45">
-                          No images selected yet.
+                          {editingExistingImages.length > 0
+                            ? "No new images selected."
+                            : "No images selected yet."}
                         </div>
                       )}
                     </section>
