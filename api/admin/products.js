@@ -6,13 +6,14 @@ import {
   createProduct,
   deleteProduct,
   MAX_IMAGE_SIZE_BYTES,
+  MAX_PRODUCT_IMAGES,
   readProducts,
   setProductOutOfStock,
   updateProductDetails,
   updateProductStock,
 } from "../_utils/productsStore.js";
 
-const MAX_PRODUCT_IMAGES = 6;
+const MAX_IMAGE_SIZE_MB = Math.floor(MAX_IMAGE_SIZE_BYTES / (1024 * 1024));
 
 function parseMultipartForm(request) {
   const contentType = request.headers["content-type"] || "";
@@ -84,7 +85,9 @@ function parseMultipartForm(request) {
       }
 
       if (imageTooLarge) {
-        reject(new HttpError(413, "Each product image must be 4 MB or smaller."));
+        reject(
+          new HttpError(413, `Each product image must be ${MAX_IMAGE_SIZE_MB} MB or smaller.`),
+        );
         return;
       }
 
@@ -114,8 +117,19 @@ export default async function handler(request, response) {
     }
 
     if (request.method === "POST") {
-      const { fields, images } = await parseMultipartForm(request);
-      const product = await createProduct(fields, images);
+      const contentType = request.headers["content-type"] || "";
+      let product;
+
+      if (contentType.includes("multipart/form-data")) {
+        const { fields, images } = await parseMultipartForm(request);
+        product = await createProduct(fields, images);
+      } else {
+        const body = await readJsonBody(request);
+        product = await createProduct(body.fields || body, [], {
+          preUploadedImagePathnames: body.preUploadedImagePathnames,
+        });
+      }
+
       const products = await readProducts();
 
       sendJson(response, 201, { product, products });
@@ -136,6 +150,7 @@ export default async function handler(request, response) {
 
         const result = await updateProductDetails(productId, fields, images, {
           existingImagePathnames: fields.existingImagePathnames,
+          preUploadedImagePathnames: fields.preUploadedImagePathnames,
         });
 
         sendJson(response, 200, result);
@@ -151,7 +166,10 @@ export default async function handler(request, response) {
       } else if (body.action === "set-stock-amount") {
         result = await updateProductStock(productId, body.stockAmount);
       } else if (body.action === "update-product-details") {
-        result = await updateProductDetails(productId, body.fields || body);
+        result = await updateProductDetails(productId, body.fields || body, [], {
+          existingImagePathnames: body.existingImagePathnames,
+          preUploadedImagePathnames: body.preUploadedImagePathnames,
+        });
       } else {
         throw new HttpError(400, "Unsupported product action.");
       }

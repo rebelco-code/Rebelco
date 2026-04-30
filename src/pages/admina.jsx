@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { upload } from "@vercel/blob/client";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
@@ -28,7 +29,10 @@ const initialLoginForm = {
 const RETRYABLE_STATUS_CODES = new Set([409, 429, 500, 502, 503, 504]);
 const MAX_ACTION_RETRIES = 2;
 const MAX_PRODUCT_IMAGES = 6;
-const MAX_PRODUCT_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_PRODUCT_IMAGE_SIZE_BYTES = 12 * 1024 * 1024;
+const MAX_PRODUCT_IMAGE_SIZE_MB = Math.floor(MAX_PRODUCT_IMAGE_SIZE_BYTES / (1024 * 1024));
+const MULTIPART_UPLOAD_THRESHOLD_BYTES = 5 * 1024 * 1024;
+const IMAGE_UPLOAD_PATH_PREFIX = "products/images";
 const ACCEPTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function wait(delayMs) {
@@ -49,6 +53,43 @@ function formatFileSize(sizeInBytes) {
   }
 
   return `${bytes} B`;
+}
+
+function slugifyPathSegment(value, fallback = "item") {
+  const slug = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+  return slug || fallback;
+}
+
+function getImageExtensionForFile(file) {
+  if (file?.type === "image/png") {
+    return "png";
+  }
+
+  if (file?.type === "image/webp") {
+    return "webp";
+  }
+
+  return "jpg";
+}
+
+function buildImageUploadPathname(file, options = {}) {
+  const { index = 0, productId = "", productTitle = "" } = options;
+  const productKey = productId
+    ? slugifyPathSegment(productId, "product")
+    : slugifyPathSegment(productTitle, "product");
+  const fileKey = slugifyPathSegment(
+    String(file?.name || "").replace(/\.[^.]+$/, ""),
+    `image-${index + 1}`,
+  );
+  const randomSuffix = Math.random().toString(36).slice(2, 10);
+  const extension = getImageExtensionForFile(file);
+
+  return `${IMAGE_UPLOAD_PATH_PREFIX}/${productKey}-${Date.now()}-${index + 1}-${fileKey}-${randomSuffix}.${extension}`;
 }
 
 async function fetchJsonWithRetry(url, options, fallbackMessage, maxRetries = MAX_ACTION_RETRIES) {
@@ -508,6 +549,40 @@ export default function AdminaPage() {
     }));
   }
 
+  async function uploadSelectedImages(filesToUpload, options = {}) {
+    const { productId = "", productTitle = "" } = options;
+    const pathnames = [];
+
+    for (let index = 0; index < filesToUpload.length; index += 1) {
+      const file = filesToUpload[index];
+
+      setMessage(
+        `Uploading image ${index + 1} of ${filesToUpload.length} (${formatFileSize(file.size)}).`,
+      );
+
+      const uploadedBlob = await upload(buildImageUploadPathname(file, {
+        index,
+        productId,
+        productTitle,
+      }), file, {
+        access: "private",
+        contentType: file.type || undefined,
+        handleUploadUrl: "/api/admin/blob-upload",
+        multipart: file.size >= MULTIPART_UPLOAD_THRESHOLD_BYTES,
+      });
+
+      const uploadedPathname = String(uploadedBlob?.pathname || "").trim();
+
+      if (!uploadedPathname) {
+        throw new Error("Image upload completed without a valid pathname.");
+      }
+
+      pathnames.push(uploadedPathname);
+    }
+
+    return pathnames;
+  }
+
   function setSelectedImages(nextFiles) {
     const maxSelectable = Math.max(0, MAX_PRODUCT_IMAGES - editingExistingImages.length);
     const limitedFiles = nextFiles.slice(0, maxSelectable);
@@ -571,7 +646,7 @@ export default function AdminaPage() {
     }
 
     if (tooLargeCount > 0) {
-      skippedMessages.push(`${tooLargeCount} too large`);
+      skippedMessages.push(`${tooLargeCount} above ${MAX_PRODUCT_IMAGE_SIZE_MB} MB`);
     }
 
     if (duplicateCount > 0) {
@@ -693,34 +768,29 @@ export default function AdminaPage() {
 
     try {
       const fieldsPayload = buildProductFieldsPayload(form);
+      const uploadedImagePathnames =
+        imageFiles.length > 0
+          ? await uploadSelectedImages(imageFiles, {
+              productId: isEditingProduct ? editingProductId : "",
+              productTitle: form.title,
+            })
+          : [];
 
       if (isEditingProduct) {
-        const formData = new FormData();
-
-        formData.append("id", editingProductId);
-        formData.append("action", "update-product-details");
-        Object.entries(fieldsPayload).forEach(([name, value]) => {
-          formData.append(name, value);
-        });
-
-        if (canEditExistingImages) {
-          formData.append(
-            "existingImagePathnames",
-            JSON.stringify(
-              editingExistingImages
-                .map((image) => String(image.pathname || "").trim())
-                .filter(Boolean),
-            ),
-          );
-        }
-
-        imageFiles.forEach((file) => {
-          formData.append("images", file);
-        });
-
         const response = await fetch("/api/admin/products", {
           method: "PATCH",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingProductId,
+            action: "update-product-details",
+            fields: fieldsPayload,
+            existingImagePathnames: canEditExistingImages
+              ? editingExistingImages
+                  .map((image) => String(image.pathname || "").trim())
+                  .filter(Boolean)
+              : undefined,
+            preUploadedImagePathnames: uploadedImagePathnames,
+          }),
           credentials: "include",
         });
 
@@ -734,19 +804,13 @@ export default function AdminaPage() {
         resetForm();
         setMessage(`"${updatedTitle}" updated.`);
       } else {
-        const formData = new FormData();
-
-        Object.entries(fieldsPayload).forEach(([name, value]) => {
-          formData.append(name, value);
-        });
-
-        imageFiles.forEach((file) => {
-          formData.append("images", file);
-        });
-
         const response = await fetch("/api/admin/products", {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fields: fieldsPayload,
+            preUploadedImagePathnames: uploadedImagePathnames,
+          }),
           credentials: "include",
         });
 
@@ -1556,7 +1620,8 @@ export default function AdminaPage() {
                               Drop images here
                             </div>
                             <p className="text-xs text-white/45">
-                              or click to browse · JPG, PNG, WebP · 4 MB each
+                              or click to browse · JPG, PNG, WebP · {MAX_PRODUCT_IMAGE_SIZE_MB} MB
+                              each
                             </p>
                           </div>
                         </button>

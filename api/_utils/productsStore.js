@@ -3,13 +3,14 @@ import { HttpError } from "./errors.js";
 
 const CATALOG_PATH = "products/catalog.json";
 const IMAGE_PREFIX = "products/images";
-const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_IMAGE_SIZE_BYTES = 12 * 1024 * 1024;
+const MAX_IMAGE_SIZE_MB = Math.floor(MAX_IMAGE_SIZE_BYTES / (1024 * 1024));
 const MAX_PRODUCT_IMAGES = 6;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_CATALOG_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
 
-export { MAX_IMAGE_SIZE_BYTES };
+export { ALLOWED_IMAGE_TYPES, IMAGE_PREFIX, MAX_IMAGE_SIZE_BYTES, MAX_PRODUCT_IMAGES };
 
 function getBlobToken() {
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
@@ -340,10 +341,14 @@ function validateProductFields(fields) {
   };
 }
 
-function validateProductInput(fields, images) {
+function validateProductInput(fields, images, preUploadedImagePathnames = []) {
   const productFields = validateProductFields(fields);
 
-  validateProductImages(images, { requireAtLeastOne: true });
+  validateProductImages(images, { requireAtLeastOne: false });
+
+  if (images.length === 0 && preUploadedImagePathnames.length === 0) {
+    throw new HttpError(400, "At least one product image is required.");
+  }
 
   return productFields;
 }
@@ -363,7 +368,10 @@ function validateProductImages(images, { requireAtLeastOne = true } = {}) {
     }
 
     if (image.buffer.length > MAX_IMAGE_SIZE_BYTES) {
-      throw new HttpError(413, "Each product image must be 4 MB or smaller.");
+      throw new HttpError(
+        413,
+        `Each product image must be ${MAX_IMAGE_SIZE_MB} MB or smaller.`,
+      );
     }
 
     if (!ALLOWED_IMAGE_TYPES.has(image.mimeType)) {
@@ -372,9 +380,9 @@ function validateProductImages(images, { requireAtLeastOne = true } = {}) {
   });
 }
 
-function parseExistingImagePathnames(value) {
+function parseImagePathnames(value, fieldName, { allowNull = false } = {}) {
   if (value === undefined || value === null) {
-    return null;
+    return allowNull ? null : [];
   }
 
   let parsedValue = value;
@@ -394,7 +402,7 @@ function parseExistingImagePathnames(value) {
   }
 
   if (!Array.isArray(parsedValue)) {
-    throw new HttpError(400, "existingImagePathnames must be a list.");
+    throw new HttpError(400, `${fieldName} must be a list.`);
   }
 
   const cleanedPathnames = parsedValue
@@ -406,10 +414,18 @@ function parseExistingImagePathnames(value) {
   );
 
   if (hasInvalidPathname) {
-    throw new HttpError(400, "One or more existing image pathnames are invalid.");
+    throw new HttpError(400, `One or more ${fieldName} values are invalid.`);
   }
 
   return Array.from(new Set(cleanedPathnames)).slice(0, MAX_PRODUCT_IMAGES);
+}
+
+function parseExistingImagePathnames(value) {
+  return parseImagePathnames(value, "existingImagePathnames", { allowNull: true });
+}
+
+function parsePreUploadedImagePathnames(value) {
+  return parseImagePathnames(value, "preUploadedImagePathnames");
 }
 
 function getImageExtension(image) {
@@ -535,10 +551,13 @@ async function mutateProductsWithRetry(mutationHandler) {
   };
 }
 
-export async function createProduct(fields, images) {
+export async function createProduct(fields, images = [], options = {}) {
   const token = getBlobToken();
+  const preUploadedImagePathnames = parsePreUploadedImagePathnames(
+    options.preUploadedImagePathnames,
+  );
 
-  const productInput = validateProductInput(fields, images);
+  const productInput = validateProductInput(fields, images, preUploadedImagePathnames);
   const now = new Date().toISOString();
   const id = `${slugify(productInput.title)}-${Date.now()}`;
 
@@ -555,8 +574,14 @@ export async function createProduct(fields, images) {
     }),
   );
 
-  const imageUrls = uploadedImages.map((blob) => blob.url);
-  const imagePathnames = uploadedImages.map((blob) => blob.pathname);
+  const uploadedImagePathnames = uploadedImages.map((blob) => blob.pathname);
+  const imagePathnames = [...preUploadedImagePathnames, ...uploadedImagePathnames];
+
+  if (imagePathnames.length > MAX_PRODUCT_IMAGES) {
+    throw new HttpError(400, `You can save up to ${MAX_PRODUCT_IMAGES} images per product.`);
+  }
+
+  const imageUrls = imagePathnames.map(getPrivateImageUrl);
 
   const product = {
     id,
@@ -698,6 +723,9 @@ export async function updateProductDetails(productId, fields, images = [], optio
   const existingImagePathnamesOverride = parseExistingImagePathnames(
     options.existingImagePathnames,
   );
+  const preUploadedImagePathnames = parsePreUploadedImagePathnames(
+    options.preUploadedImagePathnames,
+  );
   const token = getBlobToken();
   const uploadedImagePathnames = (
     await Promise.all(
@@ -735,7 +763,9 @@ export async function updateProductDetails(productId, fields, images = [], optio
           ? [String(product.imageUrl)]
           : [];
       const shouldUpdateImages =
-        existingImagePathnamesOverride !== null || uploadedImagePathnames.length > 0;
+        existingImagePathnamesOverride !== null ||
+        uploadedImagePathnames.length > 0 ||
+        preUploadedImagePathnames.length > 0;
 
       let nextImagePathnames = currentImagePathnames;
       let nextRawImageUrls = currentRawImageUrls;
@@ -745,7 +775,11 @@ export async function updateProductDetails(productId, fields, images = [], optio
           existingImagePathnamesOverride === null
             ? currentImagePathnames
             : existingImagePathnamesOverride;
-        const combinedPathnames = [...retainedPathnames, ...uploadedImagePathnames];
+        const combinedPathnames = [
+          ...retainedPathnames,
+          ...preUploadedImagePathnames,
+          ...uploadedImagePathnames,
+        ];
 
         if (combinedPathnames.length > MAX_PRODUCT_IMAGES) {
           throw new HttpError(400, `You can save up to ${MAX_PRODUCT_IMAGES} images per product.`);
