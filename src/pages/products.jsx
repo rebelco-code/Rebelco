@@ -399,6 +399,14 @@ export default function ProductsPage() {
   }, [selectedProductId, selectedProductMinimumOrderQuantity]);
 
   useEffect(() => {
+    if (selectedImageIndex < selectedProductImages.length) {
+      return;
+    }
+
+    setSelectedImageIndex(0);
+  }, [selectedImageIndex, selectedProductImages.length]);
+
+  useEffect(() => {
     let isMounted = true;
 
     async function loadProducts() {
@@ -1103,16 +1111,18 @@ export default function ProductsPage() {
                               </div>
 
                               {productImages.length > 1 ? (
-                                <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-3">
-                                  {productImages.slice(0, 4).map((imageUrl, index) => (
-                                    <img
-                                      key={`${product.id}-${imageUrl}-${index}`}
-                                      src={imageUrl}
-                                      alt={`${product.title} thumbnail ${index + 1}`}
-                                      className="aspect-square object-cover"
-                                      loading="lazy"
-                                    />
-                                  ))}
+                                <div className="border-b border-white/10 p-3">
+                                  <div className="flex gap-2 overflow-x-auto pb-1">
+                                    {productImages.map((imageUrl, index) => (
+                                      <img
+                                        key={`${product.id}-${imageUrl}-${index}`}
+                                        src={imageUrl}
+                                        alt={`${product.title} thumbnail ${index + 1}`}
+                                        className="h-16 w-16 shrink-0 border border-white/15 object-cover"
+                                        loading="lazy"
+                                      />
+                                    ))}
+                                  </div>
                                 </div>
                               ) : null}
 
@@ -1326,6 +1336,36 @@ export default function ProductsPage() {
                       </div>
                     ) : null}
                   </div>
+
+                  {selectedProductImages.length > 1 ? (
+                    <div className="mt-3 border-t border-white/10 pt-3">
+                      <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/45">
+                        Scroll images
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {selectedProductImages.map((imageUrl, index) => (
+                          <button
+                            key={`selected-${selectedProduct.id}-${imageUrl}-${index}`}
+                            type="button"
+                            onClick={() => setSelectedImageIndex(index)}
+                            className={`h-16 w-16 shrink-0 overflow-hidden border transition ${
+                              selectedImageIndex === index
+                                ? "border-white/70"
+                                : "border-white/15 hover:border-white/40"
+                            }`}
+                            aria-label={`View image ${index + 1}`}
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={`${selectedProduct.title} thumbnail ${index + 1}`}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className="mt-4 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.2em] text-white/60">
                     {selectedProductSpecialPrice !== null ? (
