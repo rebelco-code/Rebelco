@@ -1728,50 +1728,24 @@ export default function ProductsPage() {
                     <div className="mt-1 text-xs text-white/55">Use these details for EFT payment.</div>
                   </div>
 
-                  <div className="grid gap-2 p-3 sm:grid-cols-2">
-                    <div className="rounded-lg border border-white/10 bg-black p-2">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">Bank</div>
-                      <div className="mt-1 text-xs font-semibold text-white">Capitec</div>
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black p-2">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-                        Account Holder
-                      </div>
-                      <div className="mt-1 text-xs font-semibold text-white">Mrs CM Badenhorst</div>
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black p-2">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-                        Account Type
-                      </div>
-                      <div className="mt-1 text-xs font-semibold text-white">Savings account</div>
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black p-2">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/45">
-                        Branch Code
-                      </div>
-                      <div className="mt-1 text-xs font-semibold text-white">470010</div>
-                    </div>
-                  </div>
+                  <div className="px-3 pb-3 pt-3">
+                    <div className="rounded-lg border border-white/15 bg-black p-3 text-center text-xs leading-5 text-white">
+                      <div>All payment payable to:</div>
+                      <div className="mt-1 font-semibold">CM Badenhorst</div>
+                      <div className="font-semibold">acc. 101 545 007 10</div>
+                      <div className="font-semibold tracking-[0.05em]">STANDARD BANK</div>
 
-                  <div className="px-3 pb-3">
-                    <div className="rounded-lg border border-white/20 bg-black p-2.5">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">
-                        Account Number
+                      <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-white/85">
+                        <span>ref. Shop name</span>
+                        <span>sms POP to 062 693 6204</span>
                       </div>
-                      <div className="mt-1 text-base font-semibold tracking-[0.06em] text-white">
-                        1989018740
-                      </div>
-                    </div>
-
-                    <div className="mt-2 rounded-lg border border-white/10 bg-black p-2.5 text-xs text-white/75">
-                      <strong className="text-white">Reference:</strong> Your name / order number
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-950/20 p-2.5 text-xs leading-5 text-amber-100">
-                  Send proof of payment to the email linked to this website after payment.
-                  Delivery is arranged once proof is received.
+                  Send POP by SMS to 062 693 6204 after payment. Delivery is arranged once POP
+                  is received.
                 </div>
 
                 <button
