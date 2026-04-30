@@ -1,32 +1,50 @@
 import { HttpError } from "./_utils/errors.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "./_utils/http.js";
-import { createOrder } from "./_utils/ordersStore.js";
-import { readProducts } from "./_utils/productsStore.js";
-
-function findProduct(products, productId) {
-  return products.find((product) => product.id === productId) || null;
-}
+import { createOrders } from "./_utils/ordersStore.js";
+import {
+  reserveStockForOrderItems,
+  restoreStockForOrderItems,
+} from "./_utils/productsStore.js";
 
 function parseRequestedQuantity(value) {
-  return Number.parseInt(String(value || ""), 10);
+  const quantity = Number.parseInt(String(value || ""), 10);
+
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new HttpError(400, "Enter a valid quantity.");
+  }
+
+  return quantity;
 }
 
-function ensureOrderQuantityAllowed(product, requestedQuantity) {
-  const minimumOrderQuantity = Math.max(
-    1,
-    Number.parseInt(String(product.minimumOrderQuantity || ""), 10) || 1,
-  );
-
-  if (Number.isInteger(requestedQuantity) && requestedQuantity < minimumOrderQuantity) {
-    throw new HttpError(
-      400,
-      `Minimum order quantity for "${product.title}" is ${minimumOrderQuantity}.`,
-    );
+function normalizeOrderItems(itemPayloads) {
+  if (!Array.isArray(itemPayloads) || itemPayloads.length === 0) {
+    throw new HttpError(400, "Select at least one product before placing an order.");
   }
 
-  if (Number.isInteger(requestedQuantity) && requestedQuantity > Number(product.stockAmount || 0)) {
-    throw new HttpError(400, `Requested quantity for "${product.title}" is higher than stock.`);
-  }
+  const aggregatedItems = [];
+  const itemByProductId = new Map();
+
+  itemPayloads.forEach((item) => {
+    const productId = String(item?.productId || "").trim();
+
+    if (!productId) {
+      throw new HttpError(400, "Product ID is required.");
+    }
+
+    const quantity = parseRequestedQuantity(item?.quantity);
+    const existingItem = itemByProductId.get(productId);
+
+    if (existingItem) {
+      existingItem.quantity += quantity;
+      return;
+    }
+
+    const normalizedItem = { productId, quantity };
+    aggregatedItems.push(normalizedItem);
+    itemByProductId.set(productId, normalizedItem);
+  });
+
+  return aggregatedItems;
 }
 
 export default async function handler(request, response) {
@@ -34,8 +52,7 @@ export default async function handler(request, response) {
     requireMethod(request, response, ["POST"]);
 
     const body = await readJsonBody(request);
-    const products = await readProducts();
-    const itemPayloads = Array.isArray(body.items)
+    const rawItemPayloads = Array.isArray(body.items)
       ? body.items
       : [
           {
@@ -43,40 +60,33 @@ export default async function handler(request, response) {
             quantity: body.quantity,
           },
         ];
+    const orderItems = normalizeOrderItems(rawItemPayloads);
 
-    if (!itemPayloads.length) {
-      throw new HttpError(400, "Select at least one product before placing an order.");
+    const reservation = await reserveStockForOrderItems(orderItems);
+    let result;
+
+    try {
+      result = await createOrders(reservation.items, body);
+    } catch (orderError) {
+      try {
+        await restoreStockForOrderItems(orderItems);
+      } catch (rollbackError) {
+        console.error("Order stock rollback failed after order write error.", {
+          orderError,
+          rollbackError,
+          orderItems,
+        });
+
+        throw new HttpError(
+          500,
+          "Order failed and stock rollback could not be completed automatically.",
+        );
+      }
+
+      throw orderError;
     }
 
-    const createdOrders = [];
-
-    for (const item of itemPayloads) {
-      const productId = String(item?.productId || "").trim();
-
-      if (!productId) {
-        throw new HttpError(400, "Product ID is required.");
-      }
-
-      const product = findProduct(products, productId);
-
-      if (!product) {
-        throw new HttpError(404, "Product was not found.");
-      }
-
-      if (Number(product.stockAmount) <= 0) {
-        throw new HttpError(400, `"${product.title}" is currently out of stock.`);
-      }
-
-      const requestedQuantity = parseRequestedQuantity(item?.quantity);
-      ensureOrderQuantityAllowed(product, requestedQuantity);
-
-      const result = await createOrder(product, {
-        ...body,
-        quantity: requestedQuantity,
-      });
-
-      createdOrders.push(result.order);
-    }
+    const createdOrders = Array.isArray(result.createdOrders) ? result.createdOrders : [];
 
     sendJson(response, 201, {
       order: createdOrders[0] || null,

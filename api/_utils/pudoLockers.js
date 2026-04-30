@@ -11,15 +11,6 @@ function cleanText(value, maxLength = 500) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
-function maskSecret(value) {
-  const text = String(value || "").trim();
-
-  if (!text) return "missing";
-  if (text.length <= 8) return `present(length=${text.length})`;
-
-  return `present(length=${text.length}, preview=${text.slice(0, 4)}...${text.slice(-4)})`;
-}
-
 function getPudoApiBaseUrl() {
   const configuredBaseUrl = String(process.env.PUDO_API_BASE_URL || "").trim();
   const baseUrl = configuredBaseUrl || DEFAULT_PUDO_API_BASE_URL;
@@ -189,12 +180,6 @@ async function fetchPudoLockers() {
   const bearerToken = String(process.env.PUDO_BEARER_TOKEN || process.env.PUDO_API_TOKEN || "").trim();
   const apiBaseUrl = getPudoApiBaseUrl();
   const lockerDataUrls = getLockerDataUrls(apiBaseUrl);
-
-  console.warn("[pudo-lockers] auth env check", {
-    PUDO_API_BASE_URL: apiBaseUrl,
-    PUDO_API_KEY: maskSecret(apiKey),
-    PUDO_BEARER_TOKEN_or_PUDO_API_TOKEN: maskSecret(bearerToken),
-  });
 
   const attempts = lockerDataUrls.flatMap((lockerDataUrl) => [
     ...(bearerToken

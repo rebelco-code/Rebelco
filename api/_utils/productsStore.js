@@ -148,6 +148,51 @@ function parseMinimumOrderQuantity(value) {
   return minimumOrderQuantity;
 }
 
+function parseOrderItemQuantity(value) {
+  const quantity = Number.parseInt(String(value || ""), 10);
+
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new HttpError(400, "Enter a valid quantity.");
+  }
+
+  return quantity;
+}
+
+function normalizeRequestedOrderItems(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new HttpError(400, "Select at least one product before placing an order.");
+  }
+
+  const normalizedItems = [];
+  const itemByProductId = new Map();
+
+  items.forEach((item) => {
+    const productId = String(item?.productId || "").trim();
+
+    if (!productId) {
+      throw new HttpError(400, "Product ID is required.");
+    }
+
+    const quantity = parseOrderItemQuantity(item?.quantity);
+    const existingItem = itemByProductId.get(productId);
+
+    if (existingItem) {
+      existingItem.quantity += quantity;
+      return;
+    }
+
+    const normalizedItem = {
+      productId,
+      quantity,
+    };
+
+    normalizedItems.push(normalizedItem);
+    itemByProductId.set(productId, normalizedItem);
+  });
+
+  return normalizedItems;
+}
+
 function getPrivateImageUrl(pathname) {
   if (!pathname) {
     return "";
@@ -582,6 +627,117 @@ export async function updateProductStock(productId, stockAmountValue) {
 
   return {
     product: result.product,
+    products: result.products,
+  };
+}
+
+export async function reserveStockForOrderItems(items) {
+  const requestedItems = normalizeRequestedOrderItems(items);
+  const now = new Date().toISOString();
+
+  const result = await mutateProductsWithRetry((products) => {
+    const productsById = new Map(products.map((product) => [product.id, product]));
+    const reservedItems = requestedItems.map((requestedItem) => {
+      const product = productsById.get(requestedItem.productId);
+
+      if (!product) {
+        throw new HttpError(404, "Product was not found.");
+      }
+
+      const stockAmount = Number(product.stockAmount || 0);
+      const minimumOrderQuantity = parseMinimumOrderQuantity(product.minimumOrderQuantity);
+
+      if (stockAmount <= 0) {
+        throw new HttpError(400, `"${product.title}" is currently out of stock.`);
+      }
+
+      if (requestedItem.quantity < minimumOrderQuantity) {
+        throw new HttpError(
+          400,
+          `Minimum order quantity for "${product.title}" is ${minimumOrderQuantity}.`,
+        );
+      }
+
+      if (requestedItem.quantity > stockAmount) {
+        throw new HttpError(400, `Requested quantity for "${product.title}" is higher than stock.`);
+      }
+
+      return {
+        product: normalizeProduct(product),
+        quantity: requestedItem.quantity,
+      };
+    });
+
+    const quantityByProductId = new Map(
+      reservedItems.map((item) => [item.product.id, item.quantity]),
+    );
+
+    const updatedProducts = products.map((product) => {
+      const reservedQuantity = quantityByProductId.get(product.id);
+
+      if (!reservedQuantity) {
+        return product;
+      }
+
+      return normalizeProduct({
+        ...product,
+        stockAmount: Number(product.stockAmount || 0) - reservedQuantity,
+        updatedAt: now,
+      });
+    });
+
+    return {
+      reservedItems,
+      products: updatedProducts,
+    };
+  });
+
+  return {
+    items: result.reservedItems,
+    products: result.products,
+  };
+}
+
+export async function restoreStockForOrderItems(items) {
+  const requestedItems = normalizeRequestedOrderItems(items);
+  const now = new Date().toISOString();
+
+  const result = await mutateProductsWithRetry((products) => {
+    const productsById = new Map(products.map((product) => [product.id, product]));
+
+    requestedItems.forEach((requestedItem) => {
+      if (!productsById.has(requestedItem.productId)) {
+        throw new HttpError(
+          409,
+          `Rollback failed: product "${requestedItem.productId}" is missing from the catalog.`,
+        );
+      }
+    });
+
+    const quantityByProductId = new Map(
+      requestedItems.map((requestedItem) => [requestedItem.productId, requestedItem.quantity]),
+    );
+
+    const updatedProducts = products.map((product) => {
+      const quantityToRestore = quantityByProductId.get(product.id);
+
+      if (!quantityToRestore) {
+        return product;
+      }
+
+      return normalizeProduct({
+        ...product,
+        stockAmount: Number(product.stockAmount || 0) + quantityToRestore,
+        updatedAt: now,
+      });
+    });
+
+    return {
+      products: updatedProducts,
+    };
+  });
+
+  return {
     products: result.products,
   };
 }

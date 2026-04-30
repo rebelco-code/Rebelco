@@ -7,6 +7,7 @@ const MAX_MAP_LOCATION_LENGTH = 400;
 const MAX_PUDO_CODE_LENGTH = 40;
 const MAX_PUDO_NAME_LENGTH = 120;
 const MAX_PUDO_ADDRESS_LENGTH = 240;
+const MAX_ORDER_GROUP_ID_LENGTH = 64;
 const MAX_ORDERS_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
 
@@ -113,6 +114,7 @@ function normalizeOrder(order) {
 
   return {
     id: String(order.id || ""),
+    orderGroupId: cleanText(order.orderGroupId, MAX_ORDER_GROUP_ID_LENGTH),
     productId: String(order.productId || ""),
     productTitle: String(order.productTitle || ""),
     productDescription: String(order.productDescription || ""),
@@ -253,7 +255,6 @@ async function mutateOrdersWithRetry(mutationHandler) {
 }
 
 function validateOrderInput(payload) {
-  const quantity = parseQuantity(payload.quantity);
   const locationText = cleanText(payload.locationText, MAX_LOCATION_TEXT_LENGTH);
   const googleMapsLocation = cleanMapLocation(payload.googleMapsLocation);
 
@@ -265,9 +266,80 @@ function validateOrderInput(payload) {
   }
 
   return {
-    quantity,
     locationText,
     googleMapsLocation,
+  };
+}
+
+function buildOrderRecord(product, payload, quantity, now, orderGroupId) {
+  return normalizeOrder({
+    id: `order-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    orderGroupId,
+    productId: product.id,
+    productTitle: product.title,
+    productDescription: product.description,
+    productCategory: product.category,
+    productWeight: product.weight,
+    productPrice: product.price,
+    imageUrl: product.imageUrl,
+    imageUrls: product.imageUrls,
+    quantity,
+    locationText: payload.locationText,
+    googleMapsLocation: payload.googleMapsLocation,
+    pudoLockerCode: payload.pudoLockerCode,
+    pudoLockerName: payload.pudoLockerName,
+    pudoLockerAddress: payload.pudoLockerAddress,
+    proofOfPaymentReceived: false,
+    deliveryOrganized: false,
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+export async function createOrders(orderItems, payload) {
+  if (!Array.isArray(orderItems) || orderItems.length === 0) {
+    throw new HttpError(400, "Select at least one product before placing an order.");
+  }
+
+  const input = validateOrderInput(payload);
+  const now = new Date().toISOString();
+  const orderGroupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+  const preparedOrders = orderItems.map((item) => {
+    const product = item?.product;
+    const productId = String(product?.id || "").trim();
+
+    if (!productId) {
+      throw new HttpError(400, "Product ID is required.");
+    }
+
+    const quantity = parseQuantity(item?.quantity);
+
+    return buildOrderRecord(
+      {
+        ...product,
+        id: productId,
+      },
+      {
+        ...payload,
+        ...input,
+      },
+      quantity,
+      now,
+      orderGroupId,
+    );
+  });
+
+  const result = await mutateOrdersWithRetry((orders) => ({
+    createdOrders: preparedOrders,
+    orders: [...preparedOrders, ...orders],
+  }));
+
+  return {
+    order: result.createdOrders[0] || null,
+    createdOrders: result.createdOrders,
+    orders: result.orders,
+    orderGroupId,
   };
 }
 
@@ -278,35 +350,18 @@ export async function createOrder(product, payload) {
     throw new HttpError(400, "Product ID is required.");
   }
 
-  const input = validateOrderInput(payload);
-  const now = new Date().toISOString();
-
-  const order = normalizeOrder({
-    id: `order-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
-    productId,
-    productTitle: product.title,
-    productDescription: product.description,
-    productCategory: product.category,
-    productWeight: product.weight,
-    productPrice: product.price,
-    imageUrl: product.imageUrl,
-    imageUrls: product.imageUrls,
-    quantity: input.quantity,
-    locationText: input.locationText,
-    googleMapsLocation: input.googleMapsLocation,
-    pudoLockerCode: payload.pudoLockerCode,
-    pudoLockerName: payload.pudoLockerName,
-    pudoLockerAddress: payload.pudoLockerAddress,
-    proofOfPaymentReceived: false,
-    deliveryOrganized: false,
-    createdAt: now,
-    updatedAt: now,
-  });
-
-  const result = await mutateOrdersWithRetry((orders) => ({
-    order,
-    orders: [order, ...orders],
-  }));
+  const result = await createOrders(
+    [
+      {
+        product: {
+          ...product,
+          id: productId,
+        },
+        quantity: payload.quantity,
+      },
+    ],
+    payload,
+  );
 
   return {
     order: result.order,

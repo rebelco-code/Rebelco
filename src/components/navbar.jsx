@@ -42,7 +42,7 @@ const Navbar = ({ className = "" }) => {
           aria-label="Toggle navigation"
           aria-expanded={isOpen}
         >
-          <span className="text-lg">{isOpen ? "×" : "≡"}</span>
+          <span className="text-lg">{isOpen ? "\u00D7" : "\u2261"}</span>
         </button>
 
         <ul

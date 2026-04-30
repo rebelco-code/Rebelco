@@ -632,7 +632,7 @@ export default function ProductsPage() {
   }
 
   async function lookupAndSelectClosestPudo(latitude, longitude) {
-    const requestId = Date.now();
+    const requestId = pudoLookupRequestRef.current + 1;
     pudoLookupRequestRef.current = requestId;
     setPudoStatus("loading");
     setPudoMessage("");

@@ -70,6 +70,9 @@ export default function Gallery() {
             <img
               src={slide.src}
               alt={`Rebelco gallery slide ${index + 1}`}
+              loading={index === currentIndex ? "eager" : "lazy"}
+              fetchPriority={index === currentIndex ? "high" : "low"}
+              decoding="async"
               className={`h-[100svh] w-full object-cover object-center transition-transform duration-[5000ms] ease-linear ${
                 index === currentIndex ? "scale-105" : "scale-100"
               }`}

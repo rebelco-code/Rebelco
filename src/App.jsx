@@ -1,21 +1,26 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import HomePage from "./pages/home";
-import ContactPage from "./pages/contact";
-import AboutPage from "./pages/about";
-import ProductsPage from "./pages/products";
-import AdminaPage from "./pages/admina";
+
+const HomePage = lazy(() => import("./pages/home"));
+const ContactPage = lazy(() => import("./pages/contact"));
+const AboutPage = lazy(() => import("./pages/about"));
+const ProductsPage = lazy(() => import("./pages/products"));
+const AdminaPage = lazy(() => import("./pages/admina"));
+const NotFoundPage = lazy(() => import("./pages/not-found"));
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/admina" element={<AdminaPage />} />
-        <Route path="*" element={<HomePage />} />
-      </Routes>
+      <Suspense fallback={<div className="min-h-screen bg-[#0f0f10]" />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/admina" element={<AdminaPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
