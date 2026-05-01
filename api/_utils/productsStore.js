@@ -9,6 +9,11 @@ const MAX_PRODUCT_IMAGES = 6;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_CATALOG_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
+const DEFAULT_BLOB_ACCESS = "private";
+const BLOB_ACCESS_VALUES = new Set(["private", "public"]);
+const DEFAULT_CATALOG_CACHE_TTL_MS = 30 * 1000;
+let catalogSnapshotCache = null;
+let catalogSnapshotReadPromise = null;
 
 export { ALLOWED_IMAGE_TYPES, IMAGE_PREFIX, MAX_IMAGE_SIZE_BYTES, MAX_PRODUCT_IMAGES };
 
@@ -22,8 +27,88 @@ function getBlobToken() {
   return token;
 }
 
+function getConfiguredBlobAccess() {
+  const access = String(process.env.BLOB_ACCESS || "")
+    .trim()
+    .toLowerCase();
+
+  if (!access) {
+    return DEFAULT_BLOB_ACCESS;
+  }
+
+  if (!BLOB_ACCESS_VALUES.has(access)) {
+    throw new HttpError(500, 'BLOB_ACCESS must be either "private" or "public".');
+  }
+
+  return access;
+}
+
+function getBlobAccessCandidates() {
+  const configuredAccess = getConfiguredBlobAccess();
+  const fallbackAccess = configuredAccess === "private" ? "public" : "private";
+
+  return [configuredAccess, fallbackAccess];
+}
+
 function ensureBlobConfigured() {
   getBlobToken();
+  getConfiguredBlobAccess();
+}
+
+function getCatalogCacheTtlMs() {
+  const configuredTtl = Number.parseInt(
+    String(process.env.PRODUCTS_CATALOG_CACHE_TTL_MS || process.env.BLOB_CATALOG_CACHE_TTL_MS || ""),
+    10,
+  );
+
+  if (Number.isInteger(configuredTtl) && configuredTtl >= 0) {
+    return configuredTtl;
+  }
+
+  return DEFAULT_CATALOG_CACHE_TTL_MS;
+}
+
+function cloneCatalogSnapshot(snapshot) {
+  const products = Array.isArray(snapshot?.products) ? snapshot.products : [];
+
+  return {
+    etag: String(snapshot?.etag || ""),
+    products: products.map((product) => normalizeProduct(product)),
+  };
+}
+
+function getCachedCatalogSnapshot() {
+  if (!catalogSnapshotCache) {
+    return null;
+  }
+
+  if (catalogSnapshotCache.expiresAt <= Date.now()) {
+    catalogSnapshotCache = null;
+    return null;
+  }
+
+  return cloneCatalogSnapshot(catalogSnapshotCache);
+}
+
+function setCatalogSnapshotCache(snapshot) {
+  const cacheTtlMs = getCatalogCacheTtlMs();
+
+  if (cacheTtlMs <= 0) {
+    catalogSnapshotCache = null;
+    return;
+  }
+
+  const clonedSnapshot = cloneCatalogSnapshot(snapshot);
+
+  catalogSnapshotCache = {
+    ...clonedSnapshot,
+    expiresAt: Date.now() + cacheTtlMs,
+  };
+}
+
+function clearCatalogSnapshotCache() {
+  catalogSnapshotCache = null;
+  catalogSnapshotReadPromise = null;
 }
 
 function slugify(value) {
@@ -215,12 +300,45 @@ function stringifyErrorField(value) {
     .toLowerCase();
 }
 
+function getErrorStatusCode(error) {
+  const statusCode = Number(error?.statusCode || error?.status || error?.response?.status);
+
+  if (Number.isInteger(statusCode) && statusCode >= 100) {
+    return statusCode;
+  }
+
+  const hintText = `${stringifyErrorField(error?.name)} ${stringifyErrorField(error?.code)} ${stringifyErrorField(error?.message)}`;
+  const statusMatch = hintText.match(/\b([1-5]\d{2})\b/);
+
+  if (statusMatch) {
+    return Number.parseInt(statusMatch[1], 10);
+  }
+
+  if (error?.cause && error !== error.cause) {
+    return getErrorStatusCode(error.cause);
+  }
+
+  return null;
+}
+
+function isBlobAccessForbidden(error) {
+  const statusCode = getErrorStatusCode(error);
+  return statusCode === 401 || statusCode === 403;
+}
+
+function createBlobAccessError(resourceName, operation) {
+  return new HttpError(
+    500,
+    `${resourceName} could not be ${operation} in Blob. Verify BLOB_READ_WRITE_TOKEN and the Blob store access mode (private/public).`,
+  );
+}
+
 function isWriteConflict(error) {
   if (error instanceof BlobPreconditionFailedError) {
     return true;
   }
 
-  const statusCode = Number(error?.statusCode || error?.status || error?.response?.status);
+  const statusCode = getErrorStatusCode(error);
 
   if (statusCode === 412) {
     return true;
@@ -244,6 +362,61 @@ function isWriteConflict(error) {
   }
 
   return false;
+}
+
+async function getBlobWithAccessFallback(pathname, options = {}, resourceName = "Blob resource") {
+  let lastAccessError = null;
+
+  for (const access of getBlobAccessCandidates()) {
+    try {
+      return await get(pathname, {
+        ...options,
+        access,
+      });
+    } catch (error) {
+      if (!isBlobAccessForbidden(error)) {
+        throw error;
+      }
+
+      lastAccessError = error;
+    }
+  }
+
+  if (lastAccessError) {
+    throw createBlobAccessError(resourceName, "read");
+  }
+
+  throw new HttpError(502, `${resourceName} could not be read from Blob.`);
+}
+
+async function putBlobWithAccessFallback(
+  pathname,
+  body,
+  options = {},
+  resourceName = "Blob resource",
+) {
+  let lastAccessError = null;
+
+  for (const access of getBlobAccessCandidates()) {
+    try {
+      return await put(pathname, body, {
+        ...options,
+        access,
+      });
+    } catch (error) {
+      if (!isBlobAccessForbidden(error)) {
+        throw error;
+      }
+
+      lastAccessError = error;
+    }
+  }
+
+  if (lastAccessError) {
+    throw createBlobAccessError(resourceName, "written");
+  }
+
+  throw new HttpError(502, `${resourceName} could not be written to Blob.`);
 }
 
 function normalizeProduct(product) {
@@ -440,42 +613,81 @@ function getImageExtension(image) {
   return "jpg";
 }
 
-async function readCatalogSnapshot() {
-  const token = getBlobToken();
-  const result = await get(CATALOG_PATH, {
-    access: "private",
-    token,
-    useCache: false,
-  });
+async function readCatalogSnapshot(options = {}) {
+  const bypassCache = options.bypassCache === true;
 
-  if (!result) {
-    return {
-      etag: "",
-      products: [],
-    };
-  }
+  if (!bypassCache) {
+    const cachedSnapshot = getCachedCatalogSnapshot();
 
-  if (result.statusCode !== 200 || !result.stream) {
-    throw new HttpError(502, "Product catalog could not be read from Blob.");
-  }
+    if (cachedSnapshot) {
+      return cachedSnapshot;
+    }
 
-  const rawCatalog = await new Response(result.stream).text();
-  let parsedCatalog = {};
-
-  if (rawCatalog.trim()) {
-    try {
-      parsedCatalog = JSON.parse(rawCatalog);
-    } catch {
-      throw new HttpError(502, "Product catalog is invalid.");
+    if (catalogSnapshotReadPromise) {
+      const pendingSnapshot = await catalogSnapshotReadPromise;
+      return cloneCatalogSnapshot(pendingSnapshot);
     }
   }
 
-  const products = Array.isArray(parsedCatalog.products) ? parsedCatalog.products : [];
+  const loadSnapshotFromBlob = async () => {
+    const token = getBlobToken();
+    const result = await getBlobWithAccessFallback(
+      CATALOG_PATH,
+      {
+        token,
+      },
+      "Product catalog",
+    );
 
-  return {
-    etag: String(result.blob?.etag || ""),
-    products: products.map(normalizeProduct).filter((product) => product.id && product.title),
+    if (!result) {
+      const emptySnapshot = {
+        etag: "",
+        products: [],
+      };
+
+      setCatalogSnapshotCache(emptySnapshot);
+      return emptySnapshot;
+    }
+
+    if (result.statusCode !== 200 || !result.stream) {
+      throw new HttpError(502, "Product catalog could not be read from Blob.");
+    }
+
+    const rawCatalog = await new Response(result.stream).text();
+    let parsedCatalog = {};
+
+    if (rawCatalog.trim()) {
+      try {
+        parsedCatalog = JSON.parse(rawCatalog);
+      } catch {
+        throw new HttpError(502, "Product catalog is invalid.");
+      }
+    }
+
+    const products = Array.isArray(parsedCatalog.products) ? parsedCatalog.products : [];
+    const snapshot = {
+      etag: String(result.blob?.etag || ""),
+      products: products.map(normalizeProduct).filter((product) => product.id && product.title),
+    };
+
+    setCatalogSnapshotCache(snapshot);
+    return snapshot;
   };
+
+  const readPromise = loadSnapshotFromBlob();
+
+  if (!bypassCache) {
+    catalogSnapshotReadPromise = readPromise;
+  }
+
+  try {
+    const snapshot = await readPromise;
+    return cloneCatalogSnapshot(snapshot);
+  } finally {
+    if (!bypassCache) {
+      catalogSnapshotReadPromise = null;
+    }
+  }
 }
 
 export async function readProducts() {
@@ -493,7 +705,6 @@ export async function writeProducts(products, options = {}) {
   };
 
   const writeOptions = {
-    access: "private",
     allowOverwrite: true,
     cacheControlMaxAge: 60,
     contentType: "application/json",
@@ -504,8 +715,25 @@ export async function writeProducts(products, options = {}) {
     writeOptions.ifMatch = options.ifMatch;
   }
 
-  await put(CATALOG_PATH, JSON.stringify(catalog, null, 2), {
-    ...writeOptions,
+  let writeResult;
+
+  try {
+    writeResult = await putBlobWithAccessFallback(
+      CATALOG_PATH,
+      JSON.stringify(catalog, null, 2),
+      {
+        ...writeOptions,
+      },
+      "Product catalog",
+    );
+  } catch (error) {
+    clearCatalogSnapshotCache();
+    throw error;
+  }
+
+  setCatalogSnapshotCache({
+    etag: String(writeResult?.etag || options.ifMatch || ""),
+    products: catalog.products,
   });
 
   return catalog.products;
@@ -515,7 +743,7 @@ async function mutateProductsWithRetry(mutationHandler) {
   let attempt = 0;
 
   while (attempt <= MAX_CATALOG_WRITE_RETRIES) {
-    const snapshot = await readCatalogSnapshot();
+    const snapshot = await readCatalogSnapshot({ bypassCache: true });
     const mutationResult = mutationHandler(snapshot.products);
 
     try {
@@ -541,7 +769,7 @@ async function mutateProductsWithRetry(mutationHandler) {
     }
   }
 
-  const fallbackSnapshot = await readCatalogSnapshot();
+  const fallbackSnapshot = await readCatalogSnapshot({ bypassCache: true });
   const fallbackMutationResult = mutationHandler(fallbackSnapshot.products);
   const persistedProducts = await writeProducts(fallbackMutationResult.products);
 
@@ -565,12 +793,16 @@ export async function createProduct(fields, images = [], options = {}) {
     images.map(async (image, index) => {
       const imagePathname = `${IMAGE_PREFIX}/${id}-${index + 1}.${getImageExtension(image)}`;
 
-      return put(imagePathname, image.buffer, {
-        access: "private",
-        addRandomSuffix: true,
-        contentType: image.mimeType,
-        token,
-      });
+      return putBlobWithAccessFallback(
+        imagePathname,
+        image.buffer,
+        {
+          addRandomSuffix: true,
+          contentType: image.mimeType,
+          token,
+        },
+        "Product image",
+      );
     }),
   );
 
@@ -732,12 +964,16 @@ export async function updateProductDetails(productId, fields, images = [], optio
       images.map(async (image, index) => {
         const imagePathname = `${IMAGE_PREFIX}/${id}-updated-${Date.now()}-${index + 1}.${getImageExtension(image)}`;
 
-        const uploadedImage = await put(imagePathname, image.buffer, {
-          access: "private",
-          addRandomSuffix: true,
-          contentType: image.mimeType,
-          token,
-        });
+        const uploadedImage = await putBlobWithAccessFallback(
+          imagePathname,
+          image.buffer,
+          {
+            addRandomSuffix: true,
+            contentType: image.mimeType,
+            token,
+          },
+          "Product image",
+        );
 
         return uploadedImage.pathname;
       }),

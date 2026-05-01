@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
+import { contactLinks } from "../data/home-content";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
 import L from "leaflet";
@@ -191,6 +192,7 @@ export default function ProductsPage() {
   const [pudoMessage, setPudoMessage] = useState("");
   const [orderMessage, setOrderMessage] = useState("");
   const [orderError, setOrderError] = useState("");
+  const [whatsappOrderHref, setWhatsappOrderHref] = useState("");
 
   const categories = useMemo(() => {
     const categorySet = new Set();
@@ -858,6 +860,7 @@ export default function ProductsPage() {
     setOrderStatus("saving");
     setOrderError("");
     setOrderMessage("");
+    setWhatsappOrderHref("");
 
     try {
       const response = await fetch("/api/orders", {
@@ -877,11 +880,19 @@ export default function ProductsPage() {
       });
 
       const data = await readJsonResponse(response, "Could not place order.");
+      const nextWhatsappOrderHref = String(data.whatsappOrderHref || "").trim();
       setOrderMessage(
         `${
           data.message || "Order placed successfully."
-        } Please send proof of payment so we can organize delivery.`,
+        } Please send proof of payment so we can organize delivery.${
+          nextWhatsappOrderHref ? " Open WhatsApp to send the order details." : ""
+        }`,
       );
+      setWhatsappOrderHref(nextWhatsappOrderHref || contactLinks.whatsappCatalogueHref);
+
+      if (nextWhatsappOrderHref) {
+        window.open(nextWhatsappOrderHref, "_blank", "noopener,noreferrer");
+      }
       setOrderForm(buildInitialOrderForm(selectedProductMinimumOrderQuantity));
       clearCart();
       setPudoLockers([]);
@@ -890,6 +901,7 @@ export default function ProductsPage() {
       setSelectedImageIndex(0);
     } catch (submitError) {
       setOrderError(submitError.message);
+      setWhatsappOrderHref("");
     } finally {
       setOrderStatus("idle");
     }
@@ -1310,7 +1322,18 @@ export default function ProductsPage() {
 
               {orderMessage ? (
                 <div className="mt-5 border border-emerald-400/30 bg-emerald-950/25 p-4 text-emerald-100">
-                  {orderMessage}
+                  <p>{orderMessage}</p>
+
+                  {whatsappOrderHref ? (
+                    <a
+                      href={whatsappOrderHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex border border-emerald-200/45 bg-emerald-950/30 px-4 py-2 text-xs uppercase tracking-[0.2em] text-emerald-50 transition hover:border-emerald-100 hover:bg-emerald-900/45"
+                    >
+                      Send Order On WhatsApp
+                    </a>
+                  ) : null}
                 </div>
               ) : null}
 

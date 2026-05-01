@@ -41,6 +41,9 @@ Optional:
 - `PUDO_API_BASE_URL`
 - `PUDO_API_KEY`
 - `PUDO_BEARER_TOKEN` or `PUDO_API_TOKEN`
+- `BLOB_ACCESS` (`private` default, or `public` for public Blob stores)
+- `PRODUCTS_CATALOG_CACHE_TTL_MS` (default `30000`)
+- `WHATSAPP_ORDER_PHONE` (digits only, defaults to `27636936204`)
 
 4. Start dev server:
 
