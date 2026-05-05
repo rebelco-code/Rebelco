@@ -25,7 +25,7 @@ const Navbar = ({ className = "" }) => {
         <button
           type="button"
           onClick={() => setIsOpen((current) => !current)}
-          className="flex h-11 w-11 items-center justify-center border border-white/12 bg-black/20 text-white md:hidden"
+          className="flex h-11 w-11 items-center justify-center border border-white/30 bg-black text-white md:hidden"
           aria-label="Toggle navigation"
           aria-expanded={isOpen}
         >
@@ -40,7 +40,11 @@ const Navbar = ({ className = "" }) => {
         >
           {navItems.map((item) => (
             <li key={item.label}>
-              <Link to={item.href} onClick={() => setIsOpen(false)}>
+              <Link
+                to={item.href}
+                onClick={() => setIsOpen(false)}
+                className="inline-flex h-10 w-[132px] items-center justify-center border border-white/25 bg-black px-3 text-center text-white transition hover:border-white/50 hover:bg-[#111]"
+              >
                 {item.label}
               </Link>
             </li>
