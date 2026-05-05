@@ -12,7 +12,7 @@ const PRODUCT_COMPANY_OPTIONS = [
   },
   {
     key: "company-2",
-    label: "Rebelco x Company 2 (Dog Products)",
+    label: "Rebelco x PET (Dog Products)",
     description: "Second company product page",
   },
 ];
@@ -1345,7 +1345,7 @@ export default function AdminaPage() {
                             ))}
                           </select>
                           <p className="text-xs text-white/45">
-                            Default is the standard Rebelco product page unless Company 2 is selected.
+                            Default is the standard Rebelco product page unless PET is selected.
                           </p>
                         </label>
 

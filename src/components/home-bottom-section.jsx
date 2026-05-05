@@ -49,7 +49,7 @@ export default function HomeBottomSection() {
                       className="mt-3 text-xs uppercase tracking-[0.24em] text-[#dbc7a7]"
                       style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                     >
-                      Rebelco x Company 2
+                      Rebelco x PET
                     </div>
                     <div
                       className="mt-2 text-3xl leading-none text-white sm:text-4xl"
