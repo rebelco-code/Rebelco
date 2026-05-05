@@ -43,7 +43,7 @@ const Navbar = ({ className = "" }) => {
               <Link
                 to={item.href}
                 onClick={() => setIsOpen(false)}
-                className="inline-flex h-10 w-[132px] items-center justify-center border border-white/25 bg-black px-3 text-center text-white transition hover:border-white/50 hover:bg-[#111]"
+                className="inline-flex h-10 w-[150px] items-center justify-center whitespace-nowrap border border-white/25 bg-black px-3 text-center leading-none text-white transition hover:border-white/50 hover:bg-[#111]"
               >
                 {item.label}
               </Link>
