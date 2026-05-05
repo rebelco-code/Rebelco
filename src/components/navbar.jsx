@@ -13,12 +13,12 @@ const Navbar = ({ className = "" }) => {
 
   return (
     <nav className={`relative z-50 text-[#f3e8d6] ${className}`}>
-      <div className="flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
-        <Link to="/" onClick={() => setIsOpen(false)} className="block">
+      <div className="flex items-center justify-between px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8">
+        <Link to="/" onClick={() => setIsOpen(false)} className="block overflow-visible">
           <img
             src={brandLogoSrc}
             alt="Rebel Tallow Co. logo"
-            className="h-40 w-auto max-w-[680px] object-contain sm:h-48 sm:max-w-[840px]"
+            className="-my-12 h-40 w-auto max-w-[680px] object-contain sm:-my-14 sm:h-48 sm:max-w-[840px]"
           />
         </Link>
 
