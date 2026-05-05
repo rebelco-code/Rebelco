@@ -8,7 +8,6 @@ const Navbar = ({ className = "" }) => {
     { label: "Contact", href: "/contact" },
     { label: "About Us", href: "/about" },
     { label: "Products", href: "/products" },
-    { label: "Dog Products", href: "/products-company-2" },
   ];
   const brandLogoSrc = "/rebel_tallow_transparent.png";
 
@@ -19,7 +18,7 @@ const Navbar = ({ className = "" }) => {
           <img
             src={brandLogoSrc}
             alt="Rebel Tallow Co. logo"
-            className="h-10 w-auto max-w-[170px] object-contain sm:h-12 sm:max-w-[210px]"
+            className="h-20 w-auto max-w-[340px] object-contain sm:h-24 sm:max-w-[420px]"
           />
         </Link>
 
