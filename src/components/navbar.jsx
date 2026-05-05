@@ -12,7 +12,7 @@ const Navbar = ({ className = "" }) => {
   const brandLogoSrc = "/rebel_tallow_transparent.png";
 
   return (
-    <nav className={`z-50 pb-[30px] text-[#f3e8d6] ${className}`}>
+    <nav className={`z-50 pb-[35px] text-[#f3e8d6] ${className}`}>
       <div className="flex items-center justify-between px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8">
         <Link to="/" onClick={() => setIsOpen(false)} className="block overflow-visible">
           <img
