@@ -1,4 +1,5 @@
 import Footer from "./footer";
+import { Link } from "react-router-dom";
 import {
   contactActions,
   homeCollections,
@@ -30,6 +31,56 @@ export default function HomeBottomSection() {
             >
               {homeIntro.body}
             </p>
+
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              <Link
+                to="/products"
+                className="border border-white/12 bg-[#171718] px-5 py-4 transition hover:border-white/40 hover:bg-[#1c1c1d]"
+              >
+                <div
+                  className="text-xs uppercase tracking-[0.24em] text-white/55"
+                  style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+                >
+                  Rebelco
+                </div>
+                <div
+                  className="mt-2 text-xl text-white"
+                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                >
+                  Standard Products
+                </div>
+                <p
+                  className="mt-2 text-sm leading-6 text-white/70"
+                  style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                >
+                  Soaps, creams, and the main Rebelco catalogue.
+                </p>
+              </Link>
+
+              <Link
+                to="/products-company-2"
+                className="border border-white/12 bg-[#171718] px-5 py-4 transition hover:border-white/40 hover:bg-[#1c1c1d]"
+              >
+                <div
+                  className="text-xs uppercase tracking-[0.24em] text-white/55"
+                  style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+                >
+                  Rebelco x Company 2
+                </div>
+                <div
+                  className="mt-2 text-xl text-white"
+                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                >
+                  Dog Products
+                </div>
+                <p
+                  className="mt-2 text-sm leading-6 text-white/70"
+                  style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                >
+                  Treats, bones, beef hooves, and chew-focused items.
+                </p>
+              </Link>
+            </div>
           </div>
 
           <div className="border border-white/12 bg-[#171718] p-5 sm:p-8">

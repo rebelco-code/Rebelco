@@ -4,7 +4,26 @@ import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
 
+const PRODUCT_COMPANY_OPTIONS = [
+  {
+    key: "rebelco",
+    label: "Rebelco (Standard Products)",
+    description: "Default catalogue page",
+  },
+  {
+    key: "company-2",
+    label: "Rebelco x Company 2 (Dog Products)",
+    description: "Second company product page",
+  },
+];
+const DEFAULT_PRODUCT_COMPANY_KEY = PRODUCT_COMPANY_OPTIONS[0].key;
+const PRODUCT_COMPANY_LABEL_BY_KEY = PRODUCT_COMPANY_OPTIONS.reduce((labels, option) => {
+  labels[option.key] = option.label;
+  return labels;
+}, {});
+
 const initialForm = {
+  companyKey: DEFAULT_PRODUCT_COMPANY_KEY,
   title: "",
   description: "",
   category: "",
@@ -217,6 +236,7 @@ function serializeProductList(value) {
 
 function buildProductFieldsPayload(form) {
   return {
+    companyKey: form.companyKey,
     title: form.title,
     description: form.description,
     category: form.category,
@@ -237,8 +257,15 @@ function buildProductFieldsPayload(form) {
 function buildFormFromProduct(product) {
   const specialOption = product?.specialOption || {};
   const specialOptionEnabled = Boolean(specialOption.enabled);
+  const rawCompanyKey = String(product?.companyKey || DEFAULT_PRODUCT_COMPANY_KEY)
+    .trim()
+    .toLowerCase();
+  const companyKey = PRODUCT_COMPANY_OPTIONS.some((option) => option.key === rawCompanyKey)
+    ? rawCompanyKey
+    : DEFAULT_PRODUCT_COMPANY_KEY;
 
   return {
+    companyKey,
     title: String(product?.title || ""),
     description: String(product?.description || ""),
     category: String(product?.category || ""),
@@ -1303,6 +1330,27 @@ export default function AdminaPage() {
 
                         <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
                           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
+                            Company / Catalogue
+                          </span>
+                          <select
+                            name="companyKey"
+                            value={form.companyKey}
+                            onChange={updateField}
+                            className="w-full min-w-0 rounded-xl border border-white/10 bg-black px-3.5 py-3 text-sm text-white outline-none transition focus:border-white/45"
+                          >
+                            {PRODUCT_COMPANY_OPTIONS.map((companyOption) => (
+                              <option key={companyOption.key} value={companyOption.key}>
+                                {companyOption.label}
+                              </option>
+                            ))}
+                          </select>
+                          <p className="text-xs text-white/45">
+                            Default is the standard Rebelco product page unless Company 2 is selected.
+                          </p>
+                        </label>
+
+                        <label className="grid min-w-0 gap-1.5 text-sm text-white/72">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
                             Category
                           </span>
                           <input
@@ -1944,14 +1992,21 @@ export default function AdminaPage() {
 
                                       <div className="min-w-0 p-3">
                                         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                          <h3
-                                            className="min-w-0 break-words text-2xl leading-none text-white"
-                                            style={{
-                                              fontFamily: '"Cormorant Garamond", Georgia, serif',
-                                            }}
-                                          >
-                                            {product.title}
-                                          </h3>
+                                          <div className="min-w-0">
+                                            <h3
+                                              className="min-w-0 break-words text-2xl leading-none text-white"
+                                              style={{
+                                                fontFamily: '"Cormorant Garamond", Georgia, serif',
+                                              }}
+                                            >
+                                              {product.title}
+                                            </h3>
+                                            <div className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45">
+                                              {PRODUCT_COMPANY_LABEL_BY_KEY[
+                                                String(product.companyKey || DEFAULT_PRODUCT_COMPANY_KEY)
+                                              ] || PRODUCT_COMPANY_LABEL_BY_KEY[DEFAULT_PRODUCT_COMPANY_KEY]}
+                                            </div>
+                                          </div>
 
                                           <div className="shrink-0 self-start rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/80 sm:self-auto">
                                             {formatPrice(product.price)}

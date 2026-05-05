@@ -12,6 +12,11 @@ const WRITE_RETRY_BASE_DELAY_MS = 120;
 const DEFAULT_BLOB_ACCESS = "private";
 const BLOB_ACCESS_VALUES = new Set(["private", "public"]);
 const DEFAULT_CATALOG_CACHE_TTL_MS = 30 * 1000;
+export const PRODUCT_COMPANY = {
+  STANDARD: "rebelco",
+  COMPANY_TWO: "company-2",
+};
+const PRODUCT_COMPANY_KEYS = new Set(Object.values(PRODUCT_COMPANY));
 let catalogSnapshotCache = null;
 let catalogSnapshotReadPromise = null;
 
@@ -138,6 +143,38 @@ function cleanList(value, maxItems = 20, maxItemLength = 60) {
     .map((item) => cleanText(item, maxItemLength))
     .filter(Boolean)
     .slice(0, maxItems);
+}
+
+function normalizeProductCompanyKey(value) {
+  const normalizedValue = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (!normalizedValue) {
+    return PRODUCT_COMPANY.STANDARD;
+  }
+
+  if (PRODUCT_COMPANY_KEYS.has(normalizedValue)) {
+    return normalizedValue;
+  }
+
+  return PRODUCT_COMPANY.STANDARD;
+}
+
+function parseProductCompanyKey(value) {
+  const normalizedValue = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (!normalizedValue) {
+    return PRODUCT_COMPANY.STANDARD;
+  }
+
+  if (!PRODUCT_COMPANY_KEYS.has(normalizedValue)) {
+    throw new HttpError(400, "Select a valid product company.");
+  }
+
+  return normalizedValue;
 }
 
 function parseBoolean(value) {
@@ -444,6 +481,7 @@ function normalizeProduct(product) {
 
   return {
     id: String(product.id || ""),
+    companyKey: normalizeProductCompanyKey(product.companyKey),
     title: String(product.title || ""),
     description: String(product.description || ""),
     category: String(product.category || ""),
@@ -467,6 +505,7 @@ function normalizeProduct(product) {
 }
 
 function validateProductFields(fields) {
+  const companyKey = parseProductCompanyKey(fields.companyKey);
   const title = cleanText(fields.title, 120);
   const description = cleanText(fields.description, 1000);
   const category = cleanText(fields.category, 80);
@@ -501,6 +540,7 @@ function validateProductFields(fields) {
   }
 
   return {
+    companyKey,
     title,
     description,
     category,

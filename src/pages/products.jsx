@@ -10,6 +10,26 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
+const PRODUCTS_PAGE_VARIANTS = {
+  rebelco: {
+    companyKey: "rebelco",
+    eyebrow: "Rebelco Products",
+    heading: "Current catalogue",
+    description:
+      "Browse the Rebelco collection by category. Each collection is grouped together so soaps, salves, balms, and other products are easier to explore.",
+    emptyProductsMessage: "No products have been added yet.",
+  },
+  "company-2": {
+    companyKey: "company-2",
+    eyebrow: "Rebelco x Company 2",
+    heading: "Dog treats, bones, and chew catalogue",
+    description:
+      "Browse dog-focused products by category, including treats, chew options, and related items.",
+    emptyProductsMessage: "No dog products have been added yet.",
+  },
+};
+const DEFAULT_PRODUCTS_PAGE_VARIANT_KEY = "rebelco";
+
 function normalizeMinimumOrderQuantity(value) {
   const parsedQuantity = Number.parseInt(String(value || ""), 10);
   return Number.isInteger(parsedQuantity) && parsedQuantity > 0 ? parsedQuantity : 1;
@@ -165,7 +185,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-export default function ProductsPage() {
+function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }) {
+  const pageVariant =
+    PRODUCTS_PAGE_VARIANTS[pageVariantKey] ||
+    PRODUCTS_PAGE_VARIANTS[DEFAULT_PRODUCTS_PAGE_VARIANT_KEY];
+  const companyKey = pageVariant.companyKey;
   const orderSectionRef = useRef(null);
   const pinMapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -413,7 +437,8 @@ export default function ProductsPage() {
 
     async function loadProducts() {
       try {
-        const response = await fetch("/api/products", {
+        const queryParams = new URLSearchParams({ company: companyKey });
+        const response = await fetch(`/api/products?${queryParams.toString()}`, {
           headers: { Accept: "application/json" },
         });
 
@@ -439,7 +464,7 @@ export default function ProductsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [companyKey]);
 
   useEffect(() => {
     if (!selectedProduct || !pinMapRef.current || mapInstanceRef.current) {
@@ -918,22 +943,21 @@ export default function ProductsPage() {
               className="text-sm uppercase tracking-[0.32em] text-white/55"
               style={{ fontFamily: '"Cinzel", Georgia, serif' }}
             >
-              Rebelco Products
+              {pageVariant.eyebrow}
             </p>
 
             <h1
               className="mt-4 max-w-3xl text-4xl leading-[0.95] text-white sm:text-5xl lg:text-6xl"
               style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
             >
-              Current catalogue
+              {pageVariant.heading}
             </h1>
 
             <p
               className="mt-5 max-w-2xl text-base leading-7 text-white/58"
               style={{ fontFamily: '"Alegreya", Georgia, serif' }}
             >
-              Browse the Rebelco collection by category. Each collection is grouped together
-              so soaps, salves, balms, and other products are easier to explore.
+              {pageVariant.description}
             </p>
           </section>
 
@@ -951,7 +975,7 @@ export default function ProductsPage() {
 
           {status === "ready" && products.length === 0 ? (
             <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-white/70">
-              No products have been added yet.
+              {pageVariant.emptyProductsMessage}
             </div>
           ) : null}
 
@@ -1814,4 +1838,12 @@ export default function ProductsPage() {
       </main>
     </div>
   );
+}
+
+export function CompanyTwoProductsPage() {
+  return <ProductsPageBase pageVariantKey="company-2" />;
+}
+
+export default function ProductsPage() {
+  return <ProductsPageBase pageVariantKey="rebelco" />;
 }

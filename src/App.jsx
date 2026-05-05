@@ -5,6 +5,9 @@ const HomePage = lazy(() => import("./pages/home"));
 const ContactPage = lazy(() => import("./pages/contact"));
 const AboutPage = lazy(() => import("./pages/about"));
 const ProductsPage = lazy(() => import("./pages/products"));
+const CompanyTwoProductsPage = lazy(() =>
+  import("./pages/products").then((module) => ({ default: module.CompanyTwoProductsPage })),
+);
 const AdminaPage = lazy(() => import("./pages/admina"));
 const NotFoundPage = lazy(() => import("./pages/not-found"));
 
@@ -17,6 +20,7 @@ export default function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products-company-2" element={<CompanyTwoProductsPage />} />
           <Route path="/admina" element={<AdminaPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

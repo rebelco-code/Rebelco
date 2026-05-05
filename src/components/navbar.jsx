@@ -8,6 +8,7 @@ const Navbar = ({ className = "" }) => {
     { label: "Contact", href: "/contact" },
     { label: "About Us", href: "/about" },
     { label: "Products", href: "/products" },
+    { label: "Dog Products", href: "/products-company-2" },
   ];
   const logoPlaceholder =
     "data:image/svg+xml;utf8," +
