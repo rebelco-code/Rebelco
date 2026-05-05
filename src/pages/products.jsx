@@ -22,10 +22,10 @@ const PRODUCTS_PAGE_VARIANTS = {
   "company-2": {
     companyKey: "company-2",
     eyebrow: "Rebelco x PET",
-    heading: "Dog treats, bones, and chew catalogue",
+    heading: "PET treats, bones, and chew catalogue",
     description:
-      "Browse dog-focused products by category, including treats, chew options, and related items.",
-    emptyProductsMessage: "No dog products have been added yet.",
+      "Browse PET-focused products by category, including treats, chew options, and related items.",
+    emptyProductsMessage: "No PET products have been added yet.",
   },
 };
 const DEFAULT_PRODUCTS_PAGE_VARIANT_KEY = "rebelco";

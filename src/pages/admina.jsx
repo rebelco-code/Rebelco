@@ -12,7 +12,7 @@ const PRODUCT_COMPANY_OPTIONS = [
   },
   {
     key: "company-2",
-    label: "Rebelco x PET (Dog Products)",
+    label: "Rebelco x PET (Products)",
     description: "Second company product page",
   },
 ];

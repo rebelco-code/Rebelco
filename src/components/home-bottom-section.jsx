@@ -55,14 +55,14 @@ export default function HomeBottomSection() {
                       className="mt-2 text-3xl leading-none text-white sm:text-4xl"
                       style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                     >
-                      Dog Products
+                      PET Products
                     </div>
                   </div>
                   <span
                     className="inline-flex h-10 items-center border border-[#d4b483]/55 bg-black px-4 text-xs uppercase tracking-[0.22em] text-[#f3dfbd] transition group-hover:border-[#e8c89c] group-hover:text-white"
                     style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                   >
-                    Open Dog Page
+                    Open PET Page
                   </span>
                 </div>
                 <p
@@ -108,7 +108,7 @@ export default function HomeBottomSection() {
                   className="mt-2 text-sm leading-6 text-white/70"
                   style={{ fontFamily: '"Alegreya", Georgia, serif' }}
                 >
-                  If you are shopping for dog items, use the featured Dog Products block first.
+                  If you are shopping for PET items, use the featured PET Products block first.
                 </p>
               </div>
             </div>
