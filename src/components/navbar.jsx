@@ -18,7 +18,7 @@ const Navbar = ({ className = "" }) => {
           <img
             src={brandLogoSrc}
             alt="Rebel Tallow Co. logo"
-            className="h-20 w-auto max-w-[340px] object-contain sm:h-24 sm:max-w-[420px]"
+            className="h-40 w-auto max-w-[680px] object-contain sm:h-48 sm:max-w-[840px]"
           />
         </Link>
 
