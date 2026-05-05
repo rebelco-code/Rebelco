@@ -77,9 +77,9 @@ export default function Gallery() {
                 index === currentIndex ? "scale-105" : "scale-100"
               }`}
             />
-            <div className="absolute inset-x-0 bottom-0 top-40 bg-[radial-gradient(circle_at_top_left,rgba(255,244,226,0.16),transparent_28%)]" />
-            <div className="absolute inset-x-0 bottom-0 top-40 bg-gradient-to-r from-[#0b0b0d]/78 via-[#0b0b0d]/32 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 top-40 bg-gradient-to-t from-[#0b0b0d]/82 via-transparent to-[#0b0b0d]/40" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,244,226,0.16),transparent_28%)]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0d]/78 via-[#0b0b0d]/32 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0d]/82 via-transparent to-[#0b0b0d]/40" />
           </div>
         ))}
       </div>
