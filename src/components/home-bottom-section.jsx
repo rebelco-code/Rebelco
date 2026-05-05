@@ -34,6 +34,46 @@ export default function HomeBottomSection() {
 
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <Link
+                to="/products-company-2"
+                className="group overflow-hidden border border-[#d4b483]/45 bg-[linear-gradient(135deg,#25190d_0%,#141416_55%,#101011_100%)] px-6 py-6 transition hover:border-[#e8c89c]/70 sm:col-span-2 sm:px-7 sm:py-7"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div
+                      className="inline-flex border border-[#d4b483]/55 bg-black/35 px-3 py-1 text-[10px] uppercase tracking-[0.24em] text-[#f3dfbd]"
+                      style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+                    >
+                      Featured Catalogue
+                    </div>
+                    <div
+                      className="mt-3 text-xs uppercase tracking-[0.24em] text-[#dbc7a7]"
+                      style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+                    >
+                      Rebelco x Company 2
+                    </div>
+                    <div
+                      className="mt-2 text-3xl leading-none text-white sm:text-4xl"
+                      style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                    >
+                      Dog Products
+                    </div>
+                  </div>
+                  <span
+                    className="inline-flex h-10 items-center border border-[#d4b483]/55 bg-black px-4 text-xs uppercase tracking-[0.22em] text-[#f3dfbd] transition group-hover:border-[#e8c89c] group-hover:text-white"
+                    style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+                  >
+                    Open Dog Page
+                  </span>
+                </div>
+                <p
+                  className="mt-4 max-w-3xl text-base leading-7 text-white/82"
+                  style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                >
+                  Give this section priority: treats, beef hooves, bones, and chew-focused stock all live here.
+                </p>
+              </Link>
+
+              <Link
                 to="/products"
                 className="border border-white/12 bg-[#171718] px-5 py-4 transition hover:border-white/40 hover:bg-[#1c1c1d]"
               >
@@ -57,29 +97,20 @@ export default function HomeBottomSection() {
                 </p>
               </Link>
 
-              <Link
-                to="/products-company-2"
-                className="border border-white/12 bg-[#171718] px-5 py-4 transition hover:border-white/40 hover:bg-[#1c1c1d]"
-              >
+              <div className="border border-white/10 bg-[#121214] px-5 py-4">
                 <div
-                  className="text-xs uppercase tracking-[0.24em] text-white/55"
+                  className="text-xs uppercase tracking-[0.24em] text-white/45"
                   style={{ fontFamily: '"Cinzel", Georgia, serif' }}
                 >
-                  Rebelco x Company 2
-                </div>
-                <div
-                  className="mt-2 text-xl text-white"
-                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
-                >
-                  Dog Products
+                  Navigation Tip
                 </div>
                 <p
                   className="mt-2 text-sm leading-6 text-white/70"
                   style={{ fontFamily: '"Alegreya", Georgia, serif' }}
                 >
-                  Treats, bones, beef hooves, and chew-focused items.
+                  If you are shopping for dog items, use the featured Dog Products block first.
                 </p>
-              </Link>
+              </div>
             </div>
           </div>
 
