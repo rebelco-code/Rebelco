@@ -1,79 +1,125 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { contactLinks, homeAnnouncements } from "../data/home-content";
 
-const Navbar = ({ className = "" }) => {
+const navItems = [
+  { label: "Home", href: "/" },
+  { label: "Catalog", href: "/products" },
+  { label: "Contact", href: "/contact" },
+  { label: "About", href: "/about" },
+];
+
+export default function Navbar({ className = "", showAnnouncement = true }) {
   const [isOpen, setIsOpen] = useState(false);
-  const navItems = [
-    { label: "Home", href: "/" },
-    { label: "Contact", href: "/contact" },
-    { label: "About Us", href: "/about" },
-    { label: "Products", href: "/products" },
-  ];
-  const brandLogoSrc = "/rebel_tallow_transparent.png";
+  const [announcementIndex, setAnnouncementIndex] = useState(0);
+
+  useEffect(() => {
+    if (!showAnnouncement || homeAnnouncements.length <= 1) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setAnnouncementIndex((currentIndex) => (currentIndex + 1) % homeAnnouncements.length);
+    }, 4000);
+
+    return () => window.clearInterval(intervalId);
+  }, [showAnnouncement]);
 
   return (
-    <nav className={`z-50 pb-[35px] text-[#f3e8d6] ${className}`}>
-      <div className="flex items-center justify-between px-4 py-1.5 sm:px-6 sm:py-2 lg:px-8">
-        <Link to="/" onClick={() => setIsOpen(false)} className="block overflow-visible">
-          <img
-            src={brandLogoSrc}
-            alt="Rebel Tallow Co. logo"
-            className="-my-12 h-40 w-auto max-w-[680px] object-contain sm:-my-14 sm:h-48 sm:max-w-[840px]"
-          />
-        </Link>
+    <div className={className}>
+      {showAnnouncement ? (
+        <div className="bg-black px-4 py-2 text-center text-xs font-semibold tracking-[0.16em] text-white uppercase sm:text-sm">
+          {homeAnnouncements[announcementIndex]}
+        </div>
+      ) : null}
 
-        <button
-          type="button"
-          onClick={() => setIsOpen((current) => !current)}
-          className="flex h-11 w-11 items-center justify-center border border-white/30 bg-black text-white md:hidden"
-          aria-label="Toggle navigation"
-          aria-expanded={isOpen}
-        >
-          <span className="text-lg">{isOpen ? "\u00D7" : "\u2261"}</span>
-        </button>
-
-        <ul
-          className="hidden items-center gap-6 text-sm tracking-[0.16em] md:flex lg:gap-8 lg:text-base xl:gap-10 xl:text-lg"
-          style={{
-            fontFamily: '"Cinzel", Georgia, serif',
-          }}
-        >
-          {navItems.map((item) => (
-            <li key={item.label}>
-              <Link
-                to={item.href}
-                onClick={() => setIsOpen(false)}
-                className="inline-flex h-10 w-[150px] items-center justify-center whitespace-nowrap border border-white/25 bg-black px-3 text-center leading-none text-white transition hover:border-white/50 hover:bg-[#111]"
+      <nav className="border-b border-black/10 bg-white text-black">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3">
+            <div className="flex h-14 w-24 items-center justify-center overflow-hidden border border-black/10 bg-[#f7f4ee] sm:h-16 sm:w-28">
+              <img
+                src="/rebelco-logo-preview.png"
+                alt="Rebelco logo"
+                className="h-full w-full object-cover opacity-90"
+              />
+            </div>
+            <div className="hidden sm:block">
+              <div
+                className="text-2xl leading-none"
+                style={{ fontFamily: '"Outfit", "Manrope", sans-serif', fontWeight: 300 }}
               >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+                Rebelco
+              </div>
+              <div className="mt-1 text-[11px] uppercase tracking-[0.18em] text-black/50">
+                Handmade essentials
+              </div>
+            </div>
+          </Link>
 
-      {isOpen ? (
-        <div className="absolute inset-x-0 top-full z-50 border-t border-white/10 bg-[#0f0f10]/96 px-4 py-4 backdrop-blur md:hidden">
-          <ul
-            className="grid gap-2"
-            style={{ fontFamily: '"Cinzel", Georgia, serif' }}
+          <button
+            type="button"
+            onClick={() => setIsOpen((current) => !current)}
+            className="flex h-11 w-11 items-center justify-center border border-black/15 text-black lg:hidden"
+            aria-label="Toggle navigation"
+            aria-expanded={isOpen}
           >
+            <span className="text-lg">{isOpen ? "\u00D7" : "\u2261"}</span>
+          </button>
+
+          <ul className="hidden items-center gap-8 text-sm lg:flex">
             {navItems.map((item) => (
               <li key={item.label}>
                 <Link
                   to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="block border border-white/10 bg-black/25 px-4 py-3 text-sm uppercase tracking-[0.2em] text-white"
+                  className="transition hover:opacity-65"
                 >
                   {item.label}
                 </Link>
               </li>
             ))}
           </ul>
-        </div>
-      ) : null}
-    </nav>
-  );
-};
 
-export default Navbar;
+          <div className="hidden items-center gap-4 text-sm lg:flex">
+            <a href={contactLinks.whatsappCatalogueHref} className="transition hover:opacity-65">
+              WhatsApp
+            </a>
+            <Link
+              to="/products"
+              className="nav-shop-button px-4 py-2"
+            >
+              Shop
+            </Link>
+          </div>
+        </div>
+
+        {isOpen ? (
+          <div className="border-t border-black/10 bg-white px-4 py-4 lg:hidden">
+            <ul className="grid gap-3 text-sm">
+              {navItems.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="block border border-black/10 px-4 py-3"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <a
+                  href={contactLinks.whatsappCatalogueHref}
+                  onClick={() => setIsOpen(false)}
+                  className="block border border-black/10 px-4 py-3"
+                >
+                  WhatsApp
+                </a>
+              </li>
+            </ul>
+          </div>
+        ) : null}
+      </nav>
+    </div>
+  );
+}

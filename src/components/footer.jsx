@@ -9,18 +9,13 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 pt-8 text-white/74">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <footer className="border-t border-black/10 pt-10 text-black">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p
-            className="text-sm uppercase tracking-[0.32em] text-white/55"
-            style={{ fontFamily: '"Cinzel", Georgia, serif' }}
-          >
-            Rebelco
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Rebelco</p>
           <h2
-            className="mt-3 text-3xl text-white sm:text-4xl"
-            style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+            className="mt-3 text-3xl sm:text-4xl"
+            style={{ fontFamily: '"Outfit", "Manrope", sans-serif', fontWeight: 300, letterSpacing: "-0.03em" }}
           >
             Made to be useful, giftable, and easy to come back to.
           </h2>
@@ -31,8 +26,7 @@ export default function Footer() {
             <a
               key={link.label}
               href={link.href}
-              className="border border-white/12 bg-[#101011] px-5 py-4 text-sm text-white/80 transition hover:border-white/40 hover:bg-[#181819]"
-              style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+              className="border border-black/10 bg-white px-5 py-4 text-sm transition hover:bg-[#f7f4ee]"
             >
               {link.label}
             </a>
@@ -40,10 +34,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div
-        className="mt-8 flex flex-col gap-2 border-t border-white/10 pt-5 text-sm text-white/55 sm:flex-row sm:items-center sm:justify-between"
-        style={{ fontFamily: '"Alegreya", Georgia, serif' }}
-      >
+      <div className="mt-8 flex flex-col gap-2 border-t border-black/10 pt-5 text-sm text-black/60 sm:flex-row sm:items-center sm:justify-between">
         <p>Small-batch grooming, soaps, creams, home goods, and gift-friendly essentials.</p>
         <p>Rebelco</p>
       </div>

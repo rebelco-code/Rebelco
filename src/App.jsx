@@ -8,19 +8,23 @@ const ProductsPage = lazy(() => import("./pages/products"));
 const CompanyTwoProductsPage = lazy(() =>
   import("./pages/products").then((module) => ({ default: module.CompanyTwoProductsPage })),
 );
+const PaymentSuccessPage = lazy(() => import("./pages/payment-success"));
+const PaymentCancelPage = lazy(() => import("./pages/payment-cancel"));
 const AdminaPage = lazy(() => import("./pages/admina"));
 const NotFoundPage = lazy(() => import("./pages/not-found"));
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<div className="min-h-screen bg-[#0f0f10]" />}>
+      <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products-company-2" element={<CompanyTwoProductsPage />} />
+          <Route path="/payment/success" element={<PaymentSuccessPage />} />
+          <Route path="/payment/cancel" element={<PaymentCancelPage />} />
           <Route path="/admina" element={<AdminaPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

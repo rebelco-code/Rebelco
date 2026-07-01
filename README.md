@@ -44,6 +44,14 @@ Optional:
 - `BLOB_ACCESS` (`private` default, or `public` for public Blob stores)
 - `PRODUCTS_CATALOG_CACHE_TTL_MS` (default `30000`)
 - `WHATSAPP_ORDER_PHONE` (digits only, defaults to `27636936204`)
+- `PAYFAST_MERCHANT_ID`
+- `PAYFAST_MERCHANT_KEY`
+- `PAYFAST_PASSPHRASE` (if configured in PayFast)
+- `PAYFAST_SANDBOX` (`true` for sandbox, otherwise live)
+- `PAYFAST_RETURN_URL` (defaults to `https://rebelco.vercel.app/payment/success`)
+- `PAYFAST_CANCEL_URL` (defaults to `https://rebelco.vercel.app/payment/cancel`)
+- `PAYFAST_NOTIFY_URL` (defaults to `https://rebelco.vercel.app/api/payfast/notify`)
+- `PAYFAST_ITN_TRUSTED_IPS` (optional comma-separated CIDRs/IPs to override the built-in PayFast ITN ranges)
 
 4. Start dev server:
 
@@ -63,8 +71,11 @@ npm run dev
 
 - Public APIs:
   - `GET /api/products`
-  - `POST /api/orders`
+  - `POST /api/orders` (creates the order and returns the signed PayFast redirect payload)
   - `GET /api/pudo-lockers`
+  - `POST /api/payfast/initiate`
+  - `POST /api/payfast/notify`
+  - `GET /api/payfast/status`
 
 - Admin APIs (session required):
   - `GET|POST|DELETE /api/admin/session`
@@ -76,4 +87,5 @@ npm run dev
 ## Notes
 
 - Product images are private in Blob and served through `/api/blob/image`.
-- Checkout now reserves stock for the full basket before writing orders and rolls back stock on order-write failure.
+- Checkout now creates a pending order group, redirects the customer to PayFast, and waits for the ITN callback to confirm payment.
+- Stock is reserved when checkout starts and released automatically if PayFast reports a failed or cancelled payment state.

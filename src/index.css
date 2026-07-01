@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;600&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap");
 @import "tailwindcss";
 
 @font-face {
@@ -10,21 +10,138 @@
 }
 
 :root {
-  background: #111111;
-  color: #f3f3f3;
+  --theme-bg: #ffffff;
+  --theme-surface: #ffffff;
+  --theme-surface-strong: #f4f4f1;
+  --theme-border: #d8d8d1;
+  --theme-border-strong: #b49a43;
+  --theme-text: #121212;
+  --theme-text-soft: #555555;
+  --theme-accent: #9b8334;
+  --theme-accent-strong: #121212;
+  --theme-dark: #121212;
+  background: var(--theme-bg);
+  color: var(--theme-text);
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 38%),
-    linear-gradient(180deg, #111111 0%, #1b1b1b 100%);
-  color: #f3f3f3;
-  font-family: Georgia, "Times New Roman", serif;
+  background: #ffffff;
+  color: var(--theme-text);
+  font-family: "Manrope", sans-serif;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.theme-page {
+  min-height: 100vh;
+  color: var(--theme-text);
+}
+
+.theme-shell {
+  background: #ffffff;
+}
+
+.theme-card {
+  border: 1px solid var(--theme-border);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.05);
+}
+
+.theme-panel {
+  border: 1px solid rgba(180, 154, 67, 0.22);
+  background: #f8f8f6;
+}
+
+.theme-button {
+  border: 1px solid var(--theme-accent-strong);
+  background: var(--theme-accent-strong);
+  color: #ffffff;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.theme-button:hover {
+  border-color: var(--theme-dark);
+  background: var(--theme-dark);
+  transform: translateY(-1px);
+}
+
+.theme-button-secondary {
+  border: 1px solid var(--theme-border-strong);
+  background: transparent;
+  color: var(--theme-accent-strong);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.theme-button-secondary:hover {
+  background: rgba(180, 154, 67, 0.08);
+  border-color: var(--theme-accent-strong);
+  color: var(--theme-dark);
+}
+
+.theme-input {
+  border: 1px solid var(--theme-border);
+  background: #ffffff;
+  color: var(--theme-text);
+}
+
+.theme-input::placeholder {
+  color: rgba(85, 85, 85, 0.6);
+}
+
+.theme-input:focus {
+  outline: none;
+  border-color: var(--theme-border-strong);
+  box-shadow: 0 0 0 3px rgba(180, 154, 67, 0.12);
+}
+
+.theme-kicker {
+  color: var(--theme-accent);
+  font-family: "Manrope", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.theme-title {
+  color: var(--theme-text);
+  font-family: "Outfit", "Manrope", sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+
+.theme-copy {
+  color: var(--theme-text-soft);
+  font-family: "Manrope", sans-serif;
+}
+
+.nav-shop-button {
+  border: 1px solid #121212;
+  background: #121212;
+  color: #ffffff;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.nav-shop-button:hover {
+  background: #ffffff;
+  border-color: #121212;
+  color: #121212;
 }

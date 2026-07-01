@@ -1,9 +1,9 @@
 import { requireAdminSession } from "../_utils/adminAuth.js";
+import { HttpError } from "../_utils/errors.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
 import {
   readOrders,
-  updateOrderDeliveryOrganized,
-  updateOrderProofOfPayment,
+  updateOrderGroupDeliveryOrganized,
 } from "../_utils/ordersStore.js";
 
 function getOrderId(request) {
@@ -53,19 +53,16 @@ export default async function handler(request, response) {
     }
 
     const body = await readJsonBody(request);
-    const orderId = body.id || getOrderId(request);
+    const orderGroupId = body.orderGroupId || body.groupId || getOrderId(request);
     const action = String(body.action || "").trim().toLowerCase();
-    let result;
 
-    if (action === "set-delivery-organized") {
-      const deliveryOrganized =
-        body.deliveryOrganized ?? body.isDeliveryOrganized ?? body.deliveryReady;
-      result = await updateOrderDeliveryOrganized(orderId, deliveryOrganized);
-    } else {
-      const proofOfPaymentReceived =
-        body.proofOfPaymentReceived ?? body.hasProofOfPayment ?? body.proofReceived;
-      result = await updateOrderProofOfPayment(orderId, proofOfPaymentReceived);
+    if (action !== "set-delivery-organized") {
+      throw new HttpError(400, "Only delivery organization updates are supported from admin.");
     }
+
+    const deliveryOrganized =
+      body.deliveryOrganized ?? body.isDeliveryOrganized ?? body.deliveryReady;
+    const result = await updateOrderGroupDeliveryOrganized(orderGroupId, deliveryOrganized);
 
     sendJson(response, 200, result);
   } catch (error) {

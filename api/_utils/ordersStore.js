@@ -8,6 +8,10 @@ const MAX_PUDO_CODE_LENGTH = 40;
 const MAX_PUDO_NAME_LENGTH = 120;
 const MAX_PUDO_ADDRESS_LENGTH = 240;
 const MAX_ORDER_GROUP_ID_LENGTH = 64;
+const MAX_PAYMENT_METHOD_LENGTH = 32;
+const MAX_PAYMENT_PROVIDER_LENGTH = 32;
+const MAX_PAYMENT_STATUS_LENGTH = 32;
+const MAX_PAYMENT_REFERENCE_LENGTH = 120;
 const MAX_ORDERS_WRITE_RETRIES = 8;
 const WRITE_RETRY_BASE_DELAY_MS = 120;
 
@@ -106,11 +110,29 @@ function normalizeImageUrls(input) {
   return normalized;
 }
 
+function normalizePaymentStatus(order) {
+  const status = cleanText(order?.paymentStatus || "", MAX_PAYMENT_STATUS_LENGTH).toLowerCase();
+
+  if (status) {
+    return status;
+  }
+
+  if (order?.proofOfPaymentReceived) {
+    return "complete";
+  }
+
+  return "pending";
+}
+
 function normalizeOrder(order) {
   const imageUrls = normalizeImageUrls(order);
   const quantity = Number.parseInt(String(order.quantity || ""), 10);
   const googleMapsLocation =
     cleanMapLocation(order.googleMapsLocation) || buildLegacyCoordinateLocation(order);
+  const paymentAmount = Number(order.paymentAmount || 0);
+  const paymentStatus = normalizePaymentStatus(order);
+  const proofOfPaymentReceived =
+    paymentStatus === "complete" || Boolean(order.proofOfPaymentReceived);
 
   return {
     id: String(order.id || ""),
@@ -129,7 +151,12 @@ function normalizeOrder(order) {
     pudoLockerCode: cleanText(order.pudoLockerCode, MAX_PUDO_CODE_LENGTH),
     pudoLockerName: cleanText(order.pudoLockerName, MAX_PUDO_NAME_LENGTH),
     pudoLockerAddress: cleanText(order.pudoLockerAddress, MAX_PUDO_ADDRESS_LENGTH),
-    proofOfPaymentReceived: Boolean(order.proofOfPaymentReceived),
+    paymentMethod: cleanText(order.paymentMethod || "payfast", MAX_PAYMENT_METHOD_LENGTH),
+    paymentProvider: cleanText(order.paymentProvider || "payfast", MAX_PAYMENT_PROVIDER_LENGTH),
+    paymentStatus,
+    paymentReference: cleanText(order.paymentReference || "", MAX_PAYMENT_REFERENCE_LENGTH),
+    paymentAmount: Number.isFinite(paymentAmount) ? Math.round(paymentAmount * 100) / 100 : 0,
+    proofOfPaymentReceived,
     deliveryOrganized: Boolean(order.deliveryOrganized),
     createdAt: String(order.createdAt || ""),
     updatedAt: String(order.updatedAt || ""),
@@ -289,6 +316,11 @@ function buildOrderRecord(product, payload, quantity, now, orderGroupId) {
     pudoLockerCode: payload.pudoLockerCode,
     pudoLockerName: payload.pudoLockerName,
     pudoLockerAddress: payload.pudoLockerAddress,
+    paymentMethod: payload.paymentMethod || "manual",
+    paymentProvider: payload.paymentProvider || "",
+    paymentStatus: payload.paymentStatus || "",
+    paymentReference: payload.paymentReference || "",
+    paymentAmount: payload.paymentAmount,
     proofOfPaymentReceived: false,
     deliveryOrganized: false,
     createdAt: now,
@@ -366,6 +398,62 @@ export async function createOrder(product, payload) {
   return {
     order: result.order,
     orders: result.orders,
+  };
+}
+
+export async function readOrdersByGroupId(orderGroupId) {
+  const normalizedGroupId = cleanText(orderGroupId, MAX_ORDER_GROUP_ID_LENGTH);
+
+  if (!normalizedGroupId) {
+    throw new HttpError(400, "Order group ID is required.");
+  }
+
+  const orders = await readOrders();
+  return orders.filter((order) => order.orderGroupId === normalizedGroupId);
+}
+
+export async function readOrderGroupSummary(orderGroupId) {
+  const orders = await readOrdersByGroupId(orderGroupId);
+
+  if (orders.length === 0) {
+    throw new HttpError(404, "Order group was not found.");
+  }
+
+  const totalAmount = Math.round(
+    orders.reduce((sum, order) => {
+      const quantity = Number.parseInt(String(order?.quantity || "0"), 10);
+      const productPrice = Number(order?.productPrice || 0);
+
+      if (!Number.isInteger(quantity) || quantity < 1 || !Number.isFinite(productPrice)) {
+        return sum;
+      }
+
+      return sum + quantity * productPrice;
+    }, 0) * 100,
+  ) / 100;
+  const paymentStatuses = Array.from(
+    new Set(orders.map((order) => String(order.paymentStatus || "").trim().toLowerCase()).filter(Boolean)),
+  );
+  const paymentStatus =
+    paymentStatuses.includes("complete")
+      ? "complete"
+      : paymentStatuses.includes("cancelled")
+        ? "cancelled"
+        : paymentStatuses.includes("failed")
+          ? "failed"
+          : paymentStatuses[0] || "pending";
+  const paymentReference =
+    orders.find((order) => String(order.paymentReference || "").trim())?.paymentReference || "";
+
+  return {
+    orderGroupId: String(orderGroupId || "").trim(),
+    paymentStatus,
+    paymentReference,
+    deliveryOrganized: orders.every((order) => Boolean(order.deliveryOrganized)),
+    proofOfPaymentReceived: orders.every((order) => Boolean(order.proofOfPaymentReceived)),
+    totalAmount,
+    orderCount: orders.length,
+    orders,
   };
 }
 
@@ -450,7 +538,7 @@ export async function updateOrderDeliveryOrganized(orderId, deliveryOrganized) {
       if (deliveryValue && !order.proofOfPaymentReceived) {
         throw new HttpError(
           400,
-          "Delivery can only be organized after proof of payment is received.",
+          "Delivery can only be organized after payment is confirmed.",
         );
       }
 
@@ -476,6 +564,116 @@ export async function updateOrderDeliveryOrganized(orderId, deliveryOrganized) {
   return {
     order: result.order,
     orders: result.orders,
+  };
+}
+
+export async function updateOrderGroupDeliveryOrganized(orderGroupId, deliveryOrganized) {
+  const normalizedGroupId = cleanText(orderGroupId, MAX_ORDER_GROUP_ID_LENGTH);
+
+  if (!normalizedGroupId) {
+    throw new HttpError(400, "Order group ID is required.");
+  }
+
+  const deliveryValue = parseBoolean(deliveryOrganized, "deliveryOrganized");
+  const now = new Date().toISOString();
+
+  const result = await mutateOrdersWithRetry((orders) => {
+    const groupOrders = orders.filter((order) => order.orderGroupId === normalizedGroupId);
+
+    if (groupOrders.length === 0) {
+      throw new HttpError(404, "Order group was not found.");
+    }
+
+    if (deliveryValue && groupOrders.some((order) => !order.proofOfPaymentReceived)) {
+      throw new HttpError(
+        400,
+        "Delivery can only be organized after payment is confirmed.",
+      );
+    }
+
+    const updatedOrders = orders.map((order) => {
+      if (order.orderGroupId !== normalizedGroupId) {
+        return order;
+      }
+
+      return normalizeOrder({
+        ...order,
+        deliveryOrganized: deliveryValue,
+        updatedAt: now,
+      });
+    });
+
+    return {
+      orderGroupId: normalizedGroupId,
+      updatedGroupOrders: updatedOrders.filter((order) => order.orderGroupId === normalizedGroupId),
+      orders: updatedOrders,
+    };
+  });
+
+  return {
+    orderGroupId: normalizedGroupId,
+    orders: result.orders,
+    updatedGroupOrders: result.updatedGroupOrders,
+  };
+}
+
+export async function updateOrderGroupPayment(orderGroupId, updates = {}) {
+  const normalizedGroupId = cleanText(orderGroupId, MAX_ORDER_GROUP_ID_LENGTH);
+
+  if (!normalizedGroupId) {
+    throw new HttpError(400, "Order group ID is required.");
+  }
+
+  const now = new Date().toISOString();
+  const paymentMethod = cleanText(updates.paymentMethod, MAX_PAYMENT_METHOD_LENGTH);
+  const paymentProvider = cleanText(updates.paymentProvider, MAX_PAYMENT_PROVIDER_LENGTH);
+  const paymentStatus = cleanText(updates.paymentStatus, MAX_PAYMENT_STATUS_LENGTH);
+  const paymentReference = cleanText(updates.paymentReference, MAX_PAYMENT_REFERENCE_LENGTH);
+  const paymentAmount = Number(updates.paymentAmount);
+  const hasPaymentAmount = Number.isFinite(paymentAmount);
+  const hasProofUpdate = typeof updates.proofOfPaymentReceived === "boolean";
+
+  const result = await mutateOrdersWithRetry((orders) => {
+    const groupOrders = orders.filter((order) => order.orderGroupId === normalizedGroupId);
+
+    if (groupOrders.length === 0) {
+      throw new HttpError(404, "Order group was not found.");
+    }
+
+    const updatedOrders = orders.map((order) => {
+      if (order.orderGroupId !== normalizedGroupId) {
+        return order;
+      }
+
+      return normalizeOrder({
+        ...order,
+        paymentMethod: paymentMethod || order.paymentMethod,
+        paymentProvider: paymentProvider || order.paymentProvider,
+        paymentStatus: paymentStatus || order.paymentStatus,
+        paymentReference: paymentReference || order.paymentReference,
+        paymentAmount: hasPaymentAmount ? paymentAmount : order.paymentAmount,
+        proofOfPaymentReceived: hasProofUpdate
+          ? updates.proofOfPaymentReceived
+          : order.proofOfPaymentReceived,
+        deliveryOrganized:
+          hasProofUpdate && !updates.proofOfPaymentReceived
+            ? false
+            : order.deliveryOrganized,
+        updatedAt: now,
+      });
+    });
+
+    return {
+      orderGroupId: normalizedGroupId,
+      updatedGroupOrders: updatedOrders.filter((order) => order.orderGroupId === normalizedGroupId),
+      orders: updatedOrders,
+    };
+  });
+
+  return {
+    orderGroupId: normalizedGroupId,
+    orders: result.orders,
+    updatedGroupOrders: result.updatedGroupOrders,
   };
 }
 

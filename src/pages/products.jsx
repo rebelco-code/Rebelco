@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
-import { contactLinks } from "../data/home-content";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
 import L from "leaflet";
@@ -179,6 +178,28 @@ function safeTime(value) {
   return Number.isFinite(parsedTime) ? parsedTime : 0;
 }
 
+function postFormToUrl(action, fields) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = action;
+  form.style.display = "none";
+
+  Object.entries(fields || {}).forEach(([key, value]) => {
+    if (value === undefined || value === null) {
+      return;
+    }
+
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = key;
+    input.value = String(value);
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
   iconUrl: markerIcon,
@@ -216,7 +237,6 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   const [pudoMessage, setPudoMessage] = useState("");
   const [orderMessage, setOrderMessage] = useState("");
   const [orderError, setOrderError] = useState("");
-  const [whatsappOrderHref, setWhatsappOrderHref] = useState("");
 
   const categories = useMemo(() => {
     const categorySet = new Set();
@@ -370,18 +390,18 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
   const submitOrderLabel = useMemo(() => {
     if (orderStatus === "saving") {
-      return "Placing Order...";
+      return "Redirecting To PayFast...";
     }
 
     if (cartItems.length === 0) {
-      return "Add Products To Basket First";
+      return "Add Products To Cart First";
     }
 
     if (!orderForm.pudoLockerCode) {
       return "Select Delivery Locker First";
     }
 
-    return "Place Basket Order";
+    return "Pay With PayFast";
   }, [cartItems.length, orderForm.pudoLockerCode, orderStatus]);
 
   const googleMapsSearchUrl = useMemo(
@@ -844,10 +864,6 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     setCartItems((currentItems) => currentItems.filter((item) => item.productId !== productId));
   }
 
-  function clearCart() {
-    setCartItems([]);
-  }
-
   function openBasket() {
     if (!selectedProduct && products.length > 0) {
       selectProductForOrder(products[0].id);
@@ -885,7 +901,6 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     setOrderStatus("saving");
     setOrderError("");
     setOrderMessage("");
-    setWhatsappOrderHref("");
 
     try {
       const response = await fetch("/api/orders", {
@@ -904,65 +919,48 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
         }),
       });
 
-      const data = await readJsonResponse(response, "Could not place order.");
-      const nextWhatsappOrderHref = String(data.whatsappOrderHref || "").trim();
-      setOrderMessage(
-        `${
-          data.message || "Order placed successfully."
-        } Please send proof of payment so we can organize delivery.${
-          nextWhatsappOrderHref ? " Open WhatsApp to send the order details." : ""
-        }`,
-      );
-      setWhatsappOrderHref(nextWhatsappOrderHref || contactLinks.whatsappCatalogueHref);
+      const data = await readJsonResponse(response, "Could not start checkout.");
+      const paymentUrl = String(data.paymentUrl || "").trim();
+      const fields = data.fields && typeof data.fields === "object" ? data.fields : null;
 
-      if (nextWhatsappOrderHref) {
-        window.open(nextWhatsappOrderHref, "_blank", "noopener,noreferrer");
+      if (!paymentUrl || !fields) {
+        throw new Error("PayFast checkout response was incomplete.");
       }
-      setOrderForm(buildInitialOrderForm(selectedProductMinimumOrderQuantity));
-      clearCart();
-      setPudoLockers([]);
-      setPudoMessage("");
-      setPudoStatus("idle");
-      setSelectedImageIndex(0);
+
+      setOrderMessage("Redirecting to PayFast...");
+      postFormToUrl(paymentUrl, fields);
     } catch (submitError) {
       setOrderError(submitError.message);
-      setWhatsappOrderHref("");
     } finally {
       setOrderStatus("idle");
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f10] text-white">
-      <Navbar className="border-b border-white/10 bg-[#0f0f10]/95 backdrop-blur" />
+    <div className="theme-page theme-shell">
+      <Navbar className="border-b border-[var(--theme-border)] bg-white/95 backdrop-blur" />
 
       <main className="px-4 py-10 sm:px-6 sm:py-14 lg:px-12 lg:py-18">
         <div className="mx-auto max-w-7xl">
-          <section className="border border-white/10 bg-[#151516] p-5 sm:p-8 lg:p-10">
-            <p
-              className="text-sm uppercase tracking-[0.32em] text-white/55"
-              style={{ fontFamily: '"Cinzel", Georgia, serif' }}
-            >
-              {pageVariant.eyebrow}
-            </p>
+          <section className="theme-card p-5 sm:p-8 lg:p-10">
+            <p className="theme-kicker text-sm">{pageVariant.eyebrow}</p>
 
             <h1
-              className="mt-4 max-w-3xl text-4xl leading-[0.95] text-white sm:text-5xl lg:text-6xl"
-              style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+              className="theme-title mt-4 max-w-3xl text-4xl leading-[0.95] sm:text-5xl lg:text-6xl"
             >
               {pageVariant.heading}
             </h1>
 
             <p
-              className="mt-5 max-w-2xl text-base leading-7 text-white/58"
-              style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+              className="theme-copy mt-5 max-w-2xl text-base leading-7"
+              style={{ fontFamily: '"Manrope", sans-serif' }}
             >
               {pageVariant.description}
             </p>
           </section>
 
           {status === "loading" ? (
-            <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-white/70">
+            <div className="theme-card theme-copy mt-8 p-6">
               Loading products...
             </div>
           ) : null}
@@ -974,16 +972,16 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
           ) : null}
 
           {status === "ready" && products.length === 0 ? (
-            <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-white/70">
+            <div className="theme-card theme-copy mt-8 p-6">
               {pageVariant.emptyProductsMessage}
             </div>
           ) : null}
 
           {products.length > 0 ? (
-            <section className="mt-8 border border-white/10 bg-[#151516] p-4 sm:p-5">
+            <section className="theme-card mt-8 p-4 sm:p-5">
               <div className="grid gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-xs uppercase tracking-[0.18em] text-white/50">
+                  <div className="theme-kicker text-xs">
                     Showing {filteredProducts.length} of {products.length} products
                   </div>
 
@@ -991,7 +989,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     <button
                       type="button"
                       onClick={openBasket}
-                      className="border border-white/20 bg-black px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:border-white/45 hover:bg-[#111213]"
+                      className="theme-button rounded-full px-4 py-2 text-xs uppercase tracking-[0.22em]"
                     >
                       View Cart ({cartTotalQuantity})
                     </button>
@@ -1004,13 +1002,13 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search by product name, description, category, scent, or color"
-                    className="w-full border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-white/45"
+                    className="theme-input w-full px-4 py-3 text-sm transition"
                   />
 
                   <select
                     value={sortBy}
                     onChange={(event) => setSortBy(event.target.value)}
-                    className="w-full border border-white/10 bg-black px-4 py-3 text-sm text-white outline-none transition focus:border-white/45"
+                    className="theme-input w-full px-4 py-3 text-sm transition"
                   >
                     <option value="latest">Sort: Latest</option>
                     <option value="name-asc">Sort: Name A-Z</option>
@@ -1023,10 +1021,10 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   <button
                     type="button"
                     onClick={() => setSelectedCategory("all")}
-                    className={`border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
+                    className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
                       selectedCategory === "all"
-                        ? "border-white bg-white text-black"
-                        : "border-white/10 bg-black text-white/55 hover:border-white/30 hover:text-white"
+                        ? "border-[var(--theme-accent-strong)] bg-[var(--theme-accent-strong)] text-white"
+                        : "border-[var(--theme-border)] bg-white/70 text-[var(--theme-text-soft)] hover:border-[var(--theme-border-strong)] hover:text-[var(--theme-text)]"
                     }`}
                   >
                     All
@@ -1037,10 +1035,10 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       key={category}
                       type="button"
                       onClick={() => setSelectedCategory(category)}
-                      className={`border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
+                      className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.22em] transition ${
                         selectedCategory === category
-                          ? "border-white bg-white text-black"
-                          : "border-white/10 bg-black text-white/55 hover:border-white/30 hover:text-white"
+                          ? "border-[var(--theme-accent-strong)] bg-[var(--theme-accent-strong)] text-white"
+                          : "border-[var(--theme-border)] bg-white/70 text-[var(--theme-text-soft)] hover:border-[var(--theme-border-strong)] hover:text-[var(--theme-text)]"
                       }`}
                     >
                       {category}
@@ -1059,32 +1057,31 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                 return (
                   <section
                     key={group.category}
-                    className="overflow-hidden border border-white/10 bg-[#151516]"
+                    className="theme-card overflow-hidden"
                   >
                     <button
                       type="button"
                       onClick={() => toggleCategory(group.category)}
-                      className="flex w-full items-center justify-between gap-5 border-b border-white/10 p-5 text-left transition hover:bg-white/[0.03] sm:p-6"
+                      className="flex w-full items-center justify-between gap-5 border-b border-[var(--theme-border)] p-5 text-left transition hover:bg-white/60 sm:p-6"
                     >
                       <div className="min-w-0">
-                        <p className="text-xs uppercase tracking-[0.32em] text-white/40">
+                        <p className="theme-kicker text-xs opacity-80">
                           Collection
                         </p>
 
                         <h2
-                          className="mt-2 break-words text-4xl leading-none text-white sm:text-5xl"
-                          style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                          className="theme-title mt-2 break-words text-4xl leading-none sm:text-5xl"
                         >
                           {group.category}
                         </h2>
                       </div>
 
                       <div className="flex shrink-0 items-center gap-3">
-                        <div className="border border-white/10 bg-black px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                        <div className="rounded-full border border-[var(--theme-border)] bg-white/80 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[var(--theme-text-soft)]">
                           {group.products.length} items
                         </div>
 
-                        <span className="flex h-9 w-9 items-center justify-center border border-white/10 bg-black text-2xl text-white/70">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--theme-border)] bg-white/80 text-2xl text-[var(--theme-text-soft)]">
                           {isOpen ? "−" : "+"}
                         </span>
                       </div>
@@ -1105,13 +1102,13 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                           return (
                             <article
                               key={product.id}
-                              className={`overflow-hidden border bg-[#101011] transition ${
+                              className={`overflow-hidden rounded-[24px] border bg-[rgba(255,250,242,0.92)] transition ${
                                 isSelectedProduct
-                                  ? "border-white/55 shadow-[0_0_0_1px_rgba(255,255,255,0.2)]"
-                                  : "border-white/10"
+                                  ? "border-[var(--theme-border-strong)] shadow-[0_0_0_1px_rgba(182,152,98,0.25)]"
+                                  : "border-[var(--theme-border)]"
                               }`}
                             >
-                              <div className="relative aspect-[4/3] bg-black">
+                              <div className="relative aspect-[4/3] bg-[var(--theme-surface-strong)]">
                                 {mainImage ? (
                                   <img
                                     src={mainImage}
@@ -1122,13 +1119,13 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                     loading="lazy"
                                   />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-sm text-white/35">
+                                  <div className="flex h-full w-full items-center justify-center text-sm text-[var(--theme-text-soft)]">
                                     No image
                                   </div>
                                 )}
 
                                 {isOutOfStock ? (
-                                  <div className="absolute left-3 top-3 border border-white/15 bg-black/70 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                  <div className="absolute left-3 top-3 rounded-full border border-[var(--theme-border)] bg-[rgba(255,250,242,0.88)] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--theme-text)] backdrop-blur">
                                     Out of stock
                                   </div>
                                 ) : null}
@@ -1140,21 +1137,21 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                 ) : null}
 
                                 {productImages.length > 1 ? (
-                                  <div className="absolute right-3 top-3 border border-white/15 bg-black/70 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/75 backdrop-blur">
+                                  <div className="absolute right-3 top-3 rounded-full border border-[var(--theme-border)] bg-[rgba(255,250,242,0.88)] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--theme-text)] backdrop-blur">
                                     {productImages.length} photos
                                   </div>
                                 ) : null}
                               </div>
 
                               {productImages.length > 1 ? (
-                                <div className="border-b border-white/10 p-3">
+                                <div className="border-b border-[var(--theme-border)] p-3">
                                   <div className="flex gap-2 overflow-x-auto pb-1">
                                     {productImages.map((imageUrl, index) => (
                                       <img
                                         key={`${product.id}-${imageUrl}-${index}`}
                                         src={imageUrl}
                                         alt={`${product.title} thumbnail ${index + 1}`}
-                                        className="h-16 w-16 shrink-0 border border-white/15 object-cover"
+                                        className="h-16 w-16 shrink-0 rounded-xl border border-[var(--theme-border)] object-cover"
                                         loading="lazy"
                                       />
                                     ))}
@@ -1165,10 +1162,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                               <div className="p-5 sm:p-6">
                                 <div className="flex items-start justify-between gap-4">
                                   <h3
-                                    className="min-w-0 break-words text-2xl leading-none text-white sm:text-3xl"
-                                    style={{
-                                      fontFamily: '"Cormorant Garamond", Georgia, serif',
-                                    }}
+                                    className="theme-title min-w-0 break-words text-2xl leading-none sm:text-3xl"
                                   >
                                     {product.title}
                                   </h3>
@@ -1179,25 +1173,25 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                         <div className="text-base text-amber-100">
                                           {formatPrice(specialPrice)}
                                         </div>
-                                        <div className="text-xs text-white/35 line-through">
+                                        <div className="text-xs text-[var(--theme-text-soft)] line-through opacity-80">
                                           {formatPrice(product.price)}
                                         </div>
                                       </>
                                     ) : (
-                                      <div className="text-base text-white">
+                                      <div className="text-base text-[var(--theme-text)]">
                                         {formatPrice(product.price)}
                                       </div>
                                     )}
 
-                                    <div className="mt-1 text-xs uppercase tracking-[0.18em] text-white/50">
+                                    <div className="theme-kicker mt-1 text-xs opacity-80">
                                       {product.weight}
                                     </div>
                                   </div>
                                 </div>
 
                                 <p
-                                  className="mt-4 text-base leading-7 text-white/72"
-                                  style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                                  className="theme-copy mt-4 text-base leading-7"
+                                  style={{ fontFamily: '"Manrope", sans-serif' }}
                                 >
                                   {shortenDescription(product.description)}
                                 </p>
@@ -1206,7 +1200,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   <div className="mt-5 grid gap-3">
                                     {colors.length > 0 ? (
                                       <div>
-                                        <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                                        <div className="theme-kicker text-[10px] opacity-80">
                                           Colors
                                         </div>
 
@@ -1214,7 +1208,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                           {colors.map((color) => (
                                             <span
                                               key={`${product.id}-color-${color}`}
-                                              className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                                              className="rounded-full border border-[var(--theme-border)] bg-white/80 px-3 py-1 text-xs text-[var(--theme-text-soft)]"
                                             >
                                               {color}
                                             </span>
@@ -1225,7 +1219,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
                                     {scents.length > 0 ? (
                                       <div>
-                                        <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                                        <div className="theme-kicker text-[10px] opacity-80">
                                           Scents
                                         </div>
 
@@ -1233,7 +1227,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                           {scents.map((scent) => (
                                             <span
                                               key={`${product.id}-scent-${scent}`}
-                                              className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                                              className="rounded-full border border-[var(--theme-border)] bg-white/80 px-3 py-1 text-xs text-[var(--theme-text-soft)]"
                                             >
                                               {scent}
                                             </span>
@@ -1261,18 +1255,18 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   </div>
                                 ) : null}
 
-                                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--theme-border)] pt-4">
                                   <div className="grid gap-1">
-                                    <div className="text-sm uppercase tracking-[0.2em] text-white/60">
+                                    <div className="theme-kicker text-sm opacity-80">
                                       {formatStockAmount(product.stockAmount)}
                                     </div>
-                                    <div className="text-[10px] uppercase tracking-[0.2em] text-white/45">
+                                    <div className="theme-kicker text-[10px] opacity-70">
                                       Min buy {normalizeMinimumOrderQuantity(product.minimumOrderQuantity)}
                                     </div>
                                   </div>
 
                                   {product.category ? (
-                                    <div className="border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/45">
+                                    <div className="rounded-full border border-[var(--theme-border)] px-3 py-1 text-xs uppercase tracking-[0.18em] text-[var(--theme-text-soft)]">
                                       {product.category}
                                     </div>
                                   ) : null}
@@ -1282,12 +1276,12 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   type="button"
                                   onClick={() => selectProductForOrder(product.id)}
                                   disabled={isOutOfStock}
-                                  className="mt-4 w-full border border-white/12 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-45"
+                                  className="theme-button mt-4 w-full rounded-full px-4 py-3 text-xs uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-45"
                                 >
                                   {isOutOfStock
                                     ? "Out of stock"
                                     : isSelectedProduct
-                                      ? "Selected For Basket"
+                                      ? "Selected For Cart"
                                       : "Select Product"}
                                 </button>
                               </div>
@@ -1303,7 +1297,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
           ) : null}
 
           {status === "ready" && products.length > 0 && groupedProducts.length === 0 ? (
-            <div className="mt-8 border border-white/10 bg-[#151516] p-6 text-sm text-white/65">
+            <div className="theme-card theme-copy mt-8 p-6 text-sm">
               No products match your current search/filter. Try clearing the search or switching
               category.
             </div>
@@ -1312,29 +1306,23 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
           {selectedProduct ? (
             <section
               ref={orderSectionRef}
-              className="mt-8 border border-white/10 bg-[#151516] p-5 sm:p-6"
+              className="theme-card mt-8 p-5 sm:p-6"
             >
-              <div className="border-b border-white/10 pb-5">
-                <p
-                  className="text-sm uppercase tracking-[0.32em] text-white/55"
-                  style={{ fontFamily: '"Cinzel", Georgia, serif' }}
-                >
-                  Place Order
-                </p>
+              <div className="border-b border-[var(--theme-border)] pb-5">
+                <p className="theme-kicker text-sm">Place Order</p>
 
                 <h2
-                  className="mt-3 text-3xl leading-none text-white sm:text-4xl"
-                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                  className="theme-title mt-3 text-3xl leading-none sm:text-4xl"
                 >
                   {selectedProduct.title}
                 </h2>
 
                 <p
-                  className="mt-4 max-w-2xl text-base leading-7 text-white/58"
-                  style={{ fontFamily: '"Alegreya", Georgia, serif' }}
+                  className="theme-copy mt-4 max-w-2xl text-base leading-7"
+                  style={{ fontFamily: '"Manrope", sans-serif' }}
                 >
-                  Add products to cart, confirm delivery location, then place the order. Proof of
-                  payment must be sent before we organize delivery.
+                  Add products to cart, confirm delivery location, then place the order. Payment
+                  is handled on PayFast before we organize delivery.
                 </p>
               </div>
 
@@ -1347,23 +1335,12 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
               {orderMessage ? (
                 <div className="mt-5 border border-emerald-400/30 bg-emerald-950/25 p-4 text-emerald-100">
                   <p>{orderMessage}</p>
-
-                  {whatsappOrderHref ? (
-                    <a
-                      href={whatsappOrderHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex border border-emerald-200/45 bg-emerald-950/30 px-4 py-2 text-xs uppercase tracking-[0.2em] text-emerald-50 transition hover:border-emerald-100 hover:bg-emerald-900/45"
-                    >
-                      Send Order On WhatsApp
-                    </a>
-                  ) : null}
                 </div>
               ) : null}
 
               <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <div className="border border-white/10 bg-[#101011] p-4">
-                  <div className="relative aspect-[4/3] bg-black">
+                <div className="theme-panel p-4">
+                  <div className="relative aspect-[4/3] bg-[var(--theme-surface)]">
                     {selectedPreviewImage ? (
                       <img
                         src={selectedPreviewImage}
@@ -1372,7 +1349,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                         loading="lazy"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm text-white/35">
+                      <div className="flex h-full w-full items-center justify-center text-sm text-[var(--theme-text-soft)]">
                         No image
                       </div>
                     )}
@@ -1385,8 +1362,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   </div>
 
                   {selectedProductImages.length > 1 ? (
-                    <div className="mt-3 border-t border-white/10 pt-3">
-                      <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/45">
+                    <div className="mt-3 border-t border-[var(--theme-border)] pt-3">
+                      <div className="theme-kicker mb-2 text-[10px] opacity-70">
                         Scroll images
                       </div>
                       <div className="flex gap-2 overflow-x-auto pb-1">
@@ -1397,8 +1374,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                             onClick={() => setSelectedImageIndex(index)}
                             className={`h-16 w-16 shrink-0 overflow-hidden border transition ${
                               selectedImageIndex === index
-                                ? "border-white/70"
-                                : "border-white/15 hover:border-white/40"
+                                ? "border-[var(--theme-border-strong)]"
+                                : "border-[var(--theme-border)] hover:border-[var(--theme-border-strong)]"
                             }`}
                             aria-label={`View image ${index + 1}`}
                           >
@@ -1414,13 +1391,13 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     </div>
                   ) : null}
 
-                  <div className="mt-4 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.2em] text-white/60">
+                  <div className="theme-kicker mt-4 border-t border-[var(--theme-border)] pt-4 text-sm opacity-80">
                     {selectedProductSpecialPrice !== null ? (
                       <>
                         <span className="text-amber-100">
                           {formatPrice(selectedProductSpecialPrice)}
                         </span>{" "}
-                        <span className="text-white/35 line-through">
+                        <span className="text-[var(--theme-text-soft)] line-through opacity-80">
                           {formatPrice(selectedProduct.price)}
                         </span>
                       </>
@@ -1430,18 +1407,15 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     • {selectedProduct.weight} • {selectedProduct.category || "Uncategorised"}
                   </div>
 
-                  <p
-                    className="mt-3 text-base leading-7 text-white/72"
-                    style={{ fontFamily: '"Alegreya", Georgia, serif' }}
-                  >
+                  <p className="theme-copy mt-3 text-base leading-7" style={{ fontFamily: '"Manrope", sans-serif' }}>
                     {selectedProduct.description}
                   </p>
 
                   {selectedProductColors.length > 0 || selectedProductScents.length > 0 ? (
-                    <div className="mt-4 grid gap-3 border-t border-white/10 pt-4">
+                    <div className="mt-4 grid gap-3 border-t border-[var(--theme-border)] pt-4">
                       {selectedProductColors.length > 0 ? (
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                          <div className="theme-kicker text-[10px] opacity-80">
                             Colors
                           </div>
 
@@ -1449,7 +1423,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                             {selectedProductColors.map((color) => (
                               <span
                                 key={`selected-color-${color}`}
-                                className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                                className="rounded-full border border-[var(--theme-border)] bg-white/80 px-3 py-1 text-xs text-[var(--theme-text-soft)]"
                               >
                                 {color}
                               </span>
@@ -1460,7 +1434,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
                       {selectedProductScents.length > 0 ? (
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.22em] text-white/40">
+                          <div className="theme-kicker text-[10px] opacity-80">
                             Scents
                           </div>
 
@@ -1468,7 +1442,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                             {selectedProductScents.map((scent) => (
                               <span
                                 key={`selected-scent-${scent}`}
-                                className="border border-white/10 bg-black px-3 py-1 text-xs text-white/65"
+                                className="rounded-full border border-[var(--theme-border)] bg-white/80 px-3 py-1 text-xs text-[var(--theme-text-soft)]"
                               >
                                 {scent}
                               </span>
@@ -1497,25 +1471,22 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   ) : null}
                 </div>
 
-                <form
-                  className="grid gap-4 border border-white/10 bg-[#101011] p-4"
-                  onSubmit={submitOrder}
-                >
-                  <div className="rounded-xl border border-white/10 bg-black p-3 text-xs text-white/70">
-                    <div className="font-semibold uppercase tracking-[0.16em] text-white/85">
+                <form className="theme-panel grid gap-4 p-4" onSubmit={submitOrder}>
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-white/75 p-3 text-xs text-[var(--theme-text-soft)]">
+                    <div className="theme-kicker text-xs text-[var(--theme-text)]">
                       Checkout Steps
                     </div>
                     <div className="mt-1.5 leading-5">
-                      1. Set quantity and add product to basket.
+                      1. Set quantity and add product to cart.
                       <br />
                       2. Confirm location and auto-selected closest PUDO locker.
                       <br />
-                      3. Place basket order, then send proof of payment.
+                      3. Continue to PayFast and complete payment.
                     </div>
                   </div>
 
-                  <label className="grid gap-2 text-sm text-white/70">
-                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                  <label className="theme-copy grid gap-2 text-sm">
+                    <span className="theme-kicker text-xs opacity-80">
                       Amount / Quantity
                     </span>
                     <input
@@ -1526,9 +1497,9 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       value={orderForm.quantity}
                       onChange={updateOrderField}
                       required
-                      className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/45"
+                      className="theme-input px-4 py-3 transition"
                     />
-                    <span className="text-xs text-white/50">
+                    <span className="text-xs opacity-80">
                       Minimum for this product: {selectedProductMinimumOrderQuantity}
                     </span>
                   </label>
@@ -1537,22 +1508,22 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     type="button"
                     onClick={addSelectedProductToCart}
                     disabled={!selectedProduct || orderStatus === "saving"}
-                    className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="theme-button rounded-full px-4 py-3 text-xs uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Add Quantity To Basket
+                    Add Quantity To Cart
                   </button>
 
-                  <div className="text-xs text-white/55">
-                    Adds the selected product and quantity to your basket. You can adjust items in
-                    the trolley.
+                  <div className="theme-copy text-xs">
+                    Adds the selected product and quantity to your cart. You can adjust items in
+                    the cart panel.
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-black p-3 text-xs text-white/65">
-                    Basket and bank transfer details are in the trolley icon (bottom-right).
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-white/75 p-3 text-xs text-[var(--theme-text-soft)]">
+                    Your cart stays in the trolley at the bottom right until you proceed to PayFast.
                   </div>
 
-                  <label className="grid gap-2 text-sm text-white/70">
-                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                  <label className="theme-copy grid gap-2 text-sm">
+                    <span className="theme-kicker text-xs opacity-80">
                       Location Text
                     </span>
                     <textarea
@@ -1561,12 +1532,12 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       onChange={updateOrderField}
                       rows={4}
                       placeholder="Street address, suburb, city, delivery note"
-                      className="resize-none border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
+                      className="theme-input resize-none px-4 py-3 transition"
                     />
                   </label>
 
-                  <label className="grid gap-2 text-sm text-white/70">
-                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                  <label className="theme-copy grid gap-2 text-sm">
+                    <span className="theme-kicker text-xs opacity-80">
                       Customer Coordinates
                     </span>
                     <input
@@ -1575,21 +1546,21 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       value={orderForm.googleMapsLocation}
                       onChange={updateOrderField}
                       placeholder="Click the map or use current location"
-                      className="border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-white/45"
+                      className="theme-input px-4 py-3 transition"
                     />
                   </label>
 
-                  <div className="grid gap-2 text-sm text-white/70">
-                    <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                  <div className="theme-copy grid gap-2 text-sm">
+                    <span className="theme-kicker text-xs opacity-80">
                       Pin Your Location
                     </span>
 
                     <div
                       ref={pinMapRef}
-                      className="h-64 w-full border border-white/10 bg-black"
+                      className="h-64 w-full border border-[var(--theme-border)] bg-white/75"
                     />
 
-                    <p className="text-xs leading-5 text-white/45">
+                    <p className="text-xs leading-5 opacity-80">
                       Tap/click the map to drop a pin. PUDO lockers will be sorted from closest to furthest.
                     </p>
                   </div>
@@ -1599,7 +1570,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       type="button"
                       onClick={useCurrentLocation}
                       disabled={locationStatus === "locating"}
-                      className="border border-white/10 bg-black px-4 py-3 text-xs uppercase tracking-[0.2em] text-white transition hover:border-white/35 hover:bg-[#1a1a1b] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="theme-button-secondary rounded-full px-4 py-3 text-xs uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {locationStatus === "locating" ? "Locating..." : "Use My Current Location"}
                     </button>
@@ -1609,7 +1580,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                         href={googleMapsSearchUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs uppercase tracking-[0.2em] text-white/60 underline-offset-4 hover:text-white hover:underline"
+                        className="theme-kicker text-xs underline-offset-4 hover:underline"
                       >
                         Open Location
                       </a>
@@ -1620,7 +1591,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                         href={locationSearchUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs uppercase tracking-[0.2em] text-white/60 underline-offset-4 hover:text-white hover:underline"
+                        className="theme-kicker text-xs underline-offset-4 hover:underline"
                       >
                         Search Text Location
                       </a>
@@ -1628,20 +1599,20 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   </div>
 
                   {pudoStatus === "loading" ? (
-                    <div className="border border-white/10 bg-black p-4 text-sm text-white/60">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-white/75 p-4 text-sm text-[var(--theme-text-soft)]">
                       Finding closest PUDO locker...
                     </div>
                   ) : null}
 
                   {pudoMessage ? (
-                    <div className="border border-white/10 bg-black p-4 text-sm text-white/60">
+                    <div className="rounded-xl border border-[var(--theme-border)] bg-white/75 p-4 text-sm text-[var(--theme-text-soft)]">
                       {pudoMessage}
                     </div>
                   ) : null}
 
                   {pudoLockers.length > 0 ? (
                     <div className="grid gap-3">
-                      <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                      <span className="theme-kicker text-xs opacity-80">
                         Choose PUDO Locker
                       </span>
 
@@ -1655,8 +1626,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                             onClick={() => selectPudoLocker(locker)}
                             className={`border p-4 text-left text-sm transition ${
                               isSelected
-                                ? "border-white bg-white text-black"
-                                : "border-white/10 bg-black text-white/70 hover:border-white/35"
+                                ? "border-[var(--theme-accent-strong)] bg-[var(--theme-accent-strong)] text-white"
+                                : "border-[var(--theme-border)] bg-white/75 text-[var(--theme-text-soft)] hover:border-[var(--theme-border-strong)]"
                             }`}
                           >
                             <strong className="block">{locker.name}</strong>
@@ -1683,20 +1654,20 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   ) : null}
 
                   <div className="border border-amber-300/30 bg-amber-950/20 p-4 text-sm text-amber-100">
-                    Important: send your proof of payment after placing the order. Delivery is
-                    only organized once payment proof has been received and confirmed.
+                    Important: the final payment confirmation happens through PayFast&apos;s secure
+                    ITN callback before delivery is organized.
                   </div>
 
                   <button
                     type="submit"
                     disabled={!canSubmitOrder || orderStatus === "saving"}
-                    className="border border-white bg-white px-6 py-4 text-center text-sm uppercase tracking-[0.2em] text-black transition hover:bg-[#d9d9d9] disabled:cursor-not-allowed disabled:opacity-55"
+                    className="theme-button px-6 py-4 text-center text-sm uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-55"
                   >
                     {submitOrderLabel}
                   </button>
                   {!canSubmitOrder ? (
-                    <div className="text-xs text-white/55">
-                      To place order: add at least one item to basket and confirm a delivery
+                    <div className="theme-copy text-xs">
+                      To place order: add at least one item to cart and confirm a delivery
                       locker.
                     </div>
                   ) : null}
@@ -1707,26 +1678,26 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
           <div className="fixed bottom-5 right-5 z-40">
             {isTrolleyOpen ? (
-              <div className="mb-3 w-80 rounded-xl border border-white/15 bg-black/95 p-3 text-white shadow-xl shadow-black/60">
+              <div className="theme-card mb-3 w-80 rounded-[24px] p-3 text-[var(--theme-text)] shadow-xl shadow-[rgba(93,78,48,0.18)]">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs uppercase tracking-[0.16em] text-white/60">Basket</span>
-                  <span className="text-xs text-white/70">
+                  <span className="theme-kicker text-xs opacity-80">Cart</span>
+                  <span className="theme-copy text-xs">
                     {cartTotalQuantity} item{cartTotalQuantity === 1 ? "" : "s"}
                   </span>
                 </div>
 
                 {cartLines.length === 0 ? (
-                  <p className="mt-2 text-xs text-white/55">Your basket is empty.</p>
+                  <p className="theme-copy mt-2 text-xs">Your cart is empty.</p>
                 ) : (
                   <>
                     <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto pr-1">
                       {cartLines.map((line) => (
                         <div
                           key={`trolley-${line.productId}`}
-                          className="rounded-lg border border-white/10 bg-[#111213] px-2.5 py-2 text-xs"
+                          className="rounded-lg border border-[var(--theme-border)] bg-white/75 px-2.5 py-2 text-xs"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <div className="font-semibold text-white">{line.product.title}</div>
+                            <div className="font-semibold text-[var(--theme-text)]">{line.product.title}</div>
                             <button
                               type="button"
                               onClick={() => removeCartItem(line.productId)}
@@ -1748,9 +1719,9 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                               onChange={(event) =>
                                 updateCartItemQuantity(line.productId, event.target.value)
                               }
-                              className="w-16 rounded border border-white/10 bg-black px-2 py-1 text-xs text-white outline-none transition focus:border-white/45"
+                              className="theme-input w-16 rounded px-2 py-1 text-xs transition"
                             />
-                            <div className="text-white/60">
+                            <div className="theme-copy">
                               x {formatPrice(line.unitPrice)} = {formatPrice(line.unitPrice * line.quantity)}
                             </div>
                           </div>
@@ -1758,49 +1729,21 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       ))}
                     </div>
 
-                    <div className="mt-3 rounded-lg border border-white/15 bg-[#111213] px-3 py-2 text-sm">
-                      <div className="flex items-center justify-between text-white/75">
+                    <div className="mt-3 rounded-lg border border-[var(--theme-border)] bg-white/75 px-3 py-2 text-sm">
+                      <div className="theme-copy flex items-center justify-between">
                         <span>Total</span>
-                        <span className="font-semibold text-white">{formatPrice(cartTotalPrice)}</span>
+                        <span className="font-semibold text-[var(--theme-text)]">{formatPrice(cartTotalPrice)}</span>
                       </div>
                     </div>
                   </>
                 )}
 
-                <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-[#0b0c0d]">
-                  <div className="border-b border-white/10 bg-black/45 px-3 py-2.5">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80">
-                      Bank Transfer Details
-                    </div>
-                    <div className="mt-1 text-xs text-white/55">Use these details for EFT payment.</div>
-                  </div>
-
-                  <div className="px-3 pb-3 pt-3">
-                    <div className="rounded-lg border border-white/15 bg-black p-3 text-center text-xs leading-5 text-white">
-                      <div>All payment payable to:</div>
-                      <div className="mt-1 font-semibold">CM Badenhorst</div>
-                      <div className="font-semibold">acc. 101 545 007 10</div>
-                      <div className="font-semibold tracking-[0.05em]">STANDARD BANK</div>
-
-                      <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-white/85">
-                        <span>ref. Shop name</span>
-                        <span>sms POP to 062 693 6204</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-950/20 p-2.5 text-xs leading-5 text-amber-100">
-                  Send POP by SMS to 062 693 6204 after payment. Delivery is arranged once POP
-                  is received.
+                  PayFast will handle the payment step securely when you continue from checkout.
                 </div>
 
-                <button
-                  type="button"
-                  onClick={openBasketFromTrolley}
-                  className="mt-3 w-full rounded-lg border border-white/20 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-black transition hover:bg-[#e8e8e8]"
-                >
-                  Open Basket & Checkout
+                <button type="button" onClick={openBasketFromTrolley} className="theme-button mt-3 w-full rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em]">
+                  Open Cart & Checkout
                 </button>
               </div>
             ) : null}
@@ -1808,8 +1751,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
             <button
               type="button"
               onClick={toggleTrolley}
-              aria-label="View trolley"
-              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/95 text-white shadow-lg shadow-black/40 transition hover:border-white/50 hover:bg-[#111213]"
+              aria-label="View cart"
+              className="theme-button relative flex h-12 w-12 items-center justify-center rounded-full shadow-lg shadow-[rgba(93,78,48,0.18)]"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -1825,7 +1768,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                 <circle cx="17" cy="20" r="1.2" />
                 <path d="M3 4h2l2.3 10.2a1 1 0 0 0 1 .8h8.7a1 1 0 0 0 1-.8L20 8H7" />
               </svg>
-              <span className="absolute -right-1.5 -top-1.5 min-w-[1.25rem] rounded-full border border-white/20 bg-white px-1 py-0.5 text-center text-[10px] font-semibold leading-none text-black">
+              <span className="absolute -right-1.5 -top-1.5 min-w-[1.25rem] rounded-full border border-[var(--theme-border)] bg-white px-1 py-0.5 text-center text-[10px] font-semibold leading-none text-[var(--theme-text)]">
                 {cartTotalQuantity}
               </span>
             </button>

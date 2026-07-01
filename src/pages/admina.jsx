@@ -175,6 +175,34 @@ function buildGoogleMapsUrl(locationValue) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmedLocation)}`;
 }
 
+function formatPaymentStatusLabel(value) {
+  const normalizedValue = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (!normalizedValue) {
+    return "Pending";
+  }
+
+  return normalizedValue.charAt(0).toUpperCase() + normalizedValue.slice(1);
+}
+
+function getPaymentStatusClasses(value) {
+  const normalizedValue = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (normalizedValue === "complete") {
+    return "border-emerald-400/25 bg-emerald-950/20 text-emerald-100";
+  }
+
+  if (normalizedValue === "failed" || normalizedValue === "cancelled") {
+    return "border-red-400/25 bg-red-950/20 text-red-100";
+  }
+
+  return "border-amber-300/25 bg-amber-950/20 text-amber-100";
+}
+
 function parseLatLngText(value) {
   const match = String(value || "")
     .trim()
@@ -983,59 +1011,25 @@ export default function AdminaPage() {
     }
   }
 
-  async function setProofOfPaymentReceived(orderId, proofOfPaymentReceived) {
+  async function setDeliveryOrganized(orderGroupId, deliveryOrganized) {
     if (orderActionStatus) {
       return;
     }
 
     setError("");
     setMessage("");
-    setOrderActionStatus(orderId);
+    setOrderActionStatus(orderGroupId);
 
     try {
       const data = await fetchJsonWithRetry(
-        `/api/admin/orders?id=${encodeURIComponent(orderId)}`,
+        `/api/admin/orders?id=${encodeURIComponent(orderGroupId)}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           cache: "no-store",
           body: JSON.stringify({
-            id: orderId,
-            proofOfPaymentReceived,
-          }),
-        },
-        "Order could not be updated.",
-      );
-
-      setOrders(data.orders || []);
-      setMessage("Order payment proof status updated.");
-    } catch (actionError) {
-      setError(actionError.message);
-    } finally {
-      setOrderActionStatus("");
-    }
-  }
-
-  async function setDeliveryOrganized(orderId, deliveryOrganized) {
-    if (orderActionStatus) {
-      return;
-    }
-
-    setError("");
-    setMessage("");
-    setOrderActionStatus(orderId);
-
-    try {
-      const data = await fetchJsonWithRetry(
-        `/api/admin/orders?id=${encodeURIComponent(orderId)}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          cache: "no-store",
-          body: JSON.stringify({
-            id: orderId,
+            orderGroupId,
             action: "set-delivery-organized",
             deliveryOrganized,
           }),
@@ -2166,8 +2160,8 @@ export default function AdminaPage() {
                     </h2>
 
                     <p className="mt-2 text-sm leading-6 text-white/50">
-                      Customer orders with quantity, location, proof-of-payment, and delivery
-                      organization status.
+                      Customer orders with quantity, location, PayFast payment status, and
+                      delivery organization status.
                     </p>
                   </div>
 
@@ -2205,8 +2199,11 @@ export default function AdminaPage() {
                       <tbody>
                         {orders.map((order) => {
                           const googleMapsUrl = buildGoogleMapsUrl(order.googleMapsLocation);
+                          const orderGroupId = String(order.orderGroupId || "").trim();
+                          const paymentStatus = String(order.paymentStatus || "").trim().toLowerCase();
+                          const isPaid = paymentStatus === "complete" || Boolean(order.proofOfPaymentReceived);
                           const isBusy = Boolean(orderActionStatus);
-                          const isCurrentBusy = orderActionStatus === order.id;
+                          const isCurrentBusy = orderActionStatus === orderGroupId;
                           const pudoLookupState = pudoLookupByOrder[order.id] || {};
                           const pudoStatus = pudoLookupState.status || "idle";
                           const pudoLockers = Array.isArray(pudoLookupState.lockers)
@@ -2391,24 +2388,27 @@ export default function AdminaPage() {
                               <td className="px-4 py-4">
                                 <div className="min-w-[220px] space-y-2">
                                   <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs">
-                                    <label className="flex items-center gap-3 uppercase tracking-[0.14em] text-white/70">
-                                      <input
-                                        type="checkbox"
-                                        checked={Boolean(order.proofOfPaymentReceived)}
-                                        onChange={(event) =>
-                                          setProofOfPaymentReceived(order.id, event.target.checked)
-                                        }
-                                        disabled={isBusy}
-                                        className="h-4 w-4 cursor-pointer rounded border border-white/20 bg-black"
-                                      />
-                                      <span>
-                                        {isCurrentBusy
-                                          ? "Saving..."
-                                          : order.proofOfPaymentReceived
-                                            ? "Proof received"
-                                            : "Awaiting proof"}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span
+                                        className={`rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${getPaymentStatusClasses(paymentStatus)}`}
+                                      >
+                                        {formatPaymentStatusLabel(paymentStatus)}
                                       </span>
-                                    </label>
+                                      <span className="text-white/50">
+                                        {order.paymentProvider || "PayFast"}
+                                      </span>
+                                    </div>
+                                    <div className="mt-2 text-white/65">
+                                      Group: {orderGroupId || "n/a"}
+                                    </div>
+                                    <div className="mt-1 text-white/65">
+                                      Amount: {formatPrice(order.paymentAmount || 0)}
+                                    </div>
+                                    {order.paymentReference ? (
+                                      <div className="mt-1 text-white/50">
+                                        Ref: {order.paymentReference}
+                                      </div>
+                                    ) : null}
                                   </div>
 
                                   <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs">
@@ -2417,9 +2417,9 @@ export default function AdminaPage() {
                                         type="checkbox"
                                         checked={Boolean(order.deliveryOrganized)}
                                         onChange={(event) =>
-                                          setDeliveryOrganized(order.id, event.target.checked)
+                                          setDeliveryOrganized(orderGroupId, event.target.checked)
                                         }
-                                        disabled={isBusy || !order.proofOfPaymentReceived}
+                                        disabled={isBusy || !isPaid || !orderGroupId}
                                         className="h-4 w-4 cursor-pointer rounded border border-white/20 bg-black"
                                       />
                                       <span>
@@ -2427,9 +2427,9 @@ export default function AdminaPage() {
                                           ? "Saving..."
                                           : order.deliveryOrganized
                                             ? "Delivery organized"
-                                            : order.proofOfPaymentReceived
+                                            : isPaid
                                               ? "Ready to organize"
-                                              : "Locked until proof"}
+                                              : "Locked until payment"}
                                       </span>
                                     </label>
                                   </div>

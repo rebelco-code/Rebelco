@@ -7,6 +7,13 @@ export const contactLinks = {
   whatsappCatalogueHref: "https://wa.me/c/27636936204",
 };
 
+export const homeAnnouncements = [
+  "Freshly made small-batch stock",
+  "WhatsApp catalogue available now",
+  "Custom gift and hotel soap orders welcome",
+  "PET treats and chews have their own catalogue",
+];
+
 export const contactActions = [
   {
     id: "whatsapp",
@@ -114,6 +121,79 @@ export const heroSlides = [
     heading: "Home Goods, Utility Bars, And Thoughtful Gifts",
     body:
       "The catalogue also reaches into eco-friendly dish wash, washing bars, tallow oil, natural candles, tree scents, hotel soaps, and custom shrink-wrapped gift pieces, making the range broader than skincare alone.",
+  },
+];
+
+export const homeHero = {
+  title: "Rebelco: handmade tallow, soaps, grooming, and practical everyday goods.",
+  ctaLabel: "Shop all products",
+  ctaHref: "/products",
+};
+
+export const homeFeatureSections = [
+  {
+    id: "core-range",
+    title: "Premium quality handmade essentials from a broad Rebelco range.",
+    description:
+      "Rebelco brings together bath bars, grooming products, skincare, kitchen staples, candles, and gift-ready items in one straightforward catalogue.",
+    items: [
+      {
+        title: "Men's Products",
+        body: "Shaving bars, beard care, brushes, and practical daily grooming staples.",
+        linkLabel: "Shop grooming",
+        href: "/products",
+      },
+      {
+        title: "Bath Soaps & Salts",
+        body: "Shampoo bars and natural soaps across the deepest part of the catalogue.",
+        linkLabel: "Shop soaps",
+        href: "/products",
+      },
+      {
+        title: "Creams & Lip Balm",
+        body: "Daily-use creams and softer skincare built to round out the range.",
+        linkLabel: "Shop skincare",
+        href: "/products",
+      },
+      {
+        title: "Kitchen & Candles",
+        body: "Utility bars, home goods, candles, and gift-friendly household staples.",
+        linkLabel: "Shop home",
+        href: "/products",
+      },
+    ],
+  },
+  {
+    id: "pet-range",
+    title: "PET products deserve a dedicated place on the homepage.",
+    description:
+      "Treats, chew-focused items, and related pet stock should be easy to find immediately instead of getting lost inside the main catalogue.",
+    items: [
+      {
+        title: "PET Products",
+        body: "Treats, bones, hooves, and chew-focused stock for repeat pet orders.",
+        linkLabel: "Open PET page",
+        href: "/products-company-2",
+      },
+      {
+        title: "WhatsApp Catalogue",
+        body: "Open the catalogue in WhatsApp when you want to browse quickly and ask as you go.",
+        linkLabel: "Open WhatsApp",
+        href: contactLinks.whatsappCatalogueHref,
+      },
+      {
+        title: "Call Rebelco",
+        body: "Use direct contact for fast questions about stock, gifting, or custom requests.",
+        linkLabel: "Call now",
+        href: contactLinks.phoneHref,
+      },
+      {
+        title: "Email Orders",
+        body: "Best for custom gifting, hotel soap requirements, or longer order notes.",
+        linkLabel: "Send email",
+        href: contactLinks.emailHref,
+      },
+    ],
   },
 ];
 
