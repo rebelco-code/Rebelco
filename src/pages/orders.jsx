@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import Footer from "../components/footer";
@@ -43,6 +43,27 @@ function getStatusClasses(value) {
   return "border-[var(--theme-border)] bg-white/80 text-[var(--theme-text)]";
 }
 
+function buildPudoTrackingQuery(summary) {
+  const queryParams = new URLSearchParams();
+  const shipmentId = String(summary?.shipmentId || "").trim();
+  const trackingNumber = String(summary?.trackingNumber || "").trim();
+  const parcelReference = String(summary?.parcelReference || "").trim();
+
+  if (shipmentId) {
+    queryParams.set("shipmentId", shipmentId);
+  }
+
+  if (trackingNumber) {
+    queryParams.set("trackingNumber", trackingNumber);
+  }
+
+  if (parcelReference) {
+    queryParams.set("parcelReference", parcelReference);
+  }
+
+  return queryParams;
+}
+
 const initialLookupForm = {
   customerOrderId: "",
   customerEmail: "",
@@ -57,6 +78,9 @@ export default function OrdersPage() {
   const [status, setStatus] = useState("idle");
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [liveTrackingStatus, setLiveTrackingStatus] = useState("idle");
+  const [liveTracking, setLiveTracking] = useState(null);
+  const [liveTrackingError, setLiveTrackingError] = useState("");
 
   async function loadOrders(nextLookupForm) {
     const customerOrderId = String(nextLookupForm.customerOrderId || "").trim();
@@ -115,6 +139,82 @@ export default function OrdersPage() {
   const summary = result?.mode === "single" ? result : null;
   const orderHistory = Array.isArray(result?.orders) ? result.orders : [];
   const orderLines = Array.isArray(summary?.orders) ? summary.orders : [];
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!summary) {
+      queueMicrotask(() => {
+        if (isCancelled) {
+          return;
+        }
+
+        setLiveTrackingStatus("idle");
+        setLiveTracking(null);
+        setLiveTrackingError("");
+      });
+
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    const queryParams = buildPudoTrackingQuery(summary);
+
+    if (!queryParams.toString()) {
+      queueMicrotask(() => {
+        if (isCancelled) {
+          return;
+        }
+
+        setLiveTrackingStatus("idle");
+        setLiveTracking(null);
+        setLiveTrackingError("");
+      });
+
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    async function loadLiveTracking() {
+      setLiveTrackingStatus("loading");
+      setLiveTrackingError("");
+
+      try {
+        const response = await fetch(`/api/pudo-tracking?${queryParams.toString()}`, {
+          headers: {
+            Accept: "application/json",
+          },
+        });
+        const data = await readJsonResponse(response, "Could not load live PUDO tracking.");
+
+        if (isCancelled) {
+          return;
+        }
+
+        setLiveTracking(data.tracking || null);
+        setLiveTrackingStatus("ready");
+      } catch (trackingLoadError) {
+        if (isCancelled) {
+          return;
+        }
+
+        setLiveTracking(null);
+        setLiveTrackingStatus("error");
+        setLiveTrackingError(trackingLoadError.message);
+      }
+    }
+
+    void Promise.resolve().then(loadLiveTracking);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [summary]);
+
+  const effectiveTracking = liveTracking || summary;
+  const trackingEvents = Array.isArray(liveTracking?.trackingEvents) ? liveTracking.trackingEvents : [];
 
   return (
     <div className="theme-page theme-shell">
@@ -379,15 +479,35 @@ export default function OrdersPage() {
                   <div className="theme-panel p-4">
                     <div className="theme-kicker text-xs opacity-80">Tracking</div>
                     <div className="mt-3 text-sm leading-6 text-[var(--theme-text)]">
-                      <div>Status: {summary.shipmentStatus || "Not created yet"}</div>
-                      <div>Shipment ID: {summary.shipmentId || "Pending"}</div>
-                      <div>Parcel Ref: {summary.parcelReference || "Pending"}</div>
-                      <div>Tracking No: {summary.trackingNumber || "Pending"}</div>
+                      <div>
+                        Status: {effectiveTracking?.status || effectiveTracking?.shipmentStatus || "Not created yet"}
+                      </div>
+                      <div>Shipment ID: {effectiveTracking?.shipmentId || "Pending"}</div>
+                      <div>
+                        Parcel Ref: {effectiveTracking?.parcelReference || summary.parcelReference || "Pending"}
+                      </div>
+                      <div>
+                        Tracking No: {effectiveTracking?.trackingNumber || summary.trackingNumber || "Pending"}
+                      </div>
+                      {effectiveTracking?.latestEvent?.message ? (
+                        <div className="mt-3">
+                          Latest Event: {effectiveTracking.latestEvent.message}
+                          {effectiveTracking.latestEvent.date
+                            ? ` (${formatDateTime(effectiveTracking.latestEvent.date)})`
+                            : ""}
+                        </div>
+                      ) : null}
+                      {liveTrackingStatus === "loading" ? (
+                        <div className="mt-3 text-[var(--theme-text-soft)]">Refreshing live PUDO tracking...</div>
+                      ) : null}
+                      {liveTrackingStatus === "error" && liveTrackingError ? (
+                        <div className="mt-3 text-red-700">{liveTrackingError}</div>
+                      ) : null}
                     </div>
 
-                    {summary.trackingUrl ? (
+                    {(effectiveTracking?.trackingUrl || summary.trackingUrl) ? (
                       <a
-                        href={summary.trackingUrl}
+                        href={effectiveTracking?.trackingUrl || summary.trackingUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="theme-button mt-4 inline-flex rounded-full px-4 py-3 text-xs uppercase tracking-[0.2em]"
@@ -396,6 +516,30 @@ export default function OrdersPage() {
                       </a>
                     ) : null}
                   </div>
+
+                  {trackingEvents.length > 0 ? (
+                    <div className="theme-panel p-4">
+                      <div className="theme-kicker text-xs opacity-80">Tracking Timeline</div>
+                      <div className="mt-4 grid gap-3">
+                        {trackingEvents.map((event) => (
+                          <article
+                            key={`${event.id || event.date || event.message}-${event.status}`}
+                            className="border border-[var(--theme-border)] bg-white/80 p-3 text-sm text-[var(--theme-text)]"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div className="font-medium">{event.message || event.status || "Tracking update"}</div>
+                              <div className="text-xs text-[var(--theme-text-soft)]">
+                                {event.date ? formatDateTime(event.date) : "Unknown time"}
+                              </div>
+                            </div>
+                            <div className="mt-2 text-xs text-[var(--theme-text-soft)]">
+                              {[event.status, event.location, event.source].filter(Boolean).join(" · ") || "No extra details"}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className="theme-panel p-4">
                     <div className="theme-kicker text-xs opacity-80">Delivery</div>

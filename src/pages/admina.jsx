@@ -216,6 +216,27 @@ function buildTrackingDraftFromOrder(order) {
   };
 }
 
+function buildPudoTrackingQueryParams(input) {
+  const queryParams = new URLSearchParams();
+  const shipmentId = String(input?.pudoShipmentId || input?.shipmentId || "").trim();
+  const parcelReference = String(input?.pudoParcelReference || input?.parcelReference || "").trim();
+  const trackingNumber = String(input?.pudoTrackingNumber || input?.trackingNumber || "").trim();
+
+  if (shipmentId) {
+    queryParams.set("shipmentId", shipmentId);
+  }
+
+  if (parcelReference) {
+    queryParams.set("parcelReference", parcelReference);
+  }
+
+  if (trackingNumber) {
+    queryParams.set("trackingNumber", trackingNumber);
+  }
+
+  return queryParams;
+}
+
 function parseLatLngText(value) {
   const match = String(value || "")
     .trim()
@@ -351,6 +372,7 @@ export default function AdminaPage() {
   const [orderActionStatus, setOrderActionStatus] = useState("");
   const [selectedOrderGroupIds, setSelectedOrderGroupIds] = useState([]);
   const [trackingDraftsByOrderGroup, setTrackingDraftsByOrderGroup] = useState({});
+  const [livePudoTrackingByOrderGroup, setLivePudoTrackingByOrderGroup] = useState({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isImageDropActive, setIsImageDropActive] = useState(false);
@@ -497,6 +519,7 @@ export default function AdminaPage() {
 
       setOrders(data.orders || []);
       setPudoLookupByOrder({});
+      setLivePudoTrackingByOrderGroup({});
       setOrdersStatus("ready");
     } catch (loadError) {
       setError(loadError.message);
@@ -1225,6 +1248,81 @@ export default function AdminaPage() {
         ),
       }));
       setMessage("Tracking details updated.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setOrderActionStatus("");
+    }
+  }
+
+  async function refreshOrderTrackingFromPudo(orderGroupId) {
+    const normalizedOrderGroupId = String(orderGroupId || "").trim();
+
+    if (!normalizedOrderGroupId || orderActionStatus) {
+      return;
+    }
+
+    const draft = trackingDraftsByOrderGroup[normalizedOrderGroupId] || {};
+    const queryParams = buildPudoTrackingQueryParams(draft);
+
+    if (!queryParams.toString()) {
+      setError("Add a shipment ID, parcel reference, or tracking number first.");
+      setMessage("");
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setOrderActionStatus(normalizedOrderGroupId);
+
+    try {
+      const trackingResponse = await fetch(`/api/pudo-tracking?${queryParams.toString()}`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+        cache: "no-store",
+      });
+      const trackingData = await readJsonResponse(
+        trackingResponse,
+        "Could not fetch live PUDO tracking.",
+      );
+      const liveTracking = trackingData.tracking || {};
+      const nextDraft = {
+        ...draft,
+        pudoShipmentStatus: String(liveTracking.status || draft.pudoShipmentStatus || ""),
+        pudoShipmentId: String(liveTracking.shipmentId || draft.pudoShipmentId || ""),
+        pudoParcelReference: String(liveTracking.parcelReference || draft.pudoParcelReference || ""),
+        pudoTrackingNumber: String(liveTracking.trackingNumber || draft.pudoTrackingNumber || ""),
+        pudoTrackingUrl: String(liveTracking.trackingUrl || draft.pudoTrackingUrl || ""),
+        pudoLabelUrl: String(draft.pudoLabelUrl || ""),
+      };
+
+      setTrackingDraftsByOrderGroup((currentDrafts) => ({
+        ...currentDrafts,
+        [normalizedOrderGroupId]: nextDraft,
+      }));
+      setLivePudoTrackingByOrderGroup((currentTracking) => ({
+        ...currentTracking,
+        [normalizedOrderGroupId]: liveTracking,
+      }));
+
+      const updatedTrackingResponse = await fetchJsonWithRetry(
+        `/api/admin/orders?id=${encodeURIComponent(normalizedOrderGroupId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            orderGroupId: normalizedOrderGroupId,
+            action: "update-tracking",
+            ...nextDraft,
+          }),
+        },
+        "Tracking details could not be updated.",
+      );
+
+      setOrders(updatedTrackingResponse.orders || []);
+      setMessage("PUDO tracking refreshed.");
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -2565,6 +2663,18 @@ export default function AdminaPage() {
                           const selectedLockerMapsUrl = selectedLockerMapsLabel
                             ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedLockerMapsLabel)}`
                             : "";
+                          const livePudoTracking = livePudoTrackingByOrderGroup[orderGroupId] || null;
+                          const trackingStatusLabel =
+                            livePudoTracking?.status || order.pudoShipmentStatus || "Not created yet";
+                          const trackingShipmentId =
+                            livePudoTracking?.shipmentId || order.pudoShipmentId || "n/a";
+                          const trackingParcelReference =
+                            livePudoTracking?.parcelReference || order.pudoParcelReference || "n/a";
+                          const trackingNumber =
+                            livePudoTracking?.trackingNumber || order.pudoTrackingNumber || "n/a";
+                          const trackingUrl =
+                            livePudoTracking?.trackingUrl || order.pudoTrackingUrl || "";
+                          const latestTrackingEvent = livePudoTracking?.latestEvent || null;
 
                           return (
                             <tr key={order.id} className="border-t border-white/10 align-top">
@@ -2747,20 +2857,30 @@ export default function AdminaPage() {
                                       PUDO shipment
                                     </div>
                                     <div className="mt-1 text-[#121212]">
-                                      Status: {order.pudoShipmentStatus || "Not created yet"}
+                                      Status: {trackingStatusLabel}
                                     </div>
                                     <div className="mt-1 text-[#555555]">
-                                      Shipment ID: {order.pudoShipmentId || "n/a"}
+                                      Shipment ID: {trackingShipmentId}
                                     </div>
                                     <div className="mt-1 text-[#555555]">
-                                      Parcel Ref: {order.pudoParcelReference || "n/a"}
+                                      Parcel Ref: {trackingParcelReference}
                                     </div>
                                     <div className="mt-1 text-[#555555]">
-                                      Tracking No: {order.pudoTrackingNumber || "n/a"}
+                                      Tracking No: {trackingNumber}
                                     </div>
-                                    {order.pudoTrackingUrl ? (
+                                    {latestTrackingEvent?.message ? (
+                                      <div className="mt-2 text-[#555555]">
+                                        Latest: {latestTrackingEvent.message}
+                                      </div>
+                                    ) : null}
+                                    {latestTrackingEvent?.date ? (
+                                      <div className="mt-1 text-[#777777]">
+                                        Updated: {formatDateTime(latestTrackingEvent.date)}
+                                      </div>
+                                    ) : null}
+                                    {trackingUrl ? (
                                       <a
-                                        href={order.pudoTrackingUrl}
+                                        href={trackingUrl}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="mt-2 inline-block text-[10px] uppercase tracking-[0.14em] text-[#121212] underline-offset-4 hover:underline"
@@ -2845,6 +2965,14 @@ export default function AdminaPage() {
                                         disabled={isBusy}
                                         className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
                                       />
+                                      <button
+                                        type="button"
+                                        onClick={() => refreshOrderTrackingFromPudo(orderGroupId)}
+                                        disabled={isBusy || !orderGroupId}
+                                        className="rounded-full border border-emerald-300/35 bg-white px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-emerald-700 transition hover:border-emerald-500 hover:text-emerald-900 disabled:cursor-not-allowed disabled:opacity-40"
+                                      >
+                                        {isCurrentBusy ? "Refreshing..." : "Refresh From PUDO"}
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={() => saveOrderTracking(orderGroupId)}
