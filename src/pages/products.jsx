@@ -1186,7 +1186,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                 ) : null}
 
                                 {productImages.length > 1 ? (
-                                  <div className="absolute right-3 top-3 rounded-full border border-[var(--theme-border)] bg-[rgba(255,250,242,0.88)] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--theme-text)] backdrop-blur">
+                                  <div className="absolute right-3 top-3 rounded-full border border-[var(--theme-border)] bg-[rgba(255,250,242,0.88)] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-black backdrop-blur">
                                     {productImages.length} photos
                                   </div>
                                 ) : null}
