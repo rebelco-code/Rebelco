@@ -340,6 +340,17 @@ a {
   color: #121212 !important;
 }
 
+.admina-theme .admina-category-toggle {
+  background: #ffffff !important;
+  color: #121212 !important;
+  border-color: #d8d8d1 !important;
+}
+
+.admina-theme .admina-category-toggle:hover {
+  background: #f8f8f6 !important;
+  color: #121212 !important;
+}
+
 .admina-theme table thead {
   background: #f4f4f1 !important;
 }

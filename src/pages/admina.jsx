@@ -1928,7 +1928,7 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={() => toggleCategory(group.category)}
-                              className="flex w-full flex-col gap-3 bg-white p-3 text-left transition hover:bg-black/[0.03] sm:flex-row sm:items-center sm:justify-between"
+                              className="admina-category-toggle flex w-full flex-col gap-3 bg-white p-3 text-left transition hover:bg-black/[0.03] sm:flex-row sm:items-center sm:justify-between"
                             >
                               <div className="min-w-0">
                                 <h3
