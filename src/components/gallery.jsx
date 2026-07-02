@@ -1,38 +1,21 @@
-import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { homeHero } from "../data/home-content";
-
-const galleryModules = import.meta.glob(
-  "../assets/wallpaper/home/gallery/*.{png,jpg,jpeg,webp,avif}",
-  {
-    eager: true,
-    import: "default",
-  },
-);
+import heroImage from "../assets/wallpaper/home/gallery/ChatGPT Image Apr 1, 2026, 02_40_47 PM.webp";
 
 export default function Gallery() {
-  const heroImage = useMemo(() => {
-    const entries = Object.entries(galleryModules).sort(([left], [right]) =>
-      left.localeCompare(right),
-    );
-
-    return entries[0]?.[1] || "";
-  }, []);
-
   return (
     <section className="bg-white px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="relative overflow-hidden bg-[#f5f2eb]">
           <div className="aspect-[16/7] min-h-[360px] w-full bg-[#f5f2eb]">
-            {heroImage ? (
-              <img
-                src={heroImage}
-                alt="Rebelco hero"
-                className="h-full w-full object-cover"
-                loading="eager"
-                fetchPriority="high"
-              />
-            ) : null}
+            <img
+              src={heroImage}
+              alt="Rebelco hero"
+              className="h-full w-full object-cover"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />

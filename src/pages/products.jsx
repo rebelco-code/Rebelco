@@ -3,11 +3,6 @@ import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 const PRODUCTS_PAGE_VARIANTS = {
   rebelco: {
@@ -200,11 +195,31 @@ function postFormToUrl(action, fields) {
   form.submit();
 }
 
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+let leafletAssetsPromise;
+
+async function loadLeafletAssets() {
+  if (!leafletAssetsPromise) {
+    leafletAssetsPromise = Promise.all([
+      import("leaflet"),
+      import("leaflet/dist/leaflet.css"),
+      import("leaflet/dist/images/marker-icon-2x.png"),
+      import("leaflet/dist/images/marker-icon.png"),
+      import("leaflet/dist/images/marker-shadow.png"),
+    ]).then(([leafletModule, , markerIcon2xModule, markerIconModule, markerShadowModule]) => {
+      const Leaflet = leafletModule.default;
+
+      Leaflet.Icon.Default.mergeOptions({
+        iconRetinaUrl: markerIcon2xModule.default,
+        iconUrl: markerIconModule.default,
+        shadowUrl: markerShadowModule.default,
+      });
+
+      return Leaflet;
+    });
+  }
+
+  return leafletAssetsPromise;
+}
 
 function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }) {
   const pageVariant =
@@ -213,6 +228,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   const companyKey = pageVariant.companyKey;
   const orderSectionRef = useRef(null);
   const pinMapRef = useRef(null);
+  const leafletRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapMarkerRef = useRef(null);
   const pudoLookupRequestRef = useRef(0);
@@ -237,6 +253,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   const [pudoMessage, setPudoMessage] = useState("");
   const [orderMessage, setOrderMessage] = useState("");
   const [orderError, setOrderError] = useState("");
+  const [mapStatus, setMapStatus] = useState("idle");
 
   const categories = useMemo(() => {
     const categorySet = new Set();
@@ -491,54 +508,80 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
       return undefined;
     }
 
-    const initialCenter = [-26.2041, 28.0473];
-    const mapInstance = L.map(pinMapRef.current, {
-      center: initialCenter,
-      zoom: 12,
-      zoomControl: true,
-    });
+    let isCancelled = false;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(mapInstance);
+    setMapStatus("loading");
 
-    window.setTimeout(() => {
-      mapInstance.invalidateSize();
-    }, 0);
+    loadLeafletAssets()
+      .then((Leaflet) => {
+        if (isCancelled || !pinMapRef.current || mapInstanceRef.current) {
+          return;
+        }
 
-    mapInstance.on("click", (event) => {
-      const { lat, lng } = event.latlng;
-      const formattedValue = formatLatLng(lat, lng);
+        leafletRef.current = Leaflet;
 
-      if (mapMarkerRef.current) {
-        mapMarkerRef.current.setLatLng([lat, lng]);
-      } else {
-        mapMarkerRef.current = L.marker([lat, lng]).addTo(mapInstance);
-      }
+        const initialCenter = [-26.2041, 28.0473];
+        const mapInstance = Leaflet.map(pinMapRef.current, {
+          center: initialCenter,
+          zoom: 12,
+          zoomControl: true,
+        });
 
-      setOrderForm((currentForm) => ({
-        ...currentForm,
-        googleMapsLocation: formattedValue,
-        pudoLockerCode: "",
-        pudoLockerName: "",
-        pudoLockerAddress: "",
-      }));
+        Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(mapInstance);
 
-      setPudoLockers([]);
-      setPudoMessage("");
-      setPudoStatus("idle");
-      setOrderError("");
-      setOrderMessage("");
+        window.setTimeout(() => {
+          mapInstance.invalidateSize();
+        }, 0);
 
-      lookupAndSelectClosestPudo(lat, lng);
-    });
+        mapInstance.on("click", (event) => {
+          const { lat, lng } = event.latlng;
+          const formattedValue = formatLatLng(lat, lng);
 
-    mapInstanceRef.current = mapInstance;
+          if (mapMarkerRef.current) {
+            mapMarkerRef.current.setLatLng([lat, lng]);
+          } else {
+            mapMarkerRef.current = Leaflet.marker([lat, lng]).addTo(mapInstance);
+          }
+
+          setOrderForm((currentForm) => ({
+            ...currentForm,
+            googleMapsLocation: formattedValue,
+            pudoLockerCode: "",
+            pudoLockerName: "",
+            pudoLockerAddress: "",
+          }));
+
+          setPudoLockers([]);
+          setPudoMessage("");
+          setPudoStatus("idle");
+          setOrderError("");
+          setOrderMessage("");
+
+          lookupAndSelectClosestPudo(lat, lng);
+        });
+
+        mapInstanceRef.current = mapInstance;
+        setMapStatus("ready");
+      })
+      .catch(() => {
+        if (!isCancelled) {
+          setMapStatus("error");
+          setOrderError("The location map could not load. You can still enter coordinates manually.");
+        }
+      });
 
     return () => {
-      mapInstance.off();
-      mapInstance.remove();
+      isCancelled = true;
+      const mapInstance = mapInstanceRef.current;
+
+      if (mapInstance) {
+        mapInstance.off();
+        mapInstance.remove();
+      }
+
       mapInstanceRef.current = null;
       mapMarkerRef.current = null;
     };
@@ -548,6 +591,12 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     const mapInstance = mapInstanceRef.current;
 
     if (!mapInstance) {
+      return;
+    }
+
+    const Leaflet = leafletRef.current;
+
+    if (!Leaflet) {
       return;
     }
 
@@ -562,7 +611,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     if (mapMarkerRef.current) {
       mapMarkerRef.current.setLatLng([latitude, longitude]);
     } else {
-      mapMarkerRef.current = L.marker([latitude, longitude]).addTo(mapInstance);
+      mapMarkerRef.current = Leaflet.marker([latitude, longitude]).addTo(mapInstance);
     }
 
     mapInstance.setView([latitude, longitude], Math.max(mapInstance.getZoom(), 14));
@@ -1559,6 +1608,18 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       ref={pinMapRef}
                       className="h-64 w-full border border-[var(--theme-border)] bg-white/75"
                     />
+
+                    {mapStatus === "loading" ? (
+                      <p className="text-xs leading-5 opacity-80">
+                        Loading map...
+                      </p>
+                    ) : null}
+
+                    {mapStatus === "error" ? (
+                      <p className="text-xs leading-5 text-red-200">
+                        Map unavailable right now. Enter coordinates manually to continue.
+                      </p>
+                    ) : null}
 
                     <p className="text-xs leading-5 opacity-80">
                       Tap/click the map to drop a pin. PUDO lockers will be sorted from closest to furthest.

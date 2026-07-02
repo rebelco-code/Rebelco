@@ -38,9 +38,12 @@ export default function Navbar({ className = "", showAnnouncement = true }) {
           <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3">
             <div className="flex h-14 w-24 items-center justify-center overflow-hidden border border-black/10 bg-[#f7f4ee] sm:h-16 sm:w-28">
               <img
-                src="/rebelco-logo-preview.png"
+                src="/rebelco-logo-optimized.png"
                 alt="Rebelco logo"
                 className="h-full w-full object-cover opacity-90"
+                width="256"
+                height="171"
+                decoding="async"
               />
             </div>
             <div className="hidden sm:block">
