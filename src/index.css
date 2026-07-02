@@ -157,10 +157,7 @@ a {
   color: #121212;
 }
 
-.products-shell {
-  --theme-bg: #000000;
-  --theme-surface: #000000;
-  --theme-surface-strong: #080808;
+.products-display-surface {
   --theme-border: #3f3f3f;
   --theme-border-strong: #ffffff;
   --theme-text: #ffffff;
@@ -172,102 +169,97 @@ a {
   color: #ffffff;
 }
 
-.products-shell main,
-.products-shell nav,
-.products-shell .theme-shell,
-.products-shell .theme-card,
-.products-shell .theme-panel {
+.products-display-surface.theme-card,
+.products-display-surface.theme-panel,
+.products-display-surface .theme-panel,
+.products-display-surface .theme-input {
+  border-color: var(--theme-border);
   background: #000000;
   color: #ffffff;
-}
-
-.products-shell .theme-card,
-.products-shell .theme-panel,
-.products-shell .theme-input {
-  border-color: var(--theme-border);
   box-shadow: none;
 }
 
-.products-shell .theme-button {
+.products-display-surface .theme-button {
   border-color: #ffffff;
   background: #ffffff;
   color: #000000;
   box-shadow: none;
 }
 
-.products-shell .theme-button:hover {
+.products-display-surface .theme-button:hover {
   border-color: #ffffff;
   background: #000000;
   color: #ffffff;
   transform: none;
 }
 
-.products-shell .theme-button-secondary,
-.products-shell .nav-shop-button {
+.products-display-surface .theme-button-secondary {
   border-color: #ffffff;
   background: #000000;
   color: #ffffff;
   box-shadow: none;
 }
 
-.products-shell .theme-button-secondary:hover,
-.products-shell .nav-shop-button:hover {
+.products-display-surface .theme-button-secondary:hover {
   border-color: #ffffff;
   background: #ffffff;
   color: #000000;
 }
 
-.products-shell .theme-input {
+.products-display-surface .theme-input {
   background: #000000;
   color: #ffffff;
 }
 
-.products-shell .theme-input::placeholder {
+.products-display-surface .theme-input::placeholder {
   color: #8f8f8f;
 }
 
-.products-shell .theme-input:focus {
+.products-display-surface .theme-input:focus {
   border-color: #ffffff;
   box-shadow: 0 0 0 1px #ffffff;
 }
 
-.products-shell .theme-copy,
-.products-shell .theme-kicker,
-.products-shell .theme-title {
+.products-display-surface .theme-copy,
+.products-display-surface .theme-kicker,
+.products-display-surface .theme-title,
+.products-display-surface .font-semibold,
+.products-display-surface strong {
   color: #ffffff;
 }
 
-.products-shell [class*="rounded"] {
+.products-display-surface [class*="rounded"] {
   border-radius: 0 !important;
 }
 
-.products-shell [class*="shadow"] {
+.products-display-surface [class*="shadow"] {
   box-shadow: none !important;
 }
 
-.products-shell [class*="bg-white"],
-.products-shell [class*="bg-amber"],
-.products-shell [class*="bg-emerald"] {
+.products-display-surface [class*="bg-white"],
+.products-display-surface [class*="bg-amber"],
+.products-display-surface [class*="bg-emerald"] {
   background: #000000 !important;
 }
 
-.products-shell [class*="border-amber"],
-.products-shell [class*="border-emerald"],
-.products-shell [class*="text-amber"],
-.products-shell [class*="text-emerald"] {
+.products-display-surface [class*="border-amber"],
+.products-display-surface [class*="border-emerald"],
+.products-display-surface [class*="text-amber"],
+.products-display-surface [class*="text-emerald"] {
   border-color: var(--theme-border) !important;
   color: #ffffff !important;
 }
 
-.products-shell [class*="text-red"] {
+.products-display-surface [class*="text-red"] {
   color: #ffffff !important;
 }
 
-.products-shell [class*="bg-\\[var\\(--theme-accent-strong\\)\\]"] {
+.products-display-surface [class*="bg-\\[var\\(--theme-accent-strong\\)\\]"] {
   background: #ffffff !important;
   color: #000000 !important;
 }
 
-.products-shell [class*="backdrop-blur"] {
-  backdrop-filter: none;
+.products-display-surface [class*="border-\\[var\\(--theme-border\\)\\]"],
+.products-display-surface [class*="border-\\[var\\(--theme-border-strong\\)\\]"] {
+  border-color: var(--theme-border) !important;
 }

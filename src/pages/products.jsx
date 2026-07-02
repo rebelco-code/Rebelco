@@ -986,7 +986,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   }
 
   return (
-    <div className="theme-page theme-shell products-shell">
+    <div className="theme-page theme-shell">
       <Navbar className="border-b border-[var(--theme-border)] bg-white/95 backdrop-blur" />
 
       <main className="px-4 py-10 sm:px-6 sm:py-14 lg:px-12 lg:py-18">
@@ -1106,7 +1106,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                 return (
                   <section
                     key={group.category}
-                    className="theme-card overflow-hidden"
+                    className="theme-card products-display-surface overflow-hidden"
                   >
                     <button
                       type="button"
@@ -1151,7 +1151,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                           return (
                             <article
                               key={product.id}
-                              className={`overflow-hidden rounded-[24px] border bg-[rgba(255,250,242,0.92)] transition ${
+                              className={`products-display-surface overflow-hidden rounded-[24px] border bg-[rgba(255,250,242,0.92)] transition ${
                                 isSelectedProduct
                                   ? "border-[var(--theme-border-strong)] shadow-[0_0_0_1px_rgba(182,152,98,0.25)]"
                                   : "border-[var(--theme-border)]"
@@ -1355,7 +1355,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
           {selectedProduct ? (
             <section
               ref={orderSectionRef}
-              className="theme-card mt-8 p-5 sm:p-6"
+              className="theme-card products-display-surface mt-8 p-5 sm:p-6"
             >
               <div className="border-b border-[var(--theme-border)] pb-5">
                 <p className="theme-kicker text-sm">Place Order</p>
@@ -1388,7 +1388,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
               ) : null}
 
               <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <div className="theme-panel p-4">
+                <div className="theme-panel products-display-surface p-4">
                   <div className="relative aspect-[4/3] bg-[var(--theme-surface)]">
                     {selectedPreviewImage ? (
                       <img
@@ -1520,7 +1520,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   ) : null}
                 </div>
 
-                <form className="theme-panel grid gap-4 p-4" onSubmit={submitOrder}>
+                <form className="theme-panel products-display-surface grid gap-4 p-4" onSubmit={submitOrder}>
                   <div className="rounded-xl border border-[var(--theme-border)] bg-white/75 p-3 text-xs text-[var(--theme-text-soft)]">
                     <div className="theme-kicker text-xs text-[var(--theme-text)]">
                       Checkout Steps
@@ -1739,7 +1739,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
           <div className="fixed bottom-5 right-5 z-40">
             {isTrolleyOpen ? (
-              <div className="theme-card mb-3 w-80 rounded-[24px] p-3 text-[var(--theme-text)] shadow-xl shadow-[rgba(93,78,48,0.18)]">
+              <div className="theme-card products-display-surface mb-3 w-80 rounded-[24px] p-3 text-[var(--theme-text)] shadow-xl shadow-[rgba(93,78,48,0.18)]">
                 <div className="flex items-center justify-between gap-2">
                   <span className="theme-kicker text-xs opacity-80">Cart</span>
                   <span className="theme-copy text-xs">
