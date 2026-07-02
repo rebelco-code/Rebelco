@@ -1923,7 +1923,7 @@ export default function AdminaPage() {
                         return (
                           <section
                             key={group.category}
-                            className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-black/30"
+                            className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-white"
                           >
                             <button
                               type="button"
