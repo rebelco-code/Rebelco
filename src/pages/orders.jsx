@@ -55,23 +55,26 @@ export default function OrdersPage() {
     customerEmail: searchParams.get("email") || searchParams.get("customerEmail") || "",
   }));
   const [status, setStatus] = useState("idle");
-  const [summary, setSummary] = useState(null);
+  const [result, setResult] = useState(null);
   const [error, setError] = useState("");
 
   async function loadOrders(nextLookupForm) {
     const customerOrderId = String(nextLookupForm.customerOrderId || "").trim();
     const customerEmail = String(nextLookupForm.customerEmail || "").trim();
 
-    if (!customerOrderId || !customerEmail) {
-      setError("Enter the customer order ID and the same email used at checkout.");
-      setSummary(null);
+    if (!customerEmail) {
+      setError("Enter the same email used at checkout.");
+      setResult(null);
       return;
     }
 
     const queryParams = new URLSearchParams({
-      customerOrderId,
       customerEmail,
     });
+
+    if (customerOrderId) {
+      queryParams.set("customerOrderId", customerOrderId);
+    }
 
     setStatus("loading");
     setError("");
@@ -82,13 +85,13 @@ export default function OrdersPage() {
           Accept: "application/json",
         },
       });
-      const data = await readJsonResponse(response, "Could not load your order.");
+      const data = await readJsonResponse(response, "Could not load your orders.");
 
-      setSummary(data);
+      setResult(data);
       setStatus("ready");
       setSearchParams(queryParams);
     } catch (loadError) {
-      setSummary(null);
+      setResult(null);
       setStatus("error");
       setError(loadError.message);
     }
@@ -108,6 +111,9 @@ export default function OrdersPage() {
     await loadOrders(lookupForm);
   }
 
+  const isHistoryMode = result?.mode === "history";
+  const summary = result?.mode === "single" ? result : null;
+  const orderHistory = Array.isArray(result?.orders) ? result.orders : [];
   const orderLines = Array.isArray(summary?.orders) ? summary.orders : [];
 
   return (
@@ -119,26 +125,25 @@ export default function OrdersPage() {
           <section className="theme-card p-6 sm:p-8">
             <p className="theme-kicker text-sm">Order Tracking</p>
             <h1 className="theme-title mt-4 text-4xl leading-[0.95] sm:text-5xl">
-              View your order, quantity, total, and tracking.
+              View previous orders, totals, and tracking.
             </h1>
             <p
               className="theme-copy mt-5 max-w-3xl text-base leading-7"
               style={{ fontFamily: '"Manrope", sans-serif' }}
             >
-              Use the customer order ID plus the same email entered at checkout. You will see the
-              items ordered, quantities, payment state, and any PUDO tracking details added to the order.
+              Enter the same email used at checkout to see all previous orders linked to that email.
+              Add a customer order ID as well if you want to open one specific order directly.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-8 grid gap-4 sm:grid-cols-2">
               <label className="theme-copy grid gap-2 text-sm">
-                <span className="theme-kicker text-xs opacity-80">Customer Order ID</span>
+                <span className="theme-kicker text-xs opacity-80">Customer Order ID (Optional)</span>
                 <input
                   type="text"
                   name="customerOrderId"
                   value={lookupForm.customerOrderId}
                   onChange={updateLookupField}
                   placeholder="RBL-XXXX-XXXX"
-                  required
                   className="theme-input px-4 py-3 transition"
                 />
               </label>
@@ -162,14 +167,14 @@ export default function OrdersPage() {
                   disabled={status === "loading"}
                   className="theme-button rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  {status === "loading" ? "Loading Order..." : "Find My Order"}
+                  {status === "loading" ? "Loading..." : "Find My Orders"}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
                     setLookupForm(initialLookupForm);
-                    setSummary(null);
+                    setResult(null);
                     setError("");
                     setStatus("idle");
                     setSearchParams(new URLSearchParams());
@@ -188,6 +193,105 @@ export default function OrdersPage() {
             ) : null}
           </section>
 
+          {isHistoryMode ? (
+            <section className="theme-card mt-8 p-6 sm:p-8">
+              <div className="border-b border-[var(--theme-border)] pb-6">
+                <p className="theme-kicker text-xs opacity-80">Order History</p>
+                <h2 className="theme-title mt-2 text-3xl leading-none sm:text-4xl">
+                  {result.customerEmail}
+                </h2>
+                <p
+                  className="theme-copy mt-3 text-sm leading-6"
+                  style={{ fontFamily: '"Manrope", sans-serif' }}
+                >
+                  {result.orderCount} order group{result.orderCount === 1 ? "" : "s"} found for this
+                  email.
+                </p>
+              </div>
+
+              <div className="mt-6 grid gap-4">
+                {orderHistory.map((orderSummary) => (
+                  <article key={orderSummary.orderGroupId} className="theme-panel p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <div className="theme-kicker text-[10px] opacity-80">Customer Order ID</div>
+                        <h3 className="theme-title mt-2 text-2xl leading-none">
+                          {orderSummary.customerOrderId || "Order"}
+                        </h3>
+                        <div className="mt-3 text-sm text-[var(--theme-text)]">
+                          Placed{" "}
+                          {orderSummary.orders?.[0]?.createdAt
+                            ? formatDateTime(orderSummary.orders[0].createdAt)
+                            : "Unknown"}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 text-sm text-[var(--theme-text)]">
+                        <div
+                          className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] ${getStatusClasses(orderSummary.paymentStatus)}`}
+                        >
+                          Payment: {formatStatusLabel(orderSummary.paymentStatus)}
+                        </div>
+                        <div
+                          className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] ${getStatusClasses(orderSummary.shipmentStatus)}`}
+                        >
+                          Tracking: {formatStatusLabel(orderSummary.shipmentStatus, "Not created")}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-4">
+                      <div className="border border-[var(--theme-border)] bg-white/80 p-3 text-sm text-[var(--theme-text)]">
+                        <div className="theme-kicker text-[10px] opacity-80">Items</div>
+                        <div className="mt-2">{orderSummary.orderCount || 0}</div>
+                      </div>
+                      <div className="border border-[var(--theme-border)] bg-white/80 p-3 text-sm text-[var(--theme-text)]">
+                        <div className="theme-kicker text-[10px] opacity-80">Quantity</div>
+                        <div className="mt-2">{orderSummary.totalQuantity || 0}</div>
+                      </div>
+                      <div className="border border-[var(--theme-border)] bg-white/80 p-3 text-sm text-[var(--theme-text)]">
+                        <div className="theme-kicker text-[10px] opacity-80">Total</div>
+                        <div className="mt-2">{formatPrice(orderSummary.totalAmount || 0)}</div>
+                      </div>
+                      <div className="border border-[var(--theme-border)] bg-white/80 p-3 text-sm text-[var(--theme-text)]">
+                        <div className="theme-kicker text-[10px] opacity-80">Tracking No</div>
+                        <div className="mt-2 break-words">{orderSummary.trackingNumber || "Pending"}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextLookupForm = {
+                            customerOrderId: orderSummary.customerOrderId || "",
+                            customerEmail: result.customerEmail || "",
+                          };
+                          setLookupForm(nextLookupForm);
+                          void loadOrders(nextLookupForm);
+                        }}
+                        className="theme-button rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
+                      >
+                        Open This Order
+                      </button>
+
+                      {orderSummary.trackingUrl ? (
+                        <a
+                          href={orderSummary.trackingUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="theme-button-secondary rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
+                        >
+                          Open Tracking
+                        </a>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           {summary ? (
             <section className="theme-card mt-8 p-6 sm:p-8">
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--theme-border)] pb-6">
@@ -196,16 +300,23 @@ export default function OrdersPage() {
                   <h2 className="theme-title mt-2 text-3xl leading-none sm:text-4xl">
                     {summary.customerOrderId || "Order found"}
                   </h2>
-                  <p className="theme-copy mt-3 text-sm leading-6" style={{ fontFamily: '"Manrope", sans-serif' }}>
+                  <p
+                    className="theme-copy mt-3 text-sm leading-6"
+                    style={{ fontFamily: '"Manrope", sans-serif' }}
+                  >
                     Placed {orderLines[0]?.createdAt ? formatDateTime(orderLines[0].createdAt) : "Unknown"}.
                   </p>
                 </div>
 
                 <div className="grid gap-2 text-sm text-[var(--theme-text)]">
-                  <div className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] ${getStatusClasses(summary.paymentStatus)}`}>
+                  <div
+                    className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] ${getStatusClasses(summary.paymentStatus)}`}
+                  >
                     Payment: {formatStatusLabel(summary.paymentStatus)}
                   </div>
-                  <div className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] ${getStatusClasses(summary.shipmentStatus, "Not created")}`}>
+                  <div
+                    className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs uppercase tracking-[0.16em] ${getStatusClasses(summary.shipmentStatus)}`}
+                  >
                     Tracking: {formatStatusLabel(summary.shipmentStatus, "Not created")}
                   </div>
                 </div>
@@ -244,8 +355,12 @@ export default function OrdersPage() {
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                               <h3 className="theme-title text-2xl leading-none">{order.productTitle}</h3>
-                              <div className="theme-copy mt-2 text-xs uppercase tracking-[0.16em]" style={{ fontFamily: '"Manrope", sans-serif' }}>
-                                {order.productCategory || "Uncategorised"}{order.productWeight ? ` · ${order.productWeight}` : ""}
+                              <div
+                                className="theme-copy mt-2 text-xs uppercase tracking-[0.16em]"
+                                style={{ fontFamily: '"Manrope", sans-serif' }}
+                              >
+                                {order.productCategory || "Uncategorised"}
+                                {order.productWeight ? ` · ${order.productWeight}` : ""}
                               </div>
                             </div>
                             <div className="text-right text-sm text-[var(--theme-text)]">
@@ -285,7 +400,9 @@ export default function OrdersPage() {
                   <div className="theme-panel p-4">
                     <div className="theme-kicker text-xs opacity-80">Delivery</div>
                     <div className="mt-3 text-sm leading-6 text-[var(--theme-text)]">
-                      <div>Locker: {orderLines[0]?.pudoLockerName || orderLines[0]?.pudoLockerCode || "Not selected"}</div>
+                      <div>
+                        Locker: {orderLines[0]?.pudoLockerName || orderLines[0]?.pudoLockerCode || "Not selected"}
+                      </div>
                       <div className="mt-1">{orderLines[0]?.pudoLockerAddress || "No locker address saved."}</div>
                       <div className="mt-3">
                         {summary.deliveryOrganized
@@ -298,6 +415,20 @@ export default function OrdersPage() {
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextLookupForm = {
+                      customerOrderId: "",
+                      customerEmail: lookupForm.customerEmail,
+                    };
+                    setLookupForm(nextLookupForm);
+                    void loadOrders(nextLookupForm);
+                  }}
+                  className="theme-button-secondary rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
+                >
+                  View All Orders For This Email
+                </button>
                 <Link
                   to="/products"
                   className="theme-button rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"

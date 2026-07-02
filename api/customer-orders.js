@@ -1,6 +1,6 @@
 import { HttpError } from "./_utils/errors.js";
 import { requireMethod, sendError, sendJson } from "./_utils/http.js";
-import { readCustomerOrderSummary } from "./_utils/ordersStore.js";
+import { readCustomerOrderHistory, readCustomerOrderSummary } from "./_utils/ordersStore.js";
 
 function getLookupParams(request) {
   const requestUrl = new URL(request.url, `https://${request.headers.host || "localhost"}`);
@@ -22,16 +22,24 @@ export default async function handler(request, response) {
 
     const { customerOrderId, customerEmail } = getLookupParams(request);
 
-    if (!String(customerOrderId || "").trim()) {
-      throw new HttpError(400, "Customer order ID is required.");
-    }
-
     if (!String(customerEmail || "").trim()) {
       throw new HttpError(400, "Customer email is required.");
     }
 
-    const summary = await readCustomerOrderSummary(customerOrderId, customerEmail);
-    sendJson(response, 200, summary);
+    if (String(customerOrderId || "").trim()) {
+      const summary = await readCustomerOrderSummary(customerOrderId, customerEmail);
+      sendJson(response, 200, {
+        mode: "single",
+        ...summary,
+      });
+      return;
+    }
+
+    const history = await readCustomerOrderHistory(customerEmail);
+    sendJson(response, 200, {
+      mode: "history",
+      ...history,
+    });
   } catch (error) {
     sendError(response, error);
   }

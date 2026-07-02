@@ -608,13 +608,7 @@ export async function readOrdersByGroupId(orderGroupId) {
   return orders.filter((order) => order.orderGroupId === normalizedGroupId);
 }
 
-export async function readOrderGroupSummary(orderGroupId) {
-  const orders = await readOrdersByGroupId(orderGroupId);
-
-  if (orders.length === 0) {
-    throw new HttpError(404, "Order group was not found.");
-  }
-
+function buildOrderGroupSummary(orderGroupId, orders) {
   const totalAmount = Math.round(
     orders.reduce((sum, order) => {
       const quantity = Number.parseInt(String(order?.quantity || "0"), 10);
@@ -679,6 +673,16 @@ export async function readOrderGroupSummary(orderGroupId) {
   };
 }
 
+export async function readOrderGroupSummary(orderGroupId) {
+  const orders = await readOrdersByGroupId(orderGroupId);
+
+  if (orders.length === 0) {
+    throw new HttpError(404, "Order group was not found.");
+  }
+
+  return buildOrderGroupSummary(orderGroupId, orders);
+}
+
 export async function readCustomerOrderSummary(customerOrderId, customerEmail) {
   const normalizedCustomerOrderId = normalizeCustomerOrderIdValue(customerOrderId);
   const normalizedCustomerEmail = validateCustomerEmail(customerEmail);
@@ -698,7 +702,49 @@ export async function readCustomerOrderSummary(customerOrderId, customerEmail) {
     throw new HttpError(404, "Order not found for that email and customer order ID.");
   }
 
-  return readOrderGroupSummary(matchingOrders[0].orderGroupId);
+  return buildOrderGroupSummary(matchingOrders[0].orderGroupId, matchingOrders);
+}
+
+export async function readCustomerOrderHistory(customerEmail) {
+  const normalizedCustomerEmail = validateCustomerEmail(customerEmail);
+  const orders = await readOrders();
+  const matchingOrders = orders.filter(
+    (order) => String(order.customerEmail || "").trim().toLowerCase() === normalizedCustomerEmail,
+  );
+
+  if (matchingOrders.length === 0) {
+    throw new HttpError(404, "No orders were found for that email address.");
+  }
+
+  const groups = new Map();
+
+  matchingOrders.forEach((order) => {
+    const orderGroupId = String(order.orderGroupId || "").trim();
+
+    if (!orderGroupId) {
+      return;
+    }
+
+    if (!groups.has(orderGroupId)) {
+      groups.set(orderGroupId, []);
+    }
+
+    groups.get(orderGroupId).push(order);
+  });
+
+  const summaries = Array.from(groups.entries())
+    .map(([orderGroupId, groupOrders]) => buildOrderGroupSummary(orderGroupId, groupOrders))
+    .sort((left, right) => {
+      const leftTimestamp = Date.parse(String(left.orders?.[0]?.createdAt || ""));
+      const rightTimestamp = Date.parse(String(right.orders?.[0]?.createdAt || ""));
+      return (Number.isFinite(rightTimestamp) ? rightTimestamp : 0) - (Number.isFinite(leftTimestamp) ? leftTimestamp : 0);
+    });
+
+  return {
+    customerEmail: normalizedCustomerEmail,
+    orderCount: summaries.length,
+    orders: summaries,
+  };
 }
 
 function parseBoolean(value, fieldName) {

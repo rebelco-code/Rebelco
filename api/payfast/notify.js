@@ -63,14 +63,35 @@ export default async function handler(request, response) {
       throw new HttpError(400, "PayFast ITN signature verification failed.");
     }
 
-    if (!verifyPayfastSourceIp(request)) {
+    const isTrustedSourceIp = verifyPayfastSourceIp(request);
+
+    if (!payfastConfig.sandbox && !isTrustedSourceIp) {
       throw new HttpError(400, "PayFast ITN source IP is not trusted.");
     }
 
-    const validNotification = await validatePayfastNotification(rawBody, payfastConfig.validateUrl);
+    let validNotification = false;
 
-    if (!validNotification) {
+    try {
+      validNotification = await validatePayfastNotification(rawBody, payfastConfig.validateUrl);
+    } catch (validationError) {
+      if (!payfastConfig.sandbox) {
+        throw validationError;
+      }
+
+      console.warn("PayFast sandbox ITN validation request failed. Continuing in sandbox mode.", {
+        orderGroupId,
+        message: validationError?.message || String(validationError),
+      });
+    }
+
+    if (!validNotification && !payfastConfig.sandbox) {
       throw new HttpError(400, "PayFast ITN payload validation failed.");
+    }
+
+    if (payfastConfig.sandbox && !validNotification) {
+      console.warn("PayFast sandbox ITN validation returned non-VALID response. Continuing in sandbox mode.", {
+        orderGroupId,
+      });
     }
 
     const orders = await readOrdersByGroupId(orderGroupId);
@@ -109,6 +130,10 @@ export default async function handler(request, response) {
     response.setHeader("Content-Type", "text/plain; charset=utf-8");
     response.end("OK");
   } catch (error) {
+    console.error("PayFast ITN handler failed.", {
+      message: error?.message || String(error),
+      stack: error?.stack || "",
+    });
     sendError(response, error);
   }
 }
