@@ -75,6 +75,27 @@ export default async function handler(request, response) {
       return;
     }
 
+    if (action === "remove-order-groups") {
+      const orderGroupIds = Array.isArray(body.orderGroupIds)
+        ? body.orderGroupIds.map((value) => String(value || "").trim()).filter(Boolean)
+        : [];
+
+      if (orderGroupIds.length === 0) {
+        throw new HttpError(400, "Select at least one order group to remove.");
+      }
+
+      let latestResult = { orders: [] };
+
+      for (const currentOrderGroupId of orderGroupIds) {
+        latestResult = await removeOrderGroup(currentOrderGroupId, {
+          restoreStock: body.restoreStock !== false,
+        });
+      }
+
+      sendJson(response, 200, latestResult);
+      return;
+    }
+
     throw new HttpError(
       400,
       "Only delivery organization updates and order removal are supported from admin.",

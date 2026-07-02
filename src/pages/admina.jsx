@@ -338,6 +338,7 @@ export default function AdminaPage() {
   const [productActionStatus, setProductActionStatus] = useState("");
   const [stockUpdateByProduct, setStockUpdateByProduct] = useState({});
   const [orderActionStatus, setOrderActionStatus] = useState("");
+  const [selectedOrderGroupIds, setSelectedOrderGroupIds] = useState([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isImageDropActive, setIsImageDropActive] = useState(false);
@@ -429,6 +430,16 @@ export default function AdminaPage() {
     const hiddenOrderIdSet = new Set(hiddenOrderIds);
     return orders.filter((order) => !hiddenOrderIdSet.has(String(order.id || "")));
   }, [hiddenOrderIds, orders]);
+
+  const visibleOrderGroupIds = useMemo(() => (
+    Array.from(
+      new Set(
+        visibleOrders
+          .map((order) => String(order.orderGroupId || "").trim())
+          .filter(Boolean),
+      ),
+    )
+  ), [visibleOrders]);
 
   const isEditingProduct = Boolean(editingProductId);
   const canEditExistingImages = isEditingProduct && !editingHasUntrackedImages;
@@ -534,6 +545,13 @@ export default function AdminaPage() {
       JSON.stringify(hiddenOrderIds),
     );
   }, [hiddenOrderIds]);
+
+  useEffect(() => {
+    const visibleOrderGroupIdSet = new Set(visibleOrderGroupIds);
+    setSelectedOrderGroupIds((currentSelectedOrderGroupIds) =>
+      currentSelectedOrderGroupIds.filter((orderGroupId) => visibleOrderGroupIdSet.has(orderGroupId)),
+    );
+  }, [visibleOrderGroupIds]);
 
   function updateLoginField(event) {
     const { name, value } = event.target;
@@ -651,6 +669,28 @@ export default function AdminaPage() {
 
   function restoreHiddenOrders() {
     setHiddenOrderIds([]);
+  }
+
+  function toggleOrderGroupSelection(orderGroupId) {
+    const normalizedOrderGroupId = String(orderGroupId || "").trim();
+
+    if (!normalizedOrderGroupId) {
+      return;
+    }
+
+    setSelectedOrderGroupIds((currentSelectedOrderGroupIds) => (
+      currentSelectedOrderGroupIds.includes(normalizedOrderGroupId)
+        ? currentSelectedOrderGroupIds.filter((value) => value !== normalizedOrderGroupId)
+        : [...currentSelectedOrderGroupIds, normalizedOrderGroupId]
+    ));
+  }
+
+  function toggleAllVisibleOrderGroups() {
+    setSelectedOrderGroupIds((currentSelectedOrderGroupIds) => (
+      currentSelectedOrderGroupIds.length === visibleOrderGroupIds.length
+        ? []
+        : [...visibleOrderGroupIds]
+    ));
   }
 
   async function uploadSelectedImages(filesToUpload, options = {}) {
@@ -1135,6 +1175,7 @@ export default function AdminaPage() {
       );
 
       setOrders(data.orders || []);
+      setSelectedOrderGroupIds([]);
       setHiddenOrderIds((currentHiddenOrderIds) => {
         const removedOrderIdSet = new Set(
           matchingOrders.map((order) => String(order.id || "").trim()).filter(Boolean),
@@ -1142,6 +1183,61 @@ export default function AdminaPage() {
         return currentHiddenOrderIds.filter((orderId) => !removedOrderIdSet.has(orderId));
       });
       setMessage("Order group removed and stock restored.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setOrderActionStatus("");
+    }
+  }
+
+  async function removeSelectedOrderGroupsFromAdmin() {
+    if (selectedOrderGroupIds.length === 0 || orderActionStatus) {
+      return;
+    }
+
+    const shouldRemove = window.confirm(
+      `Remove ${selectedOrderGroupIds.length} selected order group${selectedOrderGroupIds.length === 1 ? "" : "s"} and restore their reserved stock?`,
+    );
+
+    if (!shouldRemove) {
+      return;
+    }
+
+    const selectedOrderGroupIdSet = new Set(selectedOrderGroupIds);
+    const matchingOrders = orders.filter((order) =>
+      selectedOrderGroupIdSet.has(String(order.orderGroupId || "").trim()),
+    );
+
+    setError("");
+    setMessage("");
+    setOrderActionStatus("bulk-remove");
+
+    try {
+      const data = await fetchJsonWithRetry(
+        "/api/admin/orders",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            action: "remove-order-groups",
+            orderGroupIds: selectedOrderGroupIds,
+            restoreStock: true,
+          }),
+        },
+        "Selected order groups could not be removed.",
+      );
+
+      setOrders(data.orders || []);
+      setSelectedOrderGroupIds([]);
+      setHiddenOrderIds((currentHiddenOrderIds) => {
+        const removedOrderIdSet = new Set(
+          matchingOrders.map((order) => String(order.id || "").trim()).filter(Boolean),
+        );
+        return currentHiddenOrderIds.filter((orderId) => !removedOrderIdSet.has(orderId));
+      });
+      setMessage("Selected order groups removed and stock restored.");
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -2272,6 +2368,27 @@ export default function AdminaPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    {visibleOrderGroupIds.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={toggleAllVisibleOrderGroups}
+                        className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#121212] transition hover:border-[#121212]"
+                      >
+                        {selectedOrderGroupIds.length === visibleOrderGroupIds.length
+                          ? "Clear Select"
+                          : "Select All"}
+                      </button>
+                    ) : null}
+                    {selectedOrderGroupIds.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={removeSelectedOrderGroupsFromAdmin}
+                        disabled={Boolean(orderActionStatus)}
+                        className="rounded-full border border-red-300/35 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-red-700 transition hover:border-red-500 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Remove Selected ({selectedOrderGroupIds.length})
+                      </button>
+                    ) : null}
                     {hiddenOrderIds.length > 0 ? (
                       <button
                         type="button"
@@ -2304,6 +2421,7 @@ export default function AdminaPage() {
                     <table className="w-full min-w-[1380px] text-left text-sm text-white/80">
                       <thead className="bg-black/40 text-xs uppercase tracking-[0.16em] text-white/50">
                         <tr>
+                          <th className="px-4 py-3 font-semibold">Select</th>
                           <th className="px-4 py-3 font-semibold">Placed</th>
                           <th className="px-4 py-3 font-semibold">Product</th>
                           <th className="px-4 py-3 font-semibold">Price</th>
@@ -2319,10 +2437,12 @@ export default function AdminaPage() {
                         {visibleOrders.map((order) => {
                           const googleMapsUrl = buildGoogleMapsUrl(order.googleMapsLocation);
                           const orderGroupId = String(order.orderGroupId || "").trim();
+                          const isSelectedOrderGroup = selectedOrderGroupIds.includes(orderGroupId);
                           const paymentStatus = String(order.paymentStatus || "").trim().toLowerCase();
                           const isPaid = paymentStatus === "complete" || Boolean(order.proofOfPaymentReceived);
                           const isBusy = Boolean(orderActionStatus);
-                          const isCurrentBusy = orderActionStatus === orderGroupId;
+                          const isCurrentBusy =
+                            orderActionStatus === orderGroupId || orderActionStatus === "bulk-remove";
                           const pudoLookupState = pudoLookupByOrder[order.id] || {};
                           const pudoStatus = pudoLookupState.status || "idle";
                           const pudoLockers = Array.isArray(pudoLookupState.lockers)
@@ -2349,6 +2469,17 @@ export default function AdminaPage() {
 
                           return (
                             <tr key={order.id} className="border-t border-white/10 align-top">
+                              <td className="px-4 py-4">
+                                <label className="flex items-center justify-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelectedOrderGroup}
+                                    onChange={() => toggleOrderGroupSelection(orderGroupId)}
+                                    disabled={!orderGroupId || Boolean(orderActionStatus)}
+                                    className="h-4 w-4 cursor-pointer rounded border border-[#d8d8d1] bg-white"
+                                  />
+                                </label>
+                              </td>
                               <td className="px-4 py-4 text-xs text-white/60">
                                 {formatDateTime(order.createdAt)}
                               </td>
