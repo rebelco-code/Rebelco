@@ -1151,7 +1151,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                           return (
                             <article
                               key={product.id}
-                              className={`products-display-surface overflow-hidden rounded-[24px] border bg-[rgba(255,250,242,0.92)] transition ${
+                              className={`products-display-surface overflow-hidden border bg-[rgba(255,250,242,0.92)] transition ${
                                 isSelectedProduct
                                   ? "border-[var(--theme-border-strong)] shadow-[0_0_0_1px_rgba(182,152,98,0.25)]"
                                   : "border-[var(--theme-border)]"
