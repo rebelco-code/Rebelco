@@ -7,9 +7,12 @@ const DEFAULT_BLOB_ACCESS = "private";
 const BLOB_ACCESS_VALUES = new Set(["private", "public"]);
 const MAX_LOCATION_TEXT_LENGTH = 320;
 const MAX_MAP_LOCATION_LENGTH = 400;
+const MAX_CUSTOMER_EMAIL_LENGTH = 160;
 const MAX_PUDO_CODE_LENGTH = 40;
 const MAX_PUDO_NAME_LENGTH = 120;
 const MAX_PUDO_ADDRESS_LENGTH = 240;
+const MAX_PUDO_TRACKING_LENGTH = 120;
+const MAX_PUDO_URL_LENGTH = 500;
 const MAX_ORDER_GROUP_ID_LENGTH = 64;
 const MAX_PAYMENT_METHOD_LENGTH = 32;
 const MAX_PAYMENT_PROVIDER_LENGTH = 32;
@@ -157,6 +160,37 @@ function cleanMapLocation(value) {
   return cleanText(value, MAX_MAP_LOCATION_LENGTH);
 }
 
+function cleanOptionalUrl(value, maxLength = MAX_PUDO_URL_LENGTH) {
+  const cleanedValue = cleanText(value, maxLength);
+
+  if (!cleanedValue) {
+    return "";
+  }
+
+  try {
+    const parsedUrl = new URL(cleanedValue);
+    return parsedUrl.toString().slice(0, maxLength);
+  } catch {
+    return "";
+  }
+}
+
+function validateCustomerEmail(value) {
+  const email = cleanText(value, MAX_CUSTOMER_EMAIL_LENGTH).toLowerCase();
+
+  if (!email) {
+    throw new HttpError(400, "Customer email is required.");
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailPattern.test(email)) {
+    throw new HttpError(400, "Enter a valid customer email address.");
+  }
+
+  return email;
+}
+
 function wait(delayMs) {
   return new Promise((resolve) => {
     setTimeout(resolve, delayMs);
@@ -260,11 +294,18 @@ function normalizeOrder(order) {
     imageUrl: imageUrls[0] || "",
     imageUrls,
     quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
+    customerEmail: cleanText(order.customerEmail, MAX_CUSTOMER_EMAIL_LENGTH).toLowerCase(),
     locationText: cleanText(order.locationText, MAX_LOCATION_TEXT_LENGTH),
     googleMapsLocation,
     pudoLockerCode: cleanText(order.pudoLockerCode, MAX_PUDO_CODE_LENGTH),
     pudoLockerName: cleanText(order.pudoLockerName, MAX_PUDO_NAME_LENGTH),
     pudoLockerAddress: cleanText(order.pudoLockerAddress, MAX_PUDO_ADDRESS_LENGTH),
+    pudoShipmentId: cleanText(order.pudoShipmentId, MAX_PUDO_TRACKING_LENGTH),
+    pudoParcelReference: cleanText(order.pudoParcelReference, MAX_PUDO_TRACKING_LENGTH),
+    pudoTrackingNumber: cleanText(order.pudoTrackingNumber, MAX_PUDO_TRACKING_LENGTH),
+    pudoTrackingUrl: cleanOptionalUrl(order.pudoTrackingUrl),
+    pudoLabelUrl: cleanOptionalUrl(order.pudoLabelUrl),
+    pudoShipmentStatus: cleanText(order.pudoShipmentStatus, MAX_PUDO_TRACKING_LENGTH),
     paymentMethod: cleanText(order.paymentMethod || "payfast", MAX_PAYMENT_METHOD_LENGTH),
     paymentProvider: cleanText(order.paymentProvider || "payfast", MAX_PAYMENT_PROVIDER_LENGTH),
     paymentStatus,
@@ -399,6 +440,7 @@ async function mutateOrdersWithRetry(mutationHandler) {
 function validateOrderInput(payload) {
   const locationText = cleanText(payload.locationText, MAX_LOCATION_TEXT_LENGTH);
   const googleMapsLocation = cleanMapLocation(payload.googleMapsLocation);
+  const customerEmail = validateCustomerEmail(payload.customerEmail);
 
   const hasTextLocation = Boolean(locationText);
   const hasMapLocation = Boolean(googleMapsLocation);
@@ -408,6 +450,7 @@ function validateOrderInput(payload) {
   }
 
   return {
+    customerEmail,
     locationText,
     googleMapsLocation,
   };
@@ -426,11 +469,18 @@ function buildOrderRecord(product, payload, quantity, now, orderGroupId) {
     imageUrl: product.imageUrl,
     imageUrls: product.imageUrls,
     quantity,
+    customerEmail: payload.customerEmail,
     locationText: payload.locationText,
     googleMapsLocation: payload.googleMapsLocation,
     pudoLockerCode: payload.pudoLockerCode,
     pudoLockerName: payload.pudoLockerName,
     pudoLockerAddress: payload.pudoLockerAddress,
+    pudoShipmentId: payload.pudoShipmentId || "",
+    pudoParcelReference: payload.pudoParcelReference || "",
+    pudoTrackingNumber: payload.pudoTrackingNumber || "",
+    pudoTrackingUrl: payload.pudoTrackingUrl || "",
+    pudoLabelUrl: payload.pudoLabelUrl || "",
+    pudoShipmentStatus: payload.pudoShipmentStatus || "",
     paymentMethod: payload.paymentMethod || "manual",
     paymentProvider: payload.paymentProvider || "",
     paymentStatus: payload.paymentStatus || "",

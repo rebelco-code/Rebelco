@@ -32,6 +32,7 @@ function normalizeMinimumOrderQuantity(value) {
 function buildInitialOrderForm(minimumOrderQuantity = 1) {
   return {
     quantity: String(normalizeMinimumOrderQuantity(minimumOrderQuantity)),
+    customerEmail: "",
     locationText: "",
     googleMapsLocation: "",
     pudoLockerCode: "",
@@ -403,7 +404,10 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     return Math.round(subtotal * 100) / 100;
   }, [cartLines]);
 
-  const canSubmitOrder = cartItems.length > 0 && Boolean(orderForm.pudoLockerCode);
+  const canSubmitOrder =
+    cartItems.length > 0 &&
+    Boolean(orderForm.pudoLockerCode) &&
+    Boolean(String(orderForm.customerEmail || "").trim());
 
   const submitOrderLabel = useMemo(() => {
     if (orderStatus === "saving") {
@@ -418,8 +422,12 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
       return "Select Delivery Locker First";
     }
 
+    if (!String(orderForm.customerEmail || "").trim()) {
+      return "Add Email First";
+    }
+
     return "Pay With PayFast";
-  }, [cartItems.length, orderForm.pudoLockerCode, orderStatus]);
+  }, [cartItems.length, orderForm.customerEmail, orderForm.pudoLockerCode, orderStatus]);
 
   const googleMapsSearchUrl = useMemo(
     () => buildGoogleMapsSearchUrl(orderForm.googleMapsLocation),
@@ -947,6 +955,11 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
       return;
     }
 
+    if (!String(orderForm.customerEmail || "").trim()) {
+      setOrderError("Please enter the customer email before placing your order.");
+      return;
+    }
+
     setOrderStatus("saving");
     setOrderError("");
     setOrderMessage("");
@@ -960,6 +973,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
         },
         body: JSON.stringify({
           items: cartItems,
+          customerEmail: orderForm.customerEmail,
           locationText: orderForm.locationText,
           googleMapsLocation: orderForm.googleMapsLocation,
           pudoLockerCode: orderForm.pudoLockerCode,
@@ -1573,6 +1587,24 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
                   <label className="theme-copy grid gap-2 text-sm">
                     <span className="theme-kicker text-xs opacity-80">
+                      Customer Email
+                    </span>
+                    <input
+                      type="email"
+                      name="customerEmail"
+                      value={orderForm.customerEmail}
+                      onChange={updateOrderField}
+                      placeholder="name@example.com"
+                      required
+                      className="theme-input px-4 py-3 transition"
+                    />
+                    <span className="text-xs opacity-80">
+                      Required for payment reference and PayFast confirmation.
+                    </span>
+                  </label>
+
+                  <label className="theme-copy grid gap-2 text-sm">
+                    <span className="theme-kicker text-xs opacity-80">
                       Location Text
                     </span>
                     <textarea
@@ -1728,8 +1760,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   </button>
                   {!canSubmitOrder ? (
                     <div className="theme-copy text-xs">
-                      To place order: add at least one item to cart and confirm a delivery
-                      locker.
+                      To place order: add at least one item to cart, enter an email, and confirm a delivery locker.
                     </div>
                   ) : null}
                 </form>

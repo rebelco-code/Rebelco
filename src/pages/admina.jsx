@@ -2489,6 +2489,11 @@ export default function AdminaPage() {
                                 <div className="mt-1 text-xs text-white/55">
                                   {order.productCategory || "Uncategorised"}
                                 </div>
+                                {order.customerEmail ? (
+                                  <div className="mt-1 text-xs text-white/55">
+                                    {order.customerEmail}
+                                  </div>
+                                ) : null}
                               </td>
 
                               <td className="px-4 py-4">{formatPrice(order.productPrice)}</td>
@@ -2632,6 +2637,44 @@ export default function AdminaPage() {
                                       })}
                                     </div>
                                   ) : null}
+
+                                  <div className="mt-2 rounded-lg border border-[#d8d8d1] bg-[#f8f8f6] p-2 text-xs text-[#121212]">
+                                    <div className="text-[10px] uppercase tracking-[0.16em] text-[#555555]">
+                                      PUDO shipment
+                                    </div>
+                                    <div className="mt-1 text-[#121212]">
+                                      Status: {order.pudoShipmentStatus || "Not created yet"}
+                                    </div>
+                                    <div className="mt-1 text-[#555555]">
+                                      Shipment ID: {order.pudoShipmentId || "n/a"}
+                                    </div>
+                                    <div className="mt-1 text-[#555555]">
+                                      Parcel Ref: {order.pudoParcelReference || "n/a"}
+                                    </div>
+                                    <div className="mt-1 text-[#555555]">
+                                      Tracking No: {order.pudoTrackingNumber || "n/a"}
+                                    </div>
+                                    {order.pudoTrackingUrl ? (
+                                      <a
+                                        href={order.pudoTrackingUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="mt-2 inline-block text-[10px] uppercase tracking-[0.14em] text-[#121212] underline-offset-4 hover:underline"
+                                      >
+                                        Open tracking
+                                      </a>
+                                    ) : null}
+                                    {order.pudoLabelUrl ? (
+                                      <a
+                                        href={order.pudoLabelUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="mt-2 ml-3 inline-block text-[10px] uppercase tracking-[0.14em] text-[#121212] underline-offset-4 hover:underline"
+                                      >
+                                        Open label
+                                      </a>
+                                    ) : null}
+                                  </div>
                                 </div>
                               </td>
 
