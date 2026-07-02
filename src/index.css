@@ -304,6 +304,14 @@ a {
   border-color: #d8d8d1 !important;
 }
 
+.admina-theme [class*="text-white"],
+.admina-theme [class*="text-black"],
+.admina-theme [class*="text-red"],
+.admina-theme [class*="text-amber"],
+.admina-theme [class*="text-emerald"] {
+  color: #121212 !important;
+}
+
 .admina-theme input,
 .admina-theme textarea,
 .admina-theme select {
@@ -323,6 +331,18 @@ a {
 .admina-theme select:focus {
   border-color: #121212 !important;
   outline: none;
+}
+
+.admina-theme button {
+  border-color: #d8d8d1 !important;
+  background: #ffffff !important;
+  color: #121212 !important;
+  box-shadow: none !important;
+}
+
+.admina-theme button:hover {
+  background: #f8f8f6 !important;
+  color: #121212 !important;
 }
 
 .admina-theme button.admina-category-toggle {
