@@ -1331,12 +1331,12 @@ export default function AdminaPage() {
                   </div>
 
                   <form className="mt-5 grid min-w-0 gap-4" onSubmit={submitProduct}>
-                    <section className="min-w-0 rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <section className="min-w-0 rounded-2xl border border-[#d8d8d1] bg-white p-4">
                       <div className="mb-4">
-                        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                        <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-[#121212]">
                           Product Info
                         </h3>
-                        <p className="mt-1 text-xs text-white/38">
+                        <p className="mt-1 text-xs text-[#555555]">
                           Name, description, and collection.
                         </p>
                       </div>
@@ -1679,7 +1679,7 @@ export default function AdminaPage() {
                         ) : null}
                       </div>
 
-                      <label className="grid min-w-0 gap-2 text-sm text-white/72">
+                      <label className="grid min-w-0 gap-2 text-sm text-[#555555]">
                         <span className="sr-only">Images</span>
 
                         <input
@@ -1699,25 +1699,25 @@ export default function AdminaPage() {
                           onDragLeave={handleImageDragLeave}
                           className={`rounded-2xl border border-dashed px-4 py-6 text-left transition ${
                             isImageDropActive
-                              ? "border-white/55 bg-white/10"
-                              : "border-white/20 bg-black hover:border-white/40 hover:bg-[#161618]"
+                              ? "border-[#121212] bg-[#f8f8f6]"
+                              : "border-[#d8d8d1] bg-[#f8f8f6] hover:border-[#121212] hover:bg-[#f4f4f1]"
                           }`}
                         >
                           <div className="pointer-events-none flex flex-col items-center gap-1.5 text-center">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-lg text-white/80">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d8d8d1] bg-white text-lg text-[#121212]">
                               +
                             </div>
-                            <div className="text-xs uppercase tracking-[0.16em] text-white/75">
+                            <div className="text-xs uppercase tracking-[0.16em] text-[#121212]">
                               Drop images here
                             </div>
-                            <p className="text-xs text-white/45">
+                            <p className="text-xs text-[#555555]">
                               or click to browse · JPG, PNG, WebP · {MAX_PRODUCT_IMAGE_SIZE_MB} MB
                               each
                             </p>
                           </div>
                         </button>
 
-                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/40 px-3.5 py-2.5 text-[10px] uppercase tracking-[0.16em] text-white/52">
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#d8d8d1] bg-white px-3.5 py-2.5 text-[10px] uppercase tracking-[0.16em] text-[#555555]">
                           <span>
                             {totalSelectedImageCount} / {MAX_PRODUCT_IMAGES} selected
                           </span>
@@ -1725,7 +1725,7 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={openImagePicker}
-                              className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] text-white/70 transition hover:border-white/35 hover:text-white"
+                              className="rounded-full border border-[#121212] bg-[#121212] px-2.5 py-1 text-[10px] text-white transition hover:bg-white hover:text-[#121212]"
                             >
                               Add
                             </button>
@@ -1743,22 +1743,22 @@ export default function AdminaPage() {
 
                       {editingExistingImages.length > 0 ? (
                         <div className="mt-3">
-                          <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-white/50">
+                          <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[#555555]">
                             Existing Images ({editingExistingImages.length})
                           </div>
                           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                             {editingExistingImages.map((image, index) => (
                               <article
                                 key={image.key}
-                                className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-1.5"
+                                className="overflow-hidden rounded-xl border border-[#d8d8d1] bg-white p-1.5"
                               >
-                                <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
+                                <div className="group relative aspect-square overflow-hidden rounded-lg border border-[#d8d8d1] bg-[#f8f8f6]">
                                   <img
                                     src={image.url}
                                     alt={`Existing product preview ${index + 1}`}
                                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                                   />
-                                  <div className="absolute left-1.5 top-1.5 rounded-full border border-white/20 bg-black/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-white/70 backdrop-blur">
+                                  <div className="absolute left-1.5 top-1.5 rounded-full border border-[#d8d8d1] bg-white/90 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-[#121212] backdrop-blur">
                                     {index + 1}
                                   </div>
                                   {canEditExistingImages ? (
@@ -1771,7 +1771,7 @@ export default function AdminaPage() {
                                     </button>
                                   ) : null}
                                 </div>
-                                <div className="mt-1 truncate text-[10px] text-white/45">
+                                <div className="mt-1 truncate text-[10px] text-[#555555]">
                                   {image.pathname ? "Tracked image" : "Legacy image"}
                                 </div>
                               </article>
@@ -1782,22 +1782,22 @@ export default function AdminaPage() {
 
                       {imageFiles.length > 0 ? (
                         <div className="mt-3">
-                          <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-white/50">
+                          <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[#555555]">
                             New Images ({imageFiles.length})
                           </div>
                           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                           {imageFiles.map((file, index) => (
                             <article
                               key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                              className="overflow-hidden rounded-xl border border-white/12 bg-[#111112] p-1.5"
+                              className="overflow-hidden rounded-xl border border-[#d8d8d1] bg-white p-1.5"
                             >
-                              <div className="group relative aspect-square overflow-hidden rounded-lg border border-white/15 bg-black">
+                              <div className="group relative aspect-square overflow-hidden rounded-lg border border-[#d8d8d1] bg-[#f8f8f6]">
                                 <img
                                   src={imagePreviews[index]}
                                   alt={`Selected product preview ${index + 1}`}
                                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                                 />
-                                <div className="absolute left-1.5 top-1.5 rounded-full border border-white/20 bg-black/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-white/70 backdrop-blur">
+                                <div className="absolute left-1.5 top-1.5 rounded-full border border-[#d8d8d1] bg-white/90 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] text-[#121212] backdrop-blur">
                                   {editingExistingImages.length + index + 1}
                                 </div>
                                 <button
@@ -1808,10 +1808,10 @@ export default function AdminaPage() {
                                   X
                                 </button>
                               </div>
-                              <div className="mt-1 truncate text-[10px] text-white/60" title={file.name}>
+                              <div className="mt-1 truncate text-[10px] text-[#121212]" title={file.name}>
                                 {file.name}
                               </div>
-                              <div className="text-[9px] uppercase tracking-[0.12em] text-white/35">
+                              <div className="text-[9px] uppercase tracking-[0.12em] text-[#777777]">
                                 {formatFileSize(file.size)}
                               </div>
                             </article>
@@ -1819,7 +1819,7 @@ export default function AdminaPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-3 rounded-xl border border-white/10 bg-black/35 px-3.5 py-3 text-xs text-white/45">
+                        <div className="mt-3 rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] px-3.5 py-3 text-xs text-[#555555]">
                           {editingExistingImages.length > 0
                             ? "No new images selected."
                             : "No images selected yet."}
@@ -1827,7 +1827,7 @@ export default function AdminaPage() {
                       )}
                     </section>
 
-                    <div className="sticky bottom-3 z-10 rounded-2xl border border-white/10 bg-[#151516]/95 p-2.5 shadow-2xl shadow-black/40 backdrop-blur">
+                    <div className="sticky bottom-3 z-10 rounded-2xl border border-[#d8d8d1] bg-white/95 p-2.5 shadow-2xl shadow-black/10 backdrop-blur">
                       <div className="grid gap-2 sm:grid-cols-2">
                         <button
                           type="submit"
@@ -1848,7 +1848,7 @@ export default function AdminaPage() {
                             type="button"
                             onClick={cancelEditingProduct}
                             disabled={formStatus === "saving"}
-                            className="w-full rounded-xl border border-white/15 bg-black px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/80 transition hover:border-white/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-55"
+                            className="w-full rounded-xl border border-[#d8d8d1] bg-white px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#121212] transition hover:border-[#121212] disabled:cursor-not-allowed disabled:opacity-55"
                           >
                             Cancel Edit
                           </button>
@@ -1858,23 +1858,23 @@ export default function AdminaPage() {
                   </form>
                 </section>
 
-                <section className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#151516] p-4 shadow-2xl shadow-black/20 sm:p-5">
-                  <div className="flex min-w-0 flex-col gap-3 border-b border-white/10 pb-4">
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-[#d8d8d1] bg-white p-4 shadow-2xl shadow-black/10 sm:p-5">
+                  <div className="flex min-w-0 flex-col gap-3 border-b border-[#d8d8d1] pb-4">
                     <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div className="min-w-0">
                         <h2
-                          className="text-3xl leading-none text-white sm:text-4xl"
+                          className="text-3xl leading-none text-[#121212] sm:text-4xl"
                           style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
                         >
                           Product Preview
                         </h2>
 
-                        <p className="mt-2 text-sm leading-6 text-white/50">
+                        <p className="mt-2 text-sm leading-6 text-[#555555]">
                           Products are grouped by category.
                         </p>
                       </div>
 
-                      <div className="shrink-0 self-start rounded-full border border-white/10 bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/55 sm:self-auto">
+                      <div className="shrink-0 self-start rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#555555] sm:self-auto">
                         {filteredProducts.length} shown
                       </div>
                     </div>
@@ -1885,8 +1885,8 @@ export default function AdminaPage() {
                         onClick={() => setSelectedCategory("all")}
                         className={`shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
                           selectedCategory === "all"
-                            ? "border-white bg-white text-black"
-                            : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
+                            ? "border-[#121212] bg-[#121212] text-white"
+                            : "border-[#d8d8d1] bg-white text-[#555555] hover:border-[#121212] hover:text-[#121212]"
                         }`}
                       >
                         All
@@ -1899,8 +1899,8 @@ export default function AdminaPage() {
                           onClick={() => setSelectedCategory(category)}
                           className={`shrink-0 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] transition ${
                             selectedCategory === category
-                              ? "border-white bg-white text-black"
-                              : "border-white/10 bg-black text-white/55 hover:border-white/25 hover:text-white"
+                              ? "border-[#121212] bg-[#121212] text-white"
+                              : "border-[#d8d8d1] bg-white text-[#555555] hover:border-[#121212] hover:text-[#121212]"
                           }`}
                         >
                           {category}
@@ -1910,7 +1910,7 @@ export default function AdminaPage() {
                   </div>
 
                   {productsStatus === "loading" ? (
-                    <div className="mt-4 rounded-xl border border-white/10 bg-black p-3 text-sm text-white/70">
+                    <div className="mt-4 rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] p-3 text-sm text-[#555555]">
                       Loading products...
                     </div>
                   ) : null}
@@ -1923,7 +1923,7 @@ export default function AdminaPage() {
                         return (
                           <section
                             key={group.category}
-                            className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-white"
+                            className="min-w-0 overflow-hidden rounded-2xl border border-[#d8d8d1] bg-white"
                           >
                             <button
                               type="button"
@@ -1947,18 +1947,18 @@ export default function AdminaPage() {
                               </div>
 
                               <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
-                                <div className="rounded-full border border-[#d8d8d1] bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-black/60">
+                                <div className="rounded-full border border-[#d8d8d1] bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-[#555555]">
                                   {group.products.length} items
                                 </div>
 
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#d8d8d1] bg-white text-xl text-black/70">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#d8d8d1] bg-white text-xl text-[#555555]">
                                   {isOpen ? "−" : "+"}
                                 </span>
                               </div>
                             </button>
 
                             {isOpen ? (
-                              <div className="grid min-w-0 gap-3 border-t border-white/10 p-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
+                              <div className="grid min-w-0 gap-3 border-t border-[#d8d8d1] p-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
                                 {group.products.map((product) => {
                                   const isOutOfStock = Number(product.stockAmount) <= 0;
                                   const isBusy = Boolean(productActionStatus);
