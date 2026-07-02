@@ -2,6 +2,8 @@ import { BlobPreconditionFailedError, get, put } from "@vercel/blob";
 import { HttpError } from "./errors.js";
 
 const ORDERS_PATH = "products/orders.json";
+const DEFAULT_BLOB_ACCESS = "private";
+const BLOB_ACCESS_VALUES = new Set(["private", "public"]);
 const MAX_LOCATION_TEXT_LENGTH = 320;
 const MAX_MAP_LOCATION_LENGTH = 400;
 const MAX_PUDO_CODE_LENGTH = 40;
@@ -23,6 +25,117 @@ function getBlobToken() {
   }
 
   return token;
+}
+
+function getConfiguredBlobAccess() {
+  const access = String(process.env.BLOB_ACCESS || "")
+    .trim()
+    .toLowerCase();
+
+  if (!access) {
+    return DEFAULT_BLOB_ACCESS;
+  }
+
+  if (!BLOB_ACCESS_VALUES.has(access)) {
+    throw new HttpError(500, 'BLOB_ACCESS must be either "private" or "public".');
+  }
+
+  return access;
+}
+
+function getBlobAccessCandidates() {
+  const configuredAccess = getConfiguredBlobAccess();
+  const fallbackAccess = configuredAccess === "private" ? "public" : "private";
+
+  return [configuredAccess, fallbackAccess];
+}
+
+function getErrorStatusCode(error) {
+  const statusCode = Number(error?.statusCode || error?.status || error?.response?.status);
+
+  if (Number.isInteger(statusCode) && statusCode >= 100) {
+    return statusCode;
+  }
+
+  const hintText = `${stringifyErrorField(error?.name)} ${stringifyErrorField(error?.code)} ${stringifyErrorField(error?.message)}`;
+  const statusMatch = hintText.match(/\b([1-5]\d{2})\b/);
+
+  if (statusMatch) {
+    return Number.parseInt(statusMatch[1], 10);
+  }
+
+  if (error?.cause && error !== error.cause) {
+    return getErrorStatusCode(error.cause);
+  }
+
+  return null;
+}
+
+function isBlobAccessForbidden(error) {
+  const statusCode = getErrorStatusCode(error);
+  return statusCode === 401 || statusCode === 403;
+}
+
+function createBlobAccessError(resourceName, operation) {
+  return new HttpError(
+    500,
+    `${resourceName} could not be ${operation} in Blob. Verify BLOB_READ_WRITE_TOKEN and the Blob store access mode (private/public).`,
+  );
+}
+
+async function getBlobWithAccessFallback(pathname, options = {}, resourceName = "Blob resource") {
+  let lastAccessError = null;
+
+  for (const access of getBlobAccessCandidates()) {
+    try {
+      return await get(pathname, {
+        ...options,
+        access,
+      });
+    } catch (error) {
+      if (!isBlobAccessForbidden(error)) {
+        throw error;
+      }
+
+      lastAccessError = error;
+    }
+  }
+
+  if (lastAccessError) {
+    throw createBlobAccessError(resourceName, "read");
+  }
+
+  throw new HttpError(502, `${resourceName} could not be read from Blob.`);
+}
+
+async function putBlobWithAccessFallback(
+  pathname,
+  body,
+  options = {},
+  resourceName = "Blob resource",
+) {
+  let lastAccessError = null;
+
+  for (const access of getBlobAccessCandidates()) {
+    try {
+      return await put(pathname, body, {
+        ...options,
+        access,
+      });
+    } catch (error) {
+      if (!isBlobAccessForbidden(error)) {
+        throw error;
+      }
+
+      lastAccessError = error;
+    }
+  }
+
+  if (lastAccessError) {
+    throw createBlobAccessError(resourceName, "written");
+  }
+
+  throw new HttpError(502, `${resourceName} could not be written to Blob.`);
 }
 
 function cleanText(value, maxLength) {
@@ -165,11 +278,14 @@ function normalizeOrder(order) {
 
 async function readOrdersSnapshot() {
   const token = getBlobToken();
-  const result = await get(ORDERS_PATH, {
-    access: "private",
-    token,
-    useCache: false,
-  });
+  const result = await getBlobWithAccessFallback(
+    ORDERS_PATH,
+    {
+      token,
+      useCache: false,
+    },
+    "Order catalog",
+  );
 
   if (!result) {
     return {
@@ -212,7 +328,6 @@ export async function writeOrders(orders, options = {}) {
   const normalizedOrders = orders.map(normalizeOrder);
 
   const writeOptions = {
-    access: "private",
     allowOverwrite: true,
     cacheControlMaxAge: 60,
     contentType: "application/json",
@@ -223,7 +338,7 @@ export async function writeOrders(orders, options = {}) {
     writeOptions.ifMatch = options.ifMatch;
   }
 
-  await put(
+  await putBlobWithAccessFallback(
     ORDERS_PATH,
     JSON.stringify(
       {
@@ -233,9 +348,8 @@ export async function writeOrders(orders, options = {}) {
       null,
       2,
     ),
-    {
-      ...writeOptions,
-    },
+    writeOptions,
+    "Order catalog",
   );
 
   return normalizedOrders;
