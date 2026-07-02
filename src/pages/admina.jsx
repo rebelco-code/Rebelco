@@ -45,6 +45,8 @@ const initialLoginForm = {
   password: "",
 };
 
+const HIDDEN_ORDERS_STORAGE_KEY = "rebelco-admin-hidden-orders";
+
 const RETRYABLE_STATUS_CODES = new Set([409, 429, 500, 502, 503, 504]);
 const MAX_ACTION_RETRIES = 2;
 const MAX_PRODUCT_IMAGES = 6;
@@ -193,14 +195,14 @@ function getPaymentStatusClasses(value) {
     .toLowerCase();
 
   if (normalizedValue === "complete") {
-    return "border-emerald-400/25 bg-emerald-950/20 text-emerald-100";
+    return "border-[#b8d9cd] bg-[#f3fbf6] text-[#1f5d46]";
   }
 
   if (normalizedValue === "failed" || normalizedValue === "cancelled") {
-    return "border-red-400/25 bg-red-950/20 text-red-100";
+    return "border-[#e2b8b8] bg-[#fff6f6] text-[#8b2f2f]";
   }
 
-  return "border-amber-300/25 bg-amber-950/20 text-amber-100";
+  return "border-[#e5d6ab] bg-[#fffaf0] text-[#7b5a12]";
 }
 
 function parseLatLngText(value) {
@@ -340,6 +342,19 @@ export default function AdminaPage() {
   const [error, setError] = useState("");
   const [isImageDropActive, setIsImageDropActive] = useState(false);
   const [pudoLookupByOrder, setPudoLookupByOrder] = useState({});
+  const [hiddenOrderIds, setHiddenOrderIds] = useState(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+
+    try {
+      const savedValue = window.localStorage.getItem(HIDDEN_ORDERS_STORAGE_KEY);
+      const parsedValue = JSON.parse(savedValue || "[]");
+      return Array.isArray(parsedValue) ? parsedValue.map((value) => String(value)) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const categories = useMemo(() => {
     const categorySet = new Set();
@@ -409,6 +424,11 @@ export default function AdminaPage() {
       products: categoryProducts,
     }));
   }, [filteredProducts]);
+
+  const visibleOrders = useMemo(() => {
+    const hiddenOrderIdSet = new Set(hiddenOrderIds);
+    return orders.filter((order) => !hiddenOrderIdSet.has(String(order.id || "")));
+  }, [hiddenOrderIds, orders]);
 
   const isEditingProduct = Boolean(editingProductId);
   const canEditExistingImages = isEditingProduct && !editingHasUntrackedImages;
@@ -503,6 +523,17 @@ export default function AdminaPage() {
       imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
     };
   }, [imagePreviews]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      HIDDEN_ORDERS_STORAGE_KEY,
+      JSON.stringify(hiddenOrderIds),
+    );
+  }, [hiddenOrderIds]);
 
   function updateLoginField(event) {
     const { name, value } = event.target;
@@ -602,6 +633,24 @@ export default function AdminaPage() {
       ...current,
       [category]: current[category] === false,
     }));
+  }
+
+  function hideOrderFromView(orderId) {
+    const normalizedOrderId = String(orderId || "").trim();
+
+    if (!normalizedOrderId) {
+      return;
+    }
+
+    setHiddenOrderIds((currentHiddenOrderIds) => (
+      currentHiddenOrderIds.includes(normalizedOrderId)
+        ? currentHiddenOrderIds
+        : [...currentHiddenOrderIds, normalizedOrderId]
+    ));
+  }
+
+  function restoreHiddenOrders() {
+    setHiddenOrderIds([]);
   }
 
   async function uploadSelectedImages(filesToUpload, options = {}) {
@@ -2165,8 +2214,19 @@ export default function AdminaPage() {
                     </p>
                   </div>
 
-                  <div className="self-start rounded-full border border-white/10 bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/55 sm:self-auto">
-                    {orders.length} total
+                  <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    {hiddenOrderIds.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={restoreHiddenOrders}
+                        className="rounded-full border border-[#121212] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#121212] transition hover:bg-[#121212] hover:text-white"
+                      >
+                        Show Hidden
+                      </button>
+                    ) : null}
+                    <div className="rounded-full border border-white/10 bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
+                      {visibleOrders.length} shown
+                    </div>
                   </div>
                 </div>
 
@@ -2174,13 +2234,15 @@ export default function AdminaPage() {
                   <div className="p-5 text-sm text-white/70">Loading orders...</div>
                 ) : null}
 
-                {ordersStatus === "ready" && orders.length === 0 ? (
+                {ordersStatus === "ready" && visibleOrders.length === 0 ? (
                   <div className="p-5 text-sm text-white/65">
-                    No orders yet. New orders from the product page will appear here.
+                    {orders.length === 0
+                      ? "No orders yet. New orders from the product page will appear here."
+                      : "All current orders are hidden from view."}
                   </div>
                 ) : null}
 
-                {orders.length > 0 ? (
+                {visibleOrders.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[1380px] text-left text-sm text-white/80">
                       <thead className="bg-black/40 text-xs uppercase tracking-[0.16em] text-white/50">
@@ -2197,7 +2259,7 @@ export default function AdminaPage() {
                       </thead>
 
                       <tbody>
-                        {orders.map((order) => {
+                        {visibleOrders.map((order) => {
                           const googleMapsUrl = buildGoogleMapsUrl(order.googleMapsLocation);
                           const orderGroupId = String(order.orderGroupId || "").trim();
                           const paymentStatus = String(order.paymentStatus || "").trim().toLowerCase();
@@ -2271,14 +2333,14 @@ export default function AdminaPage() {
                               <td className="px-4 py-4">
                                 <div className="min-w-[240px]">
                                   {hasSelectedLocker ? (
-                                    <div className="rounded-lg border border-emerald-400/25 bg-emerald-950/15 p-2 text-xs">
-                                      <div className="text-[10px] uppercase tracking-[0.16em] text-emerald-100/75">
+                                    <div className="rounded-lg border border-[#b8d9cd] bg-[#f3fbf6] p-2 text-xs text-[#1f5d46]">
+                                      <div className="text-[10px] uppercase tracking-[0.16em] text-[#5d8b79]">
                                         Customer Selected Locker
                                       </div>
-                                      <div className="mt-1 font-semibold text-emerald-100">
+                                      <div className="mt-1 font-semibold text-[#1f5d46]">
                                         {selectedLockerName || selectedLockerCode || "Locker selected"}
                                       </div>
-                                      <div className="mt-1 text-emerald-100/70">
+                                      <div className="mt-1 text-[#5d8b79]">
                                         {[selectedLockerCode, selectedLockerAddress]
                                           .filter(Boolean)
                                           .join(" - ") || "Address unavailable"}
@@ -2288,14 +2350,14 @@ export default function AdminaPage() {
                                           href={selectedLockerMapsUrl}
                                           target="_blank"
                                           rel="noreferrer"
-                                          className="mt-2 inline-block text-[10px] uppercase tracking-[0.14em] text-emerald-100/75 underline-offset-4 hover:text-emerald-100 hover:underline"
+                                          className="mt-2 inline-block text-[10px] uppercase tracking-[0.14em] text-[#1f5d46] underline-offset-4 hover:underline"
                                         >
                                           Open selected locker
                                         </a>
                                       ) : null}
                                     </div>
                                   ) : (
-                                    <div className="rounded-lg border border-amber-300/25 bg-amber-950/15 p-2 text-xs text-amber-100/80">
+                                    <div className="rounded-lg border border-[#e5d6ab] bg-[#fffaf0] p-2 text-xs text-[#7b5a12]">
                                       Customer did not save a specific locker selection.
                                     </div>
                                   )}
@@ -2347,24 +2409,24 @@ export default function AdminaPage() {
                                         return (
                                           <div
                                             key={`${order.id}-${locker.code || lockerName}-${index}`}
-                                            className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs"
+                                            className="rounded-lg border border-[#d8d8d1] bg-[#f8f8f6] p-2 text-xs text-[#121212]"
                                           >
-                                            <div className="font-semibold text-white">
+                                            <div className="font-semibold text-[#121212]">
                                               {lockerName}
                                             </div>
-                                            <div className="mt-1 text-white/60">
+                                            <div className="mt-1 text-[#555555]">
                                               {[locker.code, locker.address]
                                                 .filter(Boolean)
                                                 .join(" - ") || "Address unavailable"}
                                             </div>
-                                            <div className="mt-1 text-white/45">
+                                            <div className="mt-1 text-[#777777]">
                                               {[locker.town, locker.postalCode]
                                                 .filter(Boolean)
                                                 .join(" - ")}
                                             </div>
                                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                               {Number.isFinite(locker.distanceKm) ? (
-                                                <span className="rounded-full border border-white/15 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/65">
+                                                <span className="rounded-full border border-[#d8d8d1] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[#555555]">
                                                   {locker.distanceKm.toFixed(2)} km
                                                 </span>
                                               ) : null}
@@ -2372,7 +2434,7 @@ export default function AdminaPage() {
                                                 href={lockerMapsUrl}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="text-[10px] uppercase tracking-[0.14em] text-white/70 underline-offset-4 hover:text-white hover:underline"
+                                                className="text-[10px] uppercase tracking-[0.14em] text-[#121212] underline-offset-4 hover:underline"
                                               >
                                                 Open on map
                                               </a>
@@ -2387,32 +2449,32 @@ export default function AdminaPage() {
 
                               <td className="px-4 py-4">
                                 <div className="min-w-[220px] space-y-2">
-                                  <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs">
+                                  <div className="rounded-lg border border-[#d8d8d1] bg-[#f8f8f6] p-2 text-xs text-[#121212]">
                                     <div className="flex flex-wrap items-center gap-2">
                                       <span
                                         className={`rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.14em] ${getPaymentStatusClasses(paymentStatus)}`}
                                       >
                                         {formatPaymentStatusLabel(paymentStatus)}
                                       </span>
-                                      <span className="text-white/50">
+                                      <span className="text-[#555555]">
                                         {order.paymentProvider || "PayFast"}
                                       </span>
                                     </div>
-                                    <div className="mt-2 text-white/65">
+                                    <div className="mt-2 text-[#121212]">
                                       Group: {orderGroupId || "n/a"}
                                     </div>
-                                    <div className="mt-1 text-white/65">
+                                    <div className="mt-1 text-[#121212]">
                                       Amount: {formatPrice(order.paymentAmount || 0)}
                                     </div>
                                     {order.paymentReference ? (
-                                      <div className="mt-1 text-white/50">
+                                      <div className="mt-1 text-[#555555]">
                                         Ref: {order.paymentReference}
                                       </div>
                                     ) : null}
                                   </div>
 
-                                  <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs">
-                                    <label className="flex items-center gap-3 uppercase tracking-[0.14em] text-white/70">
+                                  <div className="rounded-lg border border-[#d8d8d1] bg-[#f8f8f6] p-2 text-xs text-[#121212]">
+                                    <label className="flex items-center gap-3 uppercase tracking-[0.14em] text-[#121212]">
                                       <input
                                         type="checkbox"
                                         checked={Boolean(order.deliveryOrganized)}
@@ -2427,12 +2489,20 @@ export default function AdminaPage() {
                                           ? "Saving..."
                                           : order.deliveryOrganized
                                             ? "Delivery organized"
-                                            : isPaid
+                                          : isPaid
                                               ? "Ready to organize"
                                               : "Locked until payment"}
                                       </span>
                                     </label>
                                   </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => hideOrderFromView(order.id)}
+                                    className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-[#555555] transition hover:border-[#121212] hover:text-[#121212]"
+                                  >
+                                    Hide From View
+                                  </button>
                                 </div>
                               </td>
                             </tr>
