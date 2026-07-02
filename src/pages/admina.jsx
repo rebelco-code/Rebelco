@@ -1132,7 +1132,7 @@ export default function AdminaPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0f0f10] text-white">
+    <div className="admina-theme min-h-screen overflow-x-hidden bg-[#0f0f10] text-white">
       <Navbar className="border-b border-white/10 bg-[#0f0f10]/95 backdrop-blur" />
 
       <main className="w-full px-2 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:px-10">

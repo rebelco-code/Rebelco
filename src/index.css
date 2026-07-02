@@ -263,3 +263,79 @@ a {
 .products-display-surface [class*="border-\\[var\\(--theme-border-strong\\)\\]"] {
   border-color: var(--theme-border) !important;
 }
+
+.admina-theme {
+  background: #ffffff !important;
+  color: #121212;
+}
+
+.admina-theme nav,
+.admina-theme main {
+  background: #ffffff !important;
+  color: #121212;
+}
+
+.admina-theme [class*="rounded"] {
+  border-radius: 0 !important;
+}
+
+.admina-theme [class*="shadow"] {
+  box-shadow: none !important;
+}
+
+.admina-theme [class*="bg-\\[#151516\\]"],
+.admina-theme [class*="bg-\\[#0f0f10\\]"],
+.admina-theme [class*="bg-\\[#111112\\]"],
+.admina-theme [class*="bg-black"],
+.admina-theme [class*="bg-white\\/5"],
+.admina-theme [class*="bg-white\\/10"] {
+  background: #ffffff !important;
+}
+
+.admina-theme [class*="border-white"] {
+  border-color: #d8d8d1 !important;
+}
+
+.admina-theme [class*="text-white"] {
+  color: #121212 !important;
+}
+
+.admina-theme input,
+.admina-theme textarea,
+.admina-theme select {
+  background: #ffffff !important;
+  color: #121212 !important;
+  border-color: #d8d8d1 !important;
+  box-shadow: none !important;
+}
+
+.admina-theme input::placeholder,
+.admina-theme textarea::placeholder {
+  color: #777777 !important;
+}
+
+.admina-theme input:focus,
+.admina-theme textarea:focus,
+.admina-theme select:focus {
+  border-color: #121212 !important;
+  outline: none;
+}
+
+.admina-theme button:not([class*="border-red"]):not([class*="border-amber"]):not([class*="border-emerald"]) {
+  border-color: #121212 !important;
+  background: #121212 !important;
+  color: #ffffff !important;
+}
+
+.admina-theme button:not([class*="border-red"]):not([class*="border-amber"]):not([class*="border-emerald"]):hover {
+  background: #ffffff !important;
+  color: #121212 !important;
+}
+
+.admina-theme table thead {
+  background: #f4f4f1 !important;
+}
+
+.admina-theme table tbody tr {
+  background: #ffffff !important;
+}
