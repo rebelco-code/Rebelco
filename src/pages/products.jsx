@@ -986,7 +986,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   }
 
   return (
-    <div className="theme-page theme-shell">
+    <div className="theme-page theme-shell products-shell">
       <Navbar className="border-b border-[var(--theme-border)] bg-white/95 backdrop-blur" />
 
       <main className="px-4 py-10 sm:px-6 sm:py-14 lg:px-12 lg:py-18">

@@ -156,3 +156,118 @@ a {
   border-color: #121212;
   color: #121212;
 }
+
+.products-shell {
+  --theme-bg: #000000;
+  --theme-surface: #000000;
+  --theme-surface-strong: #080808;
+  --theme-border: #3f3f3f;
+  --theme-border-strong: #ffffff;
+  --theme-text: #ffffff;
+  --theme-text-soft: #d6d6d6;
+  --theme-accent: #ffffff;
+  --theme-accent-strong: #ffffff;
+  --theme-dark: #ffffff;
+  background: #000000;
+  color: #ffffff;
+}
+
+.products-shell main,
+.products-shell nav,
+.products-shell .theme-shell,
+.products-shell .theme-card,
+.products-shell .theme-panel {
+  background: #000000;
+  color: #ffffff;
+}
+
+.products-shell .theme-card,
+.products-shell .theme-panel,
+.products-shell .theme-input {
+  border-color: var(--theme-border);
+  box-shadow: none;
+}
+
+.products-shell .theme-button {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #000000;
+  box-shadow: none;
+}
+
+.products-shell .theme-button:hover {
+  border-color: #ffffff;
+  background: #000000;
+  color: #ffffff;
+  transform: none;
+}
+
+.products-shell .theme-button-secondary,
+.products-shell .nav-shop-button {
+  border-color: #ffffff;
+  background: #000000;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.products-shell .theme-button-secondary:hover,
+.products-shell .nav-shop-button:hover {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #000000;
+}
+
+.products-shell .theme-input {
+  background: #000000;
+  color: #ffffff;
+}
+
+.products-shell .theme-input::placeholder {
+  color: #8f8f8f;
+}
+
+.products-shell .theme-input:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+.products-shell .theme-copy,
+.products-shell .theme-kicker,
+.products-shell .theme-title {
+  color: #ffffff;
+}
+
+.products-shell [class*="rounded"] {
+  border-radius: 0 !important;
+}
+
+.products-shell [class*="shadow"] {
+  box-shadow: none !important;
+}
+
+.products-shell [class*="bg-white"],
+.products-shell [class*="bg-amber"],
+.products-shell [class*="bg-emerald"] {
+  background: #000000 !important;
+}
+
+.products-shell [class*="border-amber"],
+.products-shell [class*="border-emerald"],
+.products-shell [class*="text-amber"],
+.products-shell [class*="text-emerald"] {
+  border-color: var(--theme-border) !important;
+  color: #ffffff !important;
+}
+
+.products-shell [class*="text-red"] {
+  color: #ffffff !important;
+}
+
+.products-shell [class*="bg-\\[var\\(--theme-accent-strong\\)\\]"] {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.products-shell [class*="backdrop-blur"] {
+  backdrop-filter: none;
+}
