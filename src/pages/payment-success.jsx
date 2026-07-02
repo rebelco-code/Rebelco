@@ -148,6 +148,12 @@ export default function PaymentSuccessPage() {
                 </Link>
               ) : null}
               <Link
+                to="/orders"
+                className="theme-button-secondary rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
+              >
+                View Previous Orders
+              </Link>
+              <Link
                 to="/products"
                 className="theme-button-secondary rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
               >

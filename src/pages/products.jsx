@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
@@ -39,6 +40,16 @@ function buildInitialOrderForm(minimumOrderQuantity = 1) {
     pudoLockerName: "",
     pudoLockerAddress: "",
   };
+}
+
+function buildOrdersHistoryHref(customerEmail) {
+  const normalizedCustomerEmail = String(customerEmail || "").trim();
+
+  if (!normalizedCustomerEmail) {
+    return "/orders";
+  }
+
+  return `/orders?customerEmail=${encodeURIComponent(normalizedCustomerEmail)}`;
 }
 
 function getProductImages(product) {
@@ -1603,6 +1614,23 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     </span>
                   </label>
 
+                  <div className="rounded-xl border border-[var(--theme-border)] bg-white/75 p-3 text-xs text-[var(--theme-text-soft)]">
+                    <div className="theme-kicker text-xs text-[var(--theme-text)]">
+                      Bought Here Before?
+                    </div>
+                    <div className="mt-1.5 leading-5">
+                      Use your email to see previous orders, totals, and tracking without needing an order code.
+                    </div>
+                    <div className="mt-3">
+                      <Link
+                        to={buildOrdersHistoryHref(orderForm.customerEmail)}
+                        className="theme-button inline-flex rounded-full px-4 py-3 text-xs uppercase tracking-[0.2em]"
+                      >
+                        View Previous Orders
+                      </Link>
+                    </div>
+                  </div>
+
                   <label className="theme-copy grid gap-2 text-sm">
                     <span className="theme-kicker text-xs opacity-80">
                       Location Text
@@ -1833,6 +1861,13 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                 <div className="mt-3 rounded-lg border border-amber-300/30 bg-amber-950/20 p-2.5 text-xs leading-5 text-amber-100">
                   PayFast will handle the payment step securely when you continue from checkout.
                 </div>
+
+                <Link
+                  to={buildOrdersHistoryHref(orderForm.customerEmail)}
+                  className="theme-button-secondary mt-3 block w-full rounded-lg px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em]"
+                >
+                  View Previous Orders
+                </Link>
 
                 <button type="button" onClick={openBasketFromTrolley} className="theme-button mt-3 w-full rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em]">
                   Open Cart & Checkout
