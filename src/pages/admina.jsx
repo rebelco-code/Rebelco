@@ -1928,30 +1928,30 @@ export default function AdminaPage() {
                             <button
                               type="button"
                               onClick={() => toggleCategory(group.category)}
-                              className="flex w-full flex-col gap-3 bg-black p-3 text-left transition hover:bg-black/90 sm:flex-row sm:items-center sm:justify-between"
+                              className="flex w-full flex-col gap-3 bg-white p-3 text-left transition hover:bg-black/[0.03] sm:flex-row sm:items-center sm:justify-between"
                             >
                               <div className="min-w-0">
                                 <h3
-                                  className="break-words text-3xl leading-none text-white"
-                                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: "#ffffff" }}
+                                  className="break-words text-3xl leading-none text-black"
+                                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: "#121212" }}
                                 >
                                   {group.category}
                                 </h3>
 
                                 <p
-                                  className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45"
-                                  style={{ color: "rgba(255, 255, 255, 0.45)" }}
+                                  className="mt-1 text-[10px] uppercase tracking-[0.16em] text-black/35"
+                                  style={{ color: "rgba(18, 18, 18, 0.35)" }}
                                 >
                                   {isOpen ? "Click to collapse" : "Click to expand"}
                                 </p>
                               </div>
 
                               <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
-                                <div className="rounded-full border border-white/10 bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-black/60">
+                                <div className="rounded-full border border-[#d8d8d1] bg-white px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-black/60">
                                   {group.products.length} items
                                 </div>
 
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white text-xl text-black/70">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#d8d8d1] bg-white text-xl text-black/70">
                                   {isOpen ? "−" : "+"}
                                 </span>
                               </div>
