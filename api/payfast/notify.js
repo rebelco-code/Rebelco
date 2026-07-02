@@ -46,6 +46,12 @@ function shouldReleaseReservedStock(paymentStatus) {
   return paymentStatus === "cancelled" || paymentStatus === "failed";
 }
 
+function sendOk(response) {
+  response.statusCode = 200;
+  response.setHeader("Content-Type", "text/plain; charset=utf-8");
+  response.end("OK");
+}
+
 export default async function handler(request, response) {
   try {
     requireMethod(request, response, ["POST"]);
@@ -60,6 +66,14 @@ export default async function handler(request, response) {
     }
 
     if (!verifyPayfastSignature(payload, payfastConfig.passphrase)) {
+      if (payfastConfig.sandbox) {
+        console.warn("PayFast sandbox ITN signature verification failed. Acknowledging callback.", {
+          orderGroupId,
+        });
+        sendOk(response);
+        return;
+      }
+
       throw new HttpError(400, "PayFast ITN signature verification failed.");
     }
 
@@ -99,6 +113,16 @@ export default async function handler(request, response) {
     const receivedAmount = parseAmount(payload.amount_gross || payload.amount);
 
     if (receivedAmount === null || receivedAmount !== expectedAmount) {
+      if (payfastConfig.sandbox) {
+        console.warn("PayFast sandbox ITN amount mismatch. Acknowledging callback.", {
+          orderGroupId,
+          expectedAmount,
+          receivedAmount,
+        });
+        sendOk(response);
+        return;
+      }
+
       throw new HttpError(400, "PayFast ITN amount does not match the stored order.");
     }
 
@@ -126,14 +150,24 @@ export default async function handler(request, response) {
       proofOfPaymentReceived,
     });
 
-    response.statusCode = 200;
-    response.setHeader("Content-Type", "text/plain; charset=utf-8");
-    response.end("OK");
+    sendOk(response);
   } catch (error) {
     console.error("PayFast ITN handler failed.", {
       message: error?.message || String(error),
       stack: error?.stack || "",
     });
+
+    try {
+      const payfastConfig = getPayfastConfig();
+
+      if (payfastConfig.sandbox) {
+        sendOk(response);
+        return;
+      }
+    } catch {
+      // If config lookup fails, fall back to the normal error response.
+    }
+
     sendError(response, error);
   }
 }
