@@ -5,6 +5,7 @@ import { contactLinks, homeAnnouncements } from "../data/home-content";
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Catalog", href: "/products" },
+  { label: "Track Order", href: "/orders" },
   { label: "Contact", href: "/contact" },
   { label: "About", href: "/about" },
 ];

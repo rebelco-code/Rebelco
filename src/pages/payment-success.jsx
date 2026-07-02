@@ -44,6 +44,7 @@ export default function PaymentSuccessPage() {
   const [status, setStatus] = useState(orderReference ? "loading" : "idle");
   const [paymentStatus, setPaymentStatus] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
+  const [customerOrderId, setCustomerOrderId] = useState("");
   const [statusError, setStatusError] = useState("");
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function PaymentSuccessPage() {
 
         setPaymentStatus(String(data.paymentStatus || "").trim().toLowerCase());
         setPaymentReference(String(data.paymentReference || "").trim());
+        setCustomerOrderId(String(data.customerOrderId || "").trim());
         setStatus("ready");
 
         const nextStatus = String(data.paymentStatus || "").trim().toLowerCase();
@@ -128,6 +130,7 @@ export default function PaymentSuccessPage() {
             {orderReference || paymentId ? (
               <div className="mt-6 rounded-2xl border border-[var(--theme-border)] bg-white/80 p-4 text-sm text-[var(--theme-text)]">
                 {orderReference ? <div>Order reference: {orderReference}</div> : null}
+                {customerOrderId ? <div>Customer order ID: {customerOrderId}</div> : null}
                 {paymentId || paymentReference ? (
                   <div>PayFast payment ID: {paymentReference || paymentId}</div>
                 ) : null}
@@ -136,9 +139,17 @@ export default function PaymentSuccessPage() {
             ) : null}
 
             <div className="mt-6 flex flex-wrap gap-3">
+              {customerOrderId ? (
+                <Link
+                  to={`/orders?order=${encodeURIComponent(customerOrderId)}`}
+                  className="theme-button rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
+                >
+                  Track This Order
+                </Link>
+              ) : null}
               <Link
                 to="/products"
-                className="theme-button rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
+                className="theme-button-secondary rounded-full px-5 py-3 text-xs uppercase tracking-[0.2em]"
               >
                 Back To Products
               </Link>

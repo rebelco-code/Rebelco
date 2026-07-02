@@ -8,6 +8,7 @@ const ProductsPage = lazy(() => import("./pages/products"));
 const CompanyTwoProductsPage = lazy(() =>
   import("./pages/products").then((module) => ({ default: module.CompanyTwoProductsPage })),
 );
+const OrdersPage = lazy(() => import("./pages/orders"));
 const PaymentSuccessPage = lazy(() => import("./pages/payment-success"));
 const PaymentCancelPage = lazy(() => import("./pages/payment-cancel"));
 const AdminaPage = lazy(() => import("./pages/admina"));
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products-company-2" element={<CompanyTwoProductsPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/cancel" element={<PaymentCancelPage />} />
           <Route path="/admina" element={<AdminaPage />} />

@@ -5,6 +5,7 @@ import {
   removeOrderGroup,
   readOrders,
   updateOrderGroupDeliveryOrganized,
+  updateOrderGroupTracking,
 } from "../_utils/ordersStore.js";
 
 function getOrderId(request) {
@@ -96,9 +97,23 @@ export default async function handler(request, response) {
       return;
     }
 
+    if (action === "update-tracking") {
+      const result = await updateOrderGroupTracking(orderGroupId, {
+        pudoShipmentId: body.pudoShipmentId,
+        pudoParcelReference: body.pudoParcelReference,
+        pudoTrackingNumber: body.pudoTrackingNumber,
+        pudoTrackingUrl: body.pudoTrackingUrl,
+        pudoLabelUrl: body.pudoLabelUrl,
+        pudoShipmentStatus: body.pudoShipmentStatus,
+      });
+
+      sendJson(response, 200, result);
+      return;
+    }
+
     throw new HttpError(
       400,
-      "Only delivery organization updates and order removal are supported from admin.",
+      "Only delivery organization, tracking updates, and order removal are supported from admin.",
     );
   } catch (error) {
     sendError(response, error);

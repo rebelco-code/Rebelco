@@ -140,9 +140,10 @@ export default async function handler(request, response) {
       ? createdOrderResult.createdOrders
       : [];
     const orderGroupId = String(createdOrderResult.orderGroupId || "").trim();
+    const customerOrderId = String(createdOrderResult.customerOrderId || "").trim();
     const amount = calculateOrderTotal(createdOrders);
 
-    if (!orderGroupId || createdOrders.length === 0 || amount <= 0) {
+    if (!orderGroupId || !customerOrderId || createdOrders.length === 0 || amount <= 0) {
       throw new HttpError(500, "PayFast payment could not be created for this order.");
     }
 
@@ -156,11 +157,13 @@ export default async function handler(request, response) {
       item_description: buildItemDescription(createdOrders),
       custom_str1: orderGroupId,
       custom_str2: String(body.pudoLockerCode || "").trim(),
+      custom_str3: customerOrderId,
     });
     const signedFields = buildPayfastFormPayload(payfastFields, payfastConfig.passphrase);
 
     sendJson(response, 200, {
       orderGroupId,
+      customerOrderId,
       paymentUrl: payfastConfig.processUrl,
       fields: signedFields,
       amount: normalizeAmount(amount),

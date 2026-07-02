@@ -205,6 +205,17 @@ function getPaymentStatusClasses(value) {
   return "border-[#e5d6ab] bg-[#fffaf0] text-[#7b5a12]";
 }
 
+function buildTrackingDraftFromOrder(order) {
+  return {
+    pudoShipmentStatus: String(order?.pudoShipmentStatus || ""),
+    pudoShipmentId: String(order?.pudoShipmentId || ""),
+    pudoParcelReference: String(order?.pudoParcelReference || ""),
+    pudoTrackingNumber: String(order?.pudoTrackingNumber || ""),
+    pudoTrackingUrl: String(order?.pudoTrackingUrl || ""),
+    pudoLabelUrl: String(order?.pudoLabelUrl || ""),
+  };
+}
+
 function parseLatLngText(value) {
   const match = String(value || "")
     .trim()
@@ -339,6 +350,7 @@ export default function AdminaPage() {
   const [stockUpdateByProduct, setStockUpdateByProduct] = useState({});
   const [orderActionStatus, setOrderActionStatus] = useState("");
   const [selectedOrderGroupIds, setSelectedOrderGroupIds] = useState([]);
+  const [trackingDraftsByOrderGroup, setTrackingDraftsByOrderGroup] = useState({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isImageDropActive, setIsImageDropActive] = useState(false);
@@ -553,6 +565,26 @@ export default function AdminaPage() {
     );
   }, [visibleOrderGroupIds]);
 
+  useEffect(() => {
+    setTrackingDraftsByOrderGroup((currentDrafts) => {
+      const nextDrafts = { ...currentDrafts };
+      let changed = false;
+
+      orders.forEach((order) => {
+        const orderGroupId = String(order?.orderGroupId || "").trim();
+
+        if (!orderGroupId || nextDrafts[orderGroupId]) {
+          return;
+        }
+
+        nextDrafts[orderGroupId] = buildTrackingDraftFromOrder(order);
+        changed = true;
+      });
+
+      return changed ? nextDrafts : currentDrafts;
+    });
+  }, [orders]);
+
   function updateLoginField(event) {
     const { name, value } = event.target;
 
@@ -691,6 +723,25 @@ export default function AdminaPage() {
         ? []
         : [...visibleOrderGroupIds]
     ));
+  }
+
+  function updateTrackingDraft(orderGroupId, fieldName, value) {
+    const normalizedOrderGroupId = String(orderGroupId || "").trim();
+
+    if (!normalizedOrderGroupId || !fieldName) {
+      return;
+    }
+
+    setTrackingDraftsByOrderGroup((currentDrafts) => ({
+      ...currentDrafts,
+      [normalizedOrderGroupId]: {
+        ...buildTrackingDraftFromOrder(
+          orders.find((order) => String(order.orderGroupId || "").trim() === normalizedOrderGroupId),
+        ),
+        ...currentDrafts[normalizedOrderGroupId],
+        [fieldName]: value,
+      },
+    }));
   }
 
   async function uploadSelectedImages(filesToUpload, options = {}) {
@@ -1128,6 +1179,52 @@ export default function AdminaPage() {
 
       setOrders(data.orders || []);
       setMessage("Order delivery status updated.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setOrderActionStatus("");
+    }
+  }
+
+  async function saveOrderTracking(orderGroupId) {
+    const normalizedOrderGroupId = String(orderGroupId || "").trim();
+
+    if (!normalizedOrderGroupId || orderActionStatus) {
+      return;
+    }
+
+    const draft = trackingDraftsByOrderGroup[normalizedOrderGroupId] || {};
+
+    setError("");
+    setMessage("");
+    setOrderActionStatus(normalizedOrderGroupId);
+
+    try {
+      const data = await fetchJsonWithRetry(
+        `/api/admin/orders?id=${encodeURIComponent(normalizedOrderGroupId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            orderGroupId: normalizedOrderGroupId,
+            action: "update-tracking",
+            ...draft,
+          }),
+        },
+        "Tracking details could not be updated.",
+      );
+
+      setOrders(data.orders || []);
+      setTrackingDraftsByOrderGroup((currentDrafts) => ({
+        ...currentDrafts,
+        [normalizedOrderGroupId]: buildTrackingDraftFromOrder(
+          (data.updatedGroupOrders || [])[0] ||
+            orders.find((order) => String(order.orderGroupId || "").trim() === normalizedOrderGroupId),
+        ),
+      }));
+      setMessage("Tracking details updated.");
     } catch (actionError) {
       setError(actionError.message);
     } finally {
@@ -2443,6 +2540,8 @@ export default function AdminaPage() {
                           const isBusy = Boolean(orderActionStatus);
                           const isCurrentBusy =
                             orderActionStatus === orderGroupId || orderActionStatus === "bulk-remove";
+                          const trackingDraft =
+                            trackingDraftsByOrderGroup[orderGroupId] || buildTrackingDraftFromOrder(order);
                           const pudoLookupState = pudoLookupByOrder[order.id] || {};
                           const pudoStatus = pudoLookupState.status || "idle";
                           const pudoLockers = Array.isArray(pudoLookupState.lockers)
@@ -2492,6 +2591,11 @@ export default function AdminaPage() {
                                 {order.customerEmail ? (
                                   <div className="mt-1 text-xs text-white/55">
                                     {order.customerEmail}
+                                  </div>
+                                ) : null}
+                                {order.customerOrderId ? (
+                                  <div className="mt-1 text-xs text-white/55">
+                                    Order ID: {order.customerOrderId}
                                   </div>
                                 ) : null}
                               </td>
@@ -2675,6 +2779,82 @@ export default function AdminaPage() {
                                       </a>
                                     ) : null}
                                   </div>
+
+                                  <div className="mt-2 rounded-lg border border-[#d8d8d1] bg-[#f8f8f6] p-3 text-xs text-[#121212]">
+                                    <div className="text-[10px] uppercase tracking-[0.16em] text-[#555555]">
+                                      Edit tracking
+                                    </div>
+                                    <div className="mt-2 grid gap-2">
+                                      <input
+                                        type="text"
+                                        value={trackingDraft.pudoShipmentStatus}
+                                        onChange={(event) =>
+                                          updateTrackingDraft(orderGroupId, "pudoShipmentStatus", event.target.value)
+                                        }
+                                        placeholder="Shipment status"
+                                        disabled={isBusy}
+                                        className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={trackingDraft.pudoShipmentId}
+                                        onChange={(event) =>
+                                          updateTrackingDraft(orderGroupId, "pudoShipmentId", event.target.value)
+                                        }
+                                        placeholder="Shipment ID"
+                                        disabled={isBusy}
+                                        className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={trackingDraft.pudoParcelReference}
+                                        onChange={(event) =>
+                                          updateTrackingDraft(orderGroupId, "pudoParcelReference", event.target.value)
+                                        }
+                                        placeholder="Parcel reference"
+                                        disabled={isBusy}
+                                        className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={trackingDraft.pudoTrackingNumber}
+                                        onChange={(event) =>
+                                          updateTrackingDraft(orderGroupId, "pudoTrackingNumber", event.target.value)
+                                        }
+                                        placeholder="Tracking number"
+                                        disabled={isBusy}
+                                        className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
+                                      />
+                                      <input
+                                        type="url"
+                                        value={trackingDraft.pudoTrackingUrl}
+                                        onChange={(event) =>
+                                          updateTrackingDraft(orderGroupId, "pudoTrackingUrl", event.target.value)
+                                        }
+                                        placeholder="Tracking URL"
+                                        disabled={isBusy}
+                                        className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
+                                      />
+                                      <input
+                                        type="url"
+                                        value={trackingDraft.pudoLabelUrl}
+                                        onChange={(event) =>
+                                          updateTrackingDraft(orderGroupId, "pudoLabelUrl", event.target.value)
+                                        }
+                                        placeholder="Label URL"
+                                        disabled={isBusy}
+                                        className="border border-[#d8d8d1] bg-white px-3 py-2 text-xs text-[#121212]"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => saveOrderTracking(orderGroupId)}
+                                        disabled={isBusy || !orderGroupId}
+                                        className="rounded-full border border-[#121212] bg-black px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-white transition hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+                                      >
+                                        {isCurrentBusy ? "Saving..." : "Save Tracking"}
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
                               </td>
 
@@ -2693,6 +2873,9 @@ export default function AdminaPage() {
                                     </div>
                                     <div className="mt-2 text-[#121212]">
                                       Group: {orderGroupId || "n/a"}
+                                    </div>
+                                    <div className="mt-1 text-[#121212]">
+                                      Customer ID: {order.customerOrderId || "n/a"}
                                     </div>
                                     <div className="mt-1 text-[#121212]">
                                       Amount: {formatPrice(order.paymentAmount || 0)}

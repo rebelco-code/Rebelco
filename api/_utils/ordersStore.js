@@ -8,6 +8,7 @@ const BLOB_ACCESS_VALUES = new Set(["private", "public"]);
 const MAX_LOCATION_TEXT_LENGTH = 320;
 const MAX_MAP_LOCATION_LENGTH = 400;
 const MAX_CUSTOMER_EMAIL_LENGTH = 160;
+const MAX_CUSTOMER_ORDER_ID_LENGTH = 40;
 const MAX_PUDO_CODE_LENGTH = 40;
 const MAX_PUDO_NAME_LENGTH = 120;
 const MAX_PUDO_ADDRESS_LENGTH = 240;
@@ -191,6 +192,29 @@ function validateCustomerEmail(value) {
   return email;
 }
 
+function normalizeCustomerOrderIdValue(value) {
+  return cleanText(String(value || "").toUpperCase(), MAX_CUSTOMER_ORDER_ID_LENGTH);
+}
+
+function buildCustomerOrderId() {
+  const timestampToken = Date.now().toString(36).toUpperCase();
+  const randomToken = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return normalizeCustomerOrderIdValue(`RBL-${timestampToken}-${randomToken}`);
+}
+
+function deriveLegacyCustomerOrderId(orderGroupId) {
+  const compactGroupToken = String(orderGroupId || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(-12);
+
+  if (!compactGroupToken) {
+    return "";
+  }
+
+  return normalizeCustomerOrderIdValue(`RBL-${compactGroupToken}`);
+}
+
 function wait(delayMs) {
   return new Promise((resolve) => {
     setTimeout(resolve, delayMs);
@@ -285,6 +309,9 @@ function normalizeOrder(order) {
   return {
     id: String(order.id || ""),
     orderGroupId: cleanText(order.orderGroupId, MAX_ORDER_GROUP_ID_LENGTH),
+    customerOrderId:
+      normalizeCustomerOrderIdValue(order.customerOrderId) ||
+      deriveLegacyCustomerOrderId(order.orderGroupId),
     productId: String(order.productId || ""),
     productTitle: String(order.productTitle || ""),
     productDescription: String(order.productDescription || ""),
@@ -456,10 +483,11 @@ function validateOrderInput(payload) {
   };
 }
 
-function buildOrderRecord(product, payload, quantity, now, orderGroupId) {
+function buildOrderRecord(product, payload, quantity, now, orderGroupId, customerOrderId) {
   return normalizeOrder({
     id: `order-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     orderGroupId,
+    customerOrderId,
     productId: product.id,
     productTitle: product.title,
     productDescription: product.description,
@@ -501,6 +529,7 @@ export async function createOrders(orderItems, payload) {
   const input = validateOrderInput(payload);
   const now = new Date().toISOString();
   const orderGroupId = `group-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const customerOrderId = buildCustomerOrderId();
 
   const preparedOrders = orderItems.map((item) => {
     const product = item?.product;
@@ -524,6 +553,7 @@ export async function createOrders(orderItems, payload) {
       quantity,
       now,
       orderGroupId,
+      customerOrderId,
     );
   });
 
@@ -537,6 +567,7 @@ export async function createOrders(orderItems, payload) {
     createdOrders: result.createdOrders,
     orders: result.orders,
     orderGroupId,
+    customerOrderId,
   };
 }
 
@@ -609,17 +640,65 @@ export async function readOrderGroupSummary(orderGroupId) {
           : paymentStatuses[0] || "pending";
   const paymentReference =
     orders.find((order) => String(order.paymentReference || "").trim())?.paymentReference || "";
+  const customerOrderId = orders.find((order) => String(order.customerOrderId || "").trim())?.customerOrderId || "";
+  const totalQuantity = orders.reduce((sum, order) => {
+    const quantity = Number.parseInt(String(order?.quantity || "0"), 10);
+    return Number.isInteger(quantity) && quantity > 0 ? sum + quantity : sum;
+  }, 0);
+  const shipmentStatuses = Array.from(
+    new Set(orders.map((order) => String(order.pudoShipmentStatus || "").trim()).filter(Boolean)),
+  );
+  const trackingNumber =
+    orders.find((order) => String(order.pudoTrackingNumber || "").trim())?.pudoTrackingNumber || "";
+  const trackingUrl =
+    orders.find((order) => String(order.pudoTrackingUrl || "").trim())?.pudoTrackingUrl || "";
+  const shipmentId =
+    orders.find((order) => String(order.pudoShipmentId || "").trim())?.pudoShipmentId || "";
+  const parcelReference =
+    orders.find((order) => String(order.pudoParcelReference || "").trim())?.pudoParcelReference || "";
+  const labelUrl =
+    orders.find((order) => String(order.pudoLabelUrl || "").trim())?.pudoLabelUrl || "";
 
   return {
     orderGroupId: String(orderGroupId || "").trim(),
+    customerOrderId,
     paymentStatus,
     paymentReference,
     deliveryOrganized: orders.every((order) => Boolean(order.deliveryOrganized)),
     proofOfPaymentReceived: orders.every((order) => Boolean(order.proofOfPaymentReceived)),
     totalAmount,
+    totalQuantity,
     orderCount: orders.length,
+    shipmentStatus: shipmentStatuses[0] || "",
+    trackingNumber,
+    trackingUrl,
+    shipmentId,
+    parcelReference,
+    labelUrl,
     orders,
   };
+}
+
+export async function readCustomerOrderSummary(customerOrderId, customerEmail) {
+  const normalizedCustomerOrderId = normalizeCustomerOrderIdValue(customerOrderId);
+  const normalizedCustomerEmail = validateCustomerEmail(customerEmail);
+
+  if (!normalizedCustomerOrderId) {
+    throw new HttpError(400, "Customer order ID is required.");
+  }
+
+  const orders = await readOrders();
+  const matchingOrders = orders.filter(
+    (order) =>
+      normalizeCustomerOrderIdValue(order.customerOrderId) === normalizedCustomerOrderId &&
+      String(order.customerEmail || "").trim().toLowerCase() === normalizedCustomerEmail,
+  );
+
+  if (matchingOrders.length === 0) {
+    throw new HttpError(404, "Order not found for that email and customer order ID.");
+  }
+
+  return readOrderGroupSummary(matchingOrders[0].orderGroupId);
 }
 
 function parseBoolean(value, fieldName) {
@@ -824,6 +903,59 @@ export async function updateOrderGroupPayment(orderGroupId, updates = {}) {
           hasProofUpdate && !updates.proofOfPaymentReceived
             ? false
             : order.deliveryOrganized,
+        updatedAt: now,
+      });
+    });
+
+    return {
+      orderGroupId: normalizedGroupId,
+      updatedGroupOrders: updatedOrders.filter((order) => order.orderGroupId === normalizedGroupId),
+      orders: updatedOrders,
+    };
+  });
+
+  return {
+    orderGroupId: normalizedGroupId,
+    orders: result.orders,
+    updatedGroupOrders: result.updatedGroupOrders,
+  };
+}
+
+export async function updateOrderGroupTracking(orderGroupId, updates = {}) {
+  const normalizedGroupId = cleanText(orderGroupId, MAX_ORDER_GROUP_ID_LENGTH);
+
+  if (!normalizedGroupId) {
+    throw new HttpError(400, "Order group ID is required.");
+  }
+
+  const now = new Date().toISOString();
+  const pudoShipmentId = cleanText(updates.pudoShipmentId, MAX_PUDO_TRACKING_LENGTH);
+  const pudoParcelReference = cleanText(updates.pudoParcelReference, MAX_PUDO_TRACKING_LENGTH);
+  const pudoTrackingNumber = cleanText(updates.pudoTrackingNumber, MAX_PUDO_TRACKING_LENGTH);
+  const pudoTrackingUrl = cleanOptionalUrl(updates.pudoTrackingUrl);
+  const pudoLabelUrl = cleanOptionalUrl(updates.pudoLabelUrl);
+  const pudoShipmentStatus = cleanText(updates.pudoShipmentStatus, MAX_PUDO_TRACKING_LENGTH);
+
+  const result = await mutateOrdersWithRetry((orders) => {
+    const groupOrders = orders.filter((order) => order.orderGroupId === normalizedGroupId);
+
+    if (groupOrders.length === 0) {
+      throw new HttpError(404, "Order group was not found.");
+    }
+
+    const updatedOrders = orders.map((order) => {
+      if (order.orderGroupId !== normalizedGroupId) {
+        return order;
+      }
+
+      return normalizeOrder({
+        ...order,
+        pudoShipmentId,
+        pudoParcelReference,
+        pudoTrackingNumber,
+        pudoTrackingUrl,
+        pudoLabelUrl,
+        pudoShipmentStatus,
         updatedAt: now,
       });
     });
