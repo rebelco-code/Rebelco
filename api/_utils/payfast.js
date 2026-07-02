@@ -129,12 +129,12 @@ export function buildPayfastMerchantPayload(fields = {}) {
   const config = getPayfastConfig();
 
   return {
-    ...fields,
     merchant_id: config.merchantId,
     merchant_key: config.merchantKey,
     return_url: config.returnUrl,
     cancel_url: config.cancelUrl,
     notify_url: config.notifyUrl,
+    ...fields,
   };
 }
 
