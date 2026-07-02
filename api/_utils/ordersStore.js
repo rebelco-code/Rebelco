@@ -1,5 +1,6 @@
 import { BlobPreconditionFailedError, get, put } from "@vercel/blob";
 import { HttpError } from "./errors.js";
+import { restoreStockForOrderItems } from "./productsStore.js";
 
 const ORDERS_PATH = "products/orders.json";
 const DEFAULT_BLOB_ACCESS = "private";
@@ -788,6 +789,46 @@ export async function updateOrderGroupPayment(orderGroupId, updates = {}) {
     orderGroupId: normalizedGroupId,
     orders: result.orders,
     updatedGroupOrders: result.updatedGroupOrders,
+  };
+}
+
+export async function removeOrderGroup(orderGroupId, options = {}) {
+  const normalizedGroupId = cleanText(orderGroupId, MAX_ORDER_GROUP_ID_LENGTH);
+
+  if (!normalizedGroupId) {
+    throw new HttpError(400, "Order group ID is required.");
+  }
+
+  const restoreStock = options.restoreStock !== false;
+  let removedOrders = [];
+
+  const result = await mutateOrdersWithRetry((orders) => {
+    removedOrders = orders.filter((order) => order.orderGroupId === normalizedGroupId);
+
+    if (removedOrders.length === 0) {
+      throw new HttpError(404, "Order group was not found.");
+    }
+
+    return {
+      orderGroupId: normalizedGroupId,
+      removedOrders,
+      orders: orders.filter((order) => order.orderGroupId !== normalizedGroupId),
+    };
+  });
+
+  if (restoreStock) {
+    await restoreStockForOrderItems(
+      removedOrders.map((order) => ({
+        productId: order.productId,
+        quantity: order.quantity,
+      })),
+    );
+  }
+
+  return {
+    orderGroupId: normalizedGroupId,
+    orders: result.orders,
+    removedOrders,
   };
 }
 

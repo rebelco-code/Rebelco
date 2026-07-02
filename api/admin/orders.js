@@ -2,6 +2,7 @@ import { requireAdminSession } from "../_utils/adminAuth.js";
 import { HttpError } from "../_utils/errors.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
 import {
+  removeOrderGroup,
   readOrders,
   updateOrderGroupDeliveryOrganized,
 } from "../_utils/ordersStore.js";
@@ -56,15 +57,28 @@ export default async function handler(request, response) {
     const orderGroupId = body.orderGroupId || body.groupId || getOrderId(request);
     const action = String(body.action || "").trim().toLowerCase();
 
-    if (action !== "set-delivery-organized") {
-      throw new HttpError(400, "Only delivery organization updates are supported from admin.");
+    if (action === "set-delivery-organized") {
+      const deliveryOrganized =
+        body.deliveryOrganized ?? body.isDeliveryOrganized ?? body.deliveryReady;
+      const result = await updateOrderGroupDeliveryOrganized(orderGroupId, deliveryOrganized);
+
+      sendJson(response, 200, result);
+      return;
     }
 
-    const deliveryOrganized =
-      body.deliveryOrganized ?? body.isDeliveryOrganized ?? body.deliveryReady;
-    const result = await updateOrderGroupDeliveryOrganized(orderGroupId, deliveryOrganized);
+    if (action === "remove-order-group") {
+      const result = await removeOrderGroup(orderGroupId, {
+        restoreStock: body.restoreStock !== false,
+      });
 
-    sendJson(response, 200, result);
+      sendJson(response, 200, result);
+      return;
+    }
+
+    throw new HttpError(
+      400,
+      "Only delivery organization updates and order removal are supported from admin.",
+    );
   } catch (error) {
     sendError(response, error);
   }

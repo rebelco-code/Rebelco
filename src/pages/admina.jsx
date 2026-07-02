@@ -1095,6 +1095,60 @@ export default function AdminaPage() {
     }
   }
 
+  async function removeOrderGroupFromAdmin(orderGroupId) {
+    const normalizedOrderGroupId = String(orderGroupId || "").trim();
+
+    if (!normalizedOrderGroupId || orderActionStatus) {
+      return;
+    }
+
+    const matchingOrders = orders.filter(
+      (order) => String(order.orderGroupId || "").trim() === normalizedOrderGroupId,
+    );
+    const shouldRemove = window.confirm(
+      "Remove this order group from admin and restore the reserved stock? Use this for test orders you do not want fulfilled.",
+    );
+
+    if (!shouldRemove) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setOrderActionStatus(normalizedOrderGroupId);
+
+    try {
+      const data = await fetchJsonWithRetry(
+        `/api/admin/orders?id=${encodeURIComponent(normalizedOrderGroupId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            orderGroupId: normalizedOrderGroupId,
+            action: "remove-order-group",
+            restoreStock: true,
+          }),
+        },
+        "Order group could not be removed.",
+      );
+
+      setOrders(data.orders || []);
+      setHiddenOrderIds((currentHiddenOrderIds) => {
+        const removedOrderIdSet = new Set(
+          matchingOrders.map((order) => String(order.id || "").trim()).filter(Boolean),
+        );
+        return currentHiddenOrderIds.filter((orderId) => !removedOrderIdSet.has(orderId));
+      });
+      setMessage("Order group removed and stock restored.");
+    } catch (actionError) {
+      setError(actionError.message);
+    } finally {
+      setOrderActionStatus("");
+    }
+  }
+
   async function lookupPudoLockers(order) {
     const orderId = String(order?.id || "").trim();
 
@@ -2505,6 +2559,15 @@ export default function AdminaPage() {
                                     className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-[#555555] transition hover:border-[#121212] hover:text-[#121212]"
                                   >
                                     Hide From View
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeOrderGroupFromAdmin(orderGroupId)}
+                                    disabled={isBusy || !orderGroupId}
+                                    className="rounded-full border border-red-300/35 bg-white px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-red-700 transition hover:border-red-500 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-40"
+                                  >
+                                    Remove Order
                                   </button>
                                 </div>
                               </td>
