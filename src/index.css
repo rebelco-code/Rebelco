@@ -275,6 +275,14 @@ a {
   color: #121212;
 }
 
+.admina-theme header,
+.admina-theme section,
+.admina-theme article,
+.admina-theme [class*="bg-"]:not(button):not(a):not(input):not(textarea):not(select):not(option) {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
 .admina-theme [class*="rounded"] {
   border-radius: 0 !important;
 }
