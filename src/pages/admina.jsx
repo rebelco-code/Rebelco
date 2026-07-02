@@ -1933,12 +1933,15 @@ export default function AdminaPage() {
                               <div className="min-w-0">
                                 <h3
                                   className="break-words text-3xl leading-none text-white"
-                                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                                  style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: "#ffffff" }}
                                 >
                                   {group.category}
                                 </h3>
 
-                                <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45">
+                                <p
+                                  className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/45"
+                                  style={{ color: "rgba(255, 255, 255, 0.45)" }}
+                                >
                                   {isOpen ? "Click to collapse" : "Click to expand"}
                                 </p>
                               </div>
