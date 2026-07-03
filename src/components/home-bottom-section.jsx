@@ -26,7 +26,17 @@ export default function HomeBottomSection() {
                   href={item.href}
                   className="group border border-black/10 bg-white transition hover:shadow-[0_14px_34px_rgba(0,0,0,0.08)]"
                 >
-                  <div className="aspect-[4/3] bg-[linear-gradient(135deg,#fafaf8_0%,#ecece7_100%)]" />
+                  <div className="aspect-[4/3] overflow-hidden bg-[linear-gradient(135deg,#fafaf8_0%,#ecece7_100%)]">
+                    {item.imageSrc ? (
+                      <img
+                        src={item.imageSrc}
+                        alt={item.imageAlt || item.title}
+                        className="h-full w-full bg-black object-contain p-8"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : null}
+                  </div>
                   <div className="p-5">
                     <h3
                       className="text-2xl leading-tight"

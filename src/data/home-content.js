@@ -1,8 +1,13 @@
+import mensProductsImage from "../assets/home/cards/mens-products.png";
+import bathSoapsSaltsImage from "../assets/home/cards/bath-soaps-salts.png";
+import creamsLipBalmImage from "../assets/home/cards/creams-lip-balm.png";
+import kitchenCandlesImage from "../assets/home/cards/kitchen-candles.png";
+
 export const contactLinks = {
   phoneDisplay: "+27 63 693 6204",
   phoneHref: "tel:+27636936204",
-  email: "rebeldisruption@gmail.com",
-  emailHref: "mailto:rebeldisruption@gmail.com",
+  email: "Sales@rebel-info.com",
+  emailHref: "mailto:Sales@rebel-info.com",
   facebookHref: "https://www.facebook.com/share/18JxVQu4KQ/",
   whatsappCatalogueHref: "https://wa.me/c/27636936204",
 };
@@ -142,24 +147,32 @@ export const homeFeatureSections = [
         body: "Shaving bars, beard care, brushes, and practical daily grooming staples.",
         linkLabel: "Shop grooming",
         href: "/products",
+        imageSrc: mensProductsImage,
+        imageAlt: "Men's grooming category icon",
       },
       {
         title: "Bath Soaps & Salts",
         body: "Shampoo bars and natural soaps across the deepest part of the catalogue.",
         linkLabel: "Shop soaps",
         href: "/products",
+        imageSrc: bathSoapsSaltsImage,
+        imageAlt: "Bath soaps and salts category icon",
       },
       {
         title: "Creams & Lip Balm",
         body: "Daily-use creams and softer skincare built to round out the range.",
         linkLabel: "Shop skincare",
         href: "/products",
+        imageSrc: creamsLipBalmImage,
+        imageAlt: "Creams and lip balm category icon",
       },
       {
         title: "Kitchen & Candles",
         body: "Utility bars, home goods, candles, and gift-friendly household staples.",
         linkLabel: "Shop home",
         href: "/products",
+        imageSrc: kitchenCandlesImage,
+        imageAlt: "Kitchen and candles category icon",
       },
     ],
   },
