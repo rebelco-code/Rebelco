@@ -2,6 +2,10 @@ import mensProductsImage from "../assets/home/cards/mens-products.png";
 import bathSoapsSaltsImage from "../assets/home/cards/bath-soaps-salts.png";
 import creamsLipBalmImage from "../assets/home/cards/creams-lip-balm.png";
 import kitchenCandlesImage from "../assets/home/cards/kitchen-candles.png";
+import petProductsImage from "../assets/home/cards/pet-products.png";
+import whatsappCatalogueImage from "../assets/home/cards/whatsapp-catalogue.png";
+import callRebelcoImage from "../assets/home/cards/call-rebelco.png";
+import emailOrdersImage from "../assets/home/cards/email-orders.png";
 
 export const contactLinks = {
   phoneDisplay: "+27 63 693 6204",
@@ -187,24 +191,32 @@ export const homeFeatureSections = [
         body: "Treats, bones, hooves, and chew-focused stock for repeat pet orders.",
         linkLabel: "Open PET page",
         href: "/products-company-2",
+        imageSrc: petProductsImage,
+        imageAlt: "Pet products category icon",
       },
       {
         title: "WhatsApp Catalogue",
         body: "Open the catalogue in WhatsApp when you want to browse quickly and ask as you go.",
         linkLabel: "Open WhatsApp",
         href: contactLinks.whatsappCatalogueHref,
+        imageSrc: whatsappCatalogueImage,
+        imageAlt: "WhatsApp catalogue icon",
       },
       {
         title: "Call Rebelco",
         body: "Use direct contact for fast questions about stock, gifting, or custom requests.",
         linkLabel: "Call now",
         href: contactLinks.phoneHref,
+        imageSrc: callRebelcoImage,
+        imageAlt: "Call Rebelco icon",
       },
       {
         title: "Email Orders",
         body: "Best for custom gifting, hotel soap requirements, or longer order notes.",
         linkLabel: "Send email",
         href: contactLinks.emailHref,
+        imageSrc: emailOrdersImage,
+        imageAlt: "Email orders icon",
       },
     ],
   },
