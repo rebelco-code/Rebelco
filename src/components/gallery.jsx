@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { homeHero } from "../data/home-content";
-import heroImage from "../assets/wallpaper/home/gallery/ChatGPT Image Apr 1, 2026, 02_40_47 PM.webp";
+import heroImage from "../assets/wallpaper/home/gallery/cow-hero.png";
 
 export default function Gallery() {
   return (
