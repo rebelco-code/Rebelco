@@ -3,7 +3,9 @@ import { requireAdminSession } from "../_utils/adminAuth.js";
 import { HttpError } from "../_utils/errors.js";
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
 import {
+  createPromoCodeAssignment,
   createProduct,
+  deletePromoCodeAssignment,
   deleteProduct,
   MAX_IMAGE_SIZE_BYTES,
   MAX_PRODUCT_IMAGES,
@@ -165,6 +167,10 @@ export default async function handler(request, response) {
         result = await setProductOutOfStock(productId);
       } else if (body.action === "set-stock-amount") {
         result = await updateProductStock(productId, body.stockAmount);
+      } else if (body.action === "create-promo-code") {
+        result = await createPromoCodeAssignment(body);
+      } else if (body.action === "delete-promo-code") {
+        result = await deletePromoCodeAssignment(body.promoCodeId);
       } else if (body.action === "update-product-details") {
         result = await updateProductDetails(productId, body.fields || body, [], {
           existingImagePathnames: body.existingImagePathnames,

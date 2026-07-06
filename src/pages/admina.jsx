@@ -44,6 +44,12 @@ const initialLoginForm = {
   email: "",
   password: "",
 };
+const initialPromoForm = {
+  code: "",
+  startDate: "",
+  endDate: "",
+  discountPercentage: "",
+};
 
 const HIDDEN_ORDERS_STORAGE_KEY = "rebelco-admin-hidden-orders";
 
@@ -296,6 +302,10 @@ function serializeProductList(value) {
   return getProductList(value).join(", ");
 }
 
+function getProductPromoCodes(product) {
+  return Array.isArray(product?.promoCodes) ? product.promoCodes : [];
+}
+
 function buildProductFieldsPayload(form) {
   return {
     companyKey: form.companyKey,
@@ -364,8 +374,11 @@ export default function AdminaPage() {
   const [ordersStatus, setOrdersStatus] = useState("idle");
   const [editingProductId, setEditingProductId] = useState("");
   const [formStatus, setFormStatus] = useState("idle");
+  const [promoForm, setPromoForm] = useState(initialPromoForm);
+  const [promoStatus, setPromoStatus] = useState("idle");
   const [loginStatus, setLoginStatus] = useState("idle");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedPromoProductIds, setSelectedPromoProductIds] = useState([]);
   const [openCategories, setOpenCategories] = useState({});
   const [productActionStatus, setProductActionStatus] = useState("");
   const [stockUpdateByProduct, setStockUpdateByProduct] = useState({});
@@ -459,6 +472,43 @@ export default function AdminaPage() {
       products: categoryProducts,
     }));
   }, [filteredProducts]);
+
+  const promoCodeSummaries = useMemo(() => {
+    const promoMap = new Map();
+
+    products.forEach((product) => {
+      getProductPromoCodes(product).forEach((promoCode) => {
+        if (!promoCode?.id) {
+          return;
+        }
+
+        const existingPromo = promoMap.get(promoCode.id);
+
+        if (existingPromo) {
+          existingPromo.productTitles.push(String(product.title || "Product"));
+          return;
+        }
+
+        promoMap.set(promoCode.id, {
+          ...promoCode,
+          productTitles: [String(product.title || "Product")],
+        });
+      });
+    });
+
+    return Array.from(promoMap.values())
+      .map((promoCode) => ({
+        ...promoCode,
+        productTitles: Array.from(new Set(promoCode.productTitles)).sort((left, right) =>
+          left.localeCompare(right),
+        ),
+      }))
+      .sort((left, right) => {
+        const leftTime = Date.parse(String(left.createdAt || ""));
+        const rightTime = Date.parse(String(right.createdAt || ""));
+        return (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0);
+      });
+  }, [products]);
 
   const visibleOrders = useMemo(() => {
     const hiddenOrderIdSet = new Set(hiddenOrderIds);
@@ -589,6 +639,13 @@ export default function AdminaPage() {
   }, [visibleOrderGroupIds]);
 
   useEffect(() => {
+    const productIdSet = new Set(products.map((product) => String(product.id || "").trim()).filter(Boolean));
+    setSelectedPromoProductIds((currentSelectedPromoProductIds) =>
+      currentSelectedPromoProductIds.filter((productId) => productIdSet.has(productId)),
+    );
+  }, [products]);
+
+  useEffect(() => {
     setTrackingDraftsByOrderGroup((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
       let changed = false;
@@ -699,6 +756,121 @@ export default function AdminaPage() {
 
   function selectExistingScent(scent) {
     appendListValue("scents", scent);
+  }
+
+  function updatePromoField(event) {
+    const { name, value } = event.target;
+
+    setPromoForm((currentPromoForm) => ({
+      ...currentPromoForm,
+      [name]: value,
+    }));
+  }
+
+  function togglePromoProductSelection(productId) {
+    const normalizedProductId = String(productId || "").trim();
+
+    if (!normalizedProductId) {
+      return;
+    }
+
+    setSelectedPromoProductIds((currentSelectedPromoProductIds) =>
+      currentSelectedPromoProductIds.includes(normalizedProductId)
+        ? currentSelectedPromoProductIds.filter((selectedProductId) => selectedProductId !== normalizedProductId)
+        : [...currentSelectedPromoProductIds, normalizedProductId],
+    );
+  }
+
+  function selectAllPromoProducts() {
+    setSelectedPromoProductIds(
+      products.map((product) => String(product.id || "").trim()).filter(Boolean),
+    );
+  }
+
+  function clearPromoProductSelection() {
+    setSelectedPromoProductIds([]);
+  }
+
+  async function submitPromoCode(event) {
+    event.preventDefault();
+
+    if (promoStatus === "saving") {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setPromoStatus("saving");
+
+    try {
+      const data = await fetchJsonWithRetry(
+        "/api/admin/products",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            action: "create-promo-code",
+            code: promoForm.code,
+            startDate: promoForm.startDate,
+            endDate: promoForm.endDate,
+            discountPercentage: promoForm.discountPercentage,
+            productIds: selectedPromoProductIds,
+          }),
+        },
+        "Promo code could not be saved.",
+      );
+
+      setProducts(data.products || []);
+      setPromoForm(initialPromoForm);
+      setSelectedPromoProductIds([]);
+      setMessage(`Promo code "${String(data.promoCode?.code || promoForm.code).toUpperCase()}" saved.`);
+    } catch (promoError) {
+      setError(promoError.message);
+    } finally {
+      setPromoStatus("idle");
+    }
+  }
+
+  async function removePromoCode(promoCodeId) {
+    if (!promoCodeId || promoStatus === "saving") {
+      return;
+    }
+
+    const confirmed = window.confirm("Remove this promo code from all assigned products?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setPromoStatus("saving");
+
+    try {
+      const data = await fetchJsonWithRetry(
+        "/api/admin/products",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          cache: "no-store",
+          body: JSON.stringify({
+            action: "delete-promo-code",
+            promoCodeId,
+          }),
+        },
+        "Promo code could not be removed.",
+      );
+
+      setProducts(data.products || []);
+      setMessage(`Promo code "${String(data.removedPromoCode?.code || "").toUpperCase()}" removed.`);
+    } catch (promoError) {
+      setError(promoError.message);
+    } finally {
+      setPromoStatus("idle");
+    }
   }
 
   function toggleCategory(category) {
@@ -2204,6 +2376,230 @@ export default function AdminaPage() {
                 </section>
 
                 <section className="min-w-0 overflow-hidden rounded-2xl border border-[#d8d8d1] bg-white p-4 shadow-2xl shadow-black/10 sm:p-5">
+                  <div className="flex min-w-0 flex-col gap-3 border-b border-[#d8d8d1] pb-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                      <h2
+                        className="text-3xl leading-none text-[#121212] sm:text-4xl"
+                        style={{ fontFamily: '"Cormorant Garamond", Georgia, serif' }}
+                      >
+                        Promo Codes
+                      </h2>
+
+                      <p className="mt-2 text-sm leading-6 text-[#555555]">
+                        Select products below, then create a code with dates and a percentage discount.
+                      </p>
+                    </div>
+
+                    <div className="shrink-0 self-start rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#555555] sm:self-auto">
+                      {selectedPromoProductIds.length} selected
+                    </div>
+                  </div>
+
+                  <form className="mt-4 grid gap-4" onSubmit={submitPromoCode}>
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <label className="grid gap-1.5 text-sm text-[#555555]">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
+                          Promo Code
+                        </span>
+                        <input
+                          name="code"
+                          value={promoForm.code}
+                          onChange={updatePromoField}
+                          required
+                          placeholder="WINTER20"
+                          className="w-full rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] px-3.5 py-3 text-sm text-[#121212] outline-none transition placeholder:text-[#777777] focus:border-[#121212]"
+                        />
+                      </label>
+
+                      <label className="grid gap-1.5 text-sm text-[#555555]">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
+                          Discount %
+                        </span>
+                        <input
+                          name="discountPercentage"
+                          value={promoForm.discountPercentage}
+                          onChange={updatePromoField}
+                          required
+                          inputMode="decimal"
+                          placeholder="20"
+                          className="w-full rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] px-3.5 py-3 text-sm text-[#121212] outline-none transition placeholder:text-[#777777] focus:border-[#121212]"
+                        />
+                      </label>
+
+                      <label className="grid gap-1.5 text-sm text-[#555555]">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
+                          Start Date
+                        </span>
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={promoForm.startDate}
+                          onChange={updatePromoField}
+                          required
+                          className="w-full rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] px-3.5 py-3 text-sm text-[#121212] outline-none transition focus:border-[#121212]"
+                        />
+                      </label>
+
+                      <label className="grid gap-1.5 text-sm text-[#555555]">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
+                          End Date
+                        </span>
+                        <input
+                          type="date"
+                          name="endDate"
+                          value={promoForm.endDate}
+                          onChange={updatePromoField}
+                          required
+                          className="w-full rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] px-3.5 py-3 text-sm text-[#121212] outline-none transition focus:border-[#121212]"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#d8d8d1] bg-[#f8f8f6] p-4">
+                      <div className="flex flex-col gap-3 border-b border-[#d8d8d1] pb-3 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
+                            Existing Products
+                          </div>
+                          <div className="mt-1 text-xs leading-5 text-[#777777]">
+                            Select the products that already exist in your catalogue.
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={selectAllPromoProducts}
+                            disabled={products.length === 0}
+                            className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#555555] transition hover:border-[#121212] hover:text-[#121212] disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Select All
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={clearPromoProductSelection}
+                            disabled={selectedPromoProductIds.length === 0}
+                            className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#555555] transition hover:border-[#121212] hover:text-[#121212] disabled:cursor-not-allowed disabled:opacity-55"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+
+                      {products.length > 0 ? (
+                        <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                          {products.map((product) => {
+                            const isSelected = selectedPromoProductIds.includes(product.id);
+
+                            return (
+                              <label
+                                key={`promo-selector-${product.id}`}
+                                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-sm transition ${
+                                  isSelected
+                                    ? "border-[#121212] bg-white text-[#121212]"
+                                    : "border-[#d8d8d1] bg-white/70 text-[#555555] hover:border-[#121212]"
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => togglePromoProductSelection(product.id)}
+                                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#121212]"
+                                />
+
+                                <span className="min-w-0">
+                                  <span className="block truncate font-semibold text-[#121212]">
+                                    {product.title}
+                                  </span>
+                                  <span className="mt-1 block text-xs text-[#777777]">
+                                    {product.category || "Uncategorised"} •{" "}
+                                    {PRODUCT_COMPANY_LABEL_BY_KEY[
+                                      String(product.companyKey || DEFAULT_PRODUCT_COMPANY_KEY)
+                                    ] || PRODUCT_COMPANY_LABEL_BY_KEY[DEFAULT_PRODUCT_COMPANY_KEY]}
+                                  </span>
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="mt-3 rounded-xl border border-[#d8d8d1] bg-white px-3 py-3 text-sm text-[#555555]">
+                          No existing products found yet.
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="submit"
+                        disabled={promoStatus === "saving" || selectedPromoProductIds.length === 0}
+                        className="rounded-xl border border-[#121212] bg-[#121212] px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
+                      >
+                        {promoStatus === "saving" ? "Saving Promo..." : "Save Promo Code"}
+                      </button>
+
+                      <div className="text-xs text-[#555555]">
+                        {selectedPromoProductIds.length === 0
+                          ? "Select at least one existing product."
+                          : "The code will be attached to every selected product."}
+                      </div>
+                    </div>
+                  </form>
+
+                  <div className="mt-4 border-t border-[#d8d8d1] pt-4">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
+                      Existing Promo Codes
+                    </div>
+
+                    {promoCodeSummaries.length > 0 ? (
+                      <div className="mt-3 grid gap-3 xl:grid-cols-2">
+                        {promoCodeSummaries.map((promoCode) => (
+                          <article
+                            key={promoCode.id}
+                            className="rounded-2xl border border-[#d8d8d1] bg-[#f8f8f6] p-3"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#121212]">
+                                  {promoCode.code}
+                                </div>
+                                <div className="mt-1 text-xs text-[#555555]">
+                                  {promoCode.discountPercentage}% off
+                                </div>
+                                <div className="mt-1 text-xs text-[#777777]">
+                                  {promoCode.startDate} to {promoCode.endDate}
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => removePromoCode(promoCode.id)}
+                                disabled={promoStatus === "saving"}
+                                className="rounded-full border border-red-300/35 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-red-700 transition hover:border-red-500 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-55"
+                              >
+                                Remove
+                              </button>
+                            </div>
+
+                            <div className="mt-3 text-[10px] uppercase tracking-[0.16em] text-[#777777]">
+                              Products
+                            </div>
+                            <div className="mt-1 text-xs leading-5 text-[#555555]">
+                              {promoCode.productTitles.join(", ")}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mt-3 rounded-xl border border-[#d8d8d1] bg-[#f8f8f6] p-3 text-sm text-[#555555]">
+                        No promo codes yet.
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <section className="min-w-0 overflow-hidden rounded-2xl border border-[#d8d8d1] bg-white p-4 shadow-2xl shadow-black/10 sm:p-5">
                   <div className="flex min-w-0 flex-col gap-3 border-b border-[#d8d8d1] pb-4">
                     <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div className="min-w-0">
@@ -2308,12 +2704,14 @@ export default function AdminaPage() {
                                   const isOutOfStock = Number(product.stockAmount) <= 0;
                                   const isBusy = Boolean(productActionStatus);
                                   const isCurrentBusy = productActionStatus === product.id;
+                                  const isPromoSelected = selectedPromoProductIds.includes(product.id);
                                   const stockDraftValue = String(
                                     stockUpdateByProduct[product.id] ??
                                       Math.max(0, Number(product.stockAmount) || 0),
                                   );
                                   const colors = getProductList(product.colors);
                                   const scents = getProductList(product.scents);
+                                  const activePromoCode = product.activePromoCode || null;
                                   const discountAmount = Number(
                                     product.specialOption?.discountAmount || 0,
                                   );
@@ -2363,6 +2761,16 @@ export default function AdminaPage() {
                                           </div>
                                         ) : null}
 
+                                        <label className="absolute right-3 bottom-3 flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur">
+                                          <input
+                                            type="checkbox"
+                                            checked={isPromoSelected}
+                                            onChange={() => togglePromoProductSelection(product.id)}
+                                            className="h-3.5 w-3.5 accent-amber-200"
+                                          />
+                                          Selected
+                                        </label>
+
                                         {product.specialOption?.enabled ? (
                                           <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-amber-300/25 bg-amber-950/80 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-100 backdrop-blur">
                                             <span className="block truncate">
@@ -2400,7 +2808,16 @@ export default function AdminaPage() {
                                           </div>
 
                                           <div className="shrink-0 self-start rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/80 sm:self-auto">
-                                            {formatPrice(product.price)}
+                                            {Number(product.effectivePrice ?? product.price) < Number(product.price) ? (
+                                              <span className="flex flex-col items-end">
+                                                <span>{formatPrice(product.effectivePrice)}</span>
+                                                <span className="text-[10px] text-white/45 line-through">
+                                                  {formatPrice(product.price)}
+                                                </span>
+                                              </span>
+                                            ) : (
+                                              formatPrice(product.price)
+                                            )}
                                           </div>
                                         </div>
 
@@ -2440,6 +2857,20 @@ export default function AdminaPage() {
                                                   {scent}
                                                 </span>
                                               ))}
+                                            </div>
+                                          </div>
+                                        ) : null}
+
+                                        {activePromoCode ? (
+                                          <div className="mt-2 rounded-xl border border-emerald-300/25 bg-emerald-950/20 p-2 text-[10px] leading-4 text-emerald-100">
+                                            <div className="font-semibold uppercase tracking-[0.16em]">
+                                              Promo {activePromoCode.code}
+                                            </div>
+                                            <div className="mt-1 text-emerald-100/70">
+                                              {activePromoCode.discountPercentage}% off
+                                            </div>
+                                            <div className="mt-1 text-emerald-100/70">
+                                              {activePromoCode.startDate} to {activePromoCode.endDate}
                                             </div>
                                           </div>
                                         ) : null}

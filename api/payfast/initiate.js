@@ -80,7 +80,7 @@ function calculateOrderTotal(createdOrders) {
 function calculateReservedItemsTotal(items) {
   return items.reduce((sum, item) => {
     const quantity = Number.parseInt(String(item?.quantity || "0"), 10);
-    const unitPrice = Number(item?.product?.price || 0);
+    const unitPrice = Number(item?.product?.effectivePrice ?? item?.product?.price ?? 0);
 
     if (!Number.isInteger(quantity) || quantity < 1 || !Number.isFinite(unitPrice)) {
       return sum;

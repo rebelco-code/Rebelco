@@ -107,6 +107,39 @@ function getSpecialPrice(product) {
   return Math.max(0, Math.round((price - discountAmount) * 100) / 100);
 }
 
+function getActivePromoCode(product) {
+  return product?.activePromoCode || null;
+}
+
+function getPromoPrice(product) {
+  const promoPrice = Number(product?.promoPrice);
+  return Number.isFinite(promoPrice) ? promoPrice : null;
+}
+
+function getPricingDetails(product) {
+  const basePrice = Number(product?.price || 0);
+  const specialPrice = getSpecialPrice(product);
+  const activePromoCode = getActivePromoCode(product);
+  const promoPrice = getPromoPrice(product);
+  const effectivePrice = Number(product?.effectivePrice);
+  const displayPrice = Number.isFinite(effectivePrice)
+    ? effectivePrice
+    : specialPrice !== null
+      ? specialPrice
+      : promoPrice !== null
+        ? promoPrice
+        : basePrice;
+
+  return {
+    basePrice,
+    specialPrice,
+    activePromoCode,
+    promoPrice,
+    displayPrice,
+    hasDiscount: displayPrice < basePrice,
+  };
+}
+
 function isUrl(value) {
   try {
     new URL(value);
@@ -171,13 +204,7 @@ function shortenDescription(value, maxLength = 180) {
 }
 
 function getEffectiveProductPrice(product) {
-  const specialPrice = getSpecialPrice(product);
-
-  if (specialPrice !== null) {
-    return Number(specialPrice || 0);
-  }
-
-  return Number(product?.price || 0);
+  return getPricingDetails(product).displayPrice;
 }
 
 function safeTime(value) {
@@ -378,8 +405,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     [selectedProduct],
   );
 
-  const selectedProductSpecialPrice = useMemo(
-    () => (selectedProduct ? getSpecialPrice(selectedProduct) : null),
+  const selectedProductActivePromoCode = useMemo(
+    () => (selectedProduct ? getActivePromoCode(selectedProduct) : null),
     [selectedProduct],
   );
 
@@ -1170,8 +1197,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                           const mainImage = productImages[0];
                           const colors = getProductList(product.colors);
                           const scents = getProductList(product.scents);
+                          const pricing = getPricingDetails(product);
                           const hasSpecialOption = isSpecialOptionActive(product);
-                          const specialPrice = getSpecialPrice(product);
 
                           return (
                             <article
@@ -1204,7 +1231,11 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   </div>
                                 ) : null}
 
-                                {hasSpecialOption ? (
+                                {pricing.activePromoCode ? (
+                                  <div className="absolute left-3 bottom-3 border border-emerald-300/40 bg-emerald-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-emerald-100 backdrop-blur">
+                                    {pricing.activePromoCode.code} • {pricing.activePromoCode.discountPercentage}% off
+                                  </div>
+                                ) : hasSpecialOption ? (
                                   <div className="absolute left-3 bottom-3 border border-amber-300/40 bg-amber-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-100 backdrop-blur">
                                     {product.specialOption.label || "Special"}
                                   </div>
@@ -1242,18 +1273,18 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   </h3>
 
                                   <div className="shrink-0 text-right">
-                                    {specialPrice !== null ? (
+                                    {pricing.hasDiscount ? (
                                       <>
                                         <div className="text-base text-amber-100">
-                                          {formatPrice(specialPrice)}
+                                          {formatPrice(pricing.displayPrice)}
                                         </div>
                                         <div className="text-xs text-[var(--theme-text-soft)] line-through opacity-80">
-                                          {formatPrice(product.price)}
+                                          {formatPrice(pricing.basePrice)}
                                         </div>
                                       </>
                                     ) : (
                                       <div className="text-base text-[var(--theme-text)]">
-                                        {formatPrice(product.price)}
+                                        {formatPrice(pricing.basePrice)}
                                       </div>
                                     )}
 
@@ -1312,7 +1343,20 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   </div>
                                 ) : null}
 
-                                {hasSpecialOption ? (
+                                {pricing.activePromoCode ? (
+                                  <div className="mt-5 border border-emerald-300/25 bg-emerald-950/20 p-3 text-sm leading-6 text-emerald-100">
+                                    <strong className="block text-xs uppercase tracking-[0.2em]">
+                                      Promo code {pricing.activePromoCode.code}
+                                    </strong>
+                                    <span className="mt-1 block text-emerald-100/75">
+                                      Available from {formatDisplayDate(pricing.activePromoCode.startDate)} to{" "}
+                                      {formatDisplayDate(pricing.activePromoCode.endDate)}.
+                                    </span>
+                                    <span className="mt-1 block font-semibold text-emerald-100">
+                                      Save {pricing.activePromoCode.discountPercentage}%
+                                    </span>
+                                  </div>
+                                ) : hasSpecialOption ? (
                                   <div className="mt-5 border border-amber-300/25 bg-amber-950/20 p-3 text-sm leading-6 text-amber-100">
                                     <strong className="block text-xs uppercase tracking-[0.2em]">
                                       {product.specialOption.label || "Special Option"}
@@ -1433,6 +1477,12 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                         {selectedProduct.specialOption.label || "Special"}
                       </div>
                     ) : null}
+
+                    {selectedProductActivePromoCode ? (
+                      <div className="absolute right-3 bottom-3 border border-emerald-300/40 bg-emerald-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-emerald-100 backdrop-blur">
+                        {selectedProductActivePromoCode.code} • {selectedProductActivePromoCode.discountPercentage}% off
+                      </div>
+                    ) : null}
                   </div>
 
                   {selectedProductImages.length > 1 ? (
@@ -1466,10 +1516,10 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                   ) : null}
 
                   <div className="theme-kicker mt-4 border-t border-[var(--theme-border)] pt-4 text-sm opacity-80">
-                    {selectedProductSpecialPrice !== null ? (
+                    {Number(selectedProduct?.effectivePrice ?? selectedProduct?.price ?? 0) < Number(selectedProduct?.price ?? 0) ? (
                       <>
                         <span className="text-amber-100">
-                          {formatPrice(selectedProductSpecialPrice)}
+                          {formatPrice(selectedProduct?.effectivePrice)}
                         </span>{" "}
                         <span className="text-[var(--theme-text-soft)] line-through opacity-80">
                           {formatPrice(selectedProduct.price)}
@@ -1541,6 +1591,21 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                           Save {formatPrice(selectedProduct.specialOption.discountAmount)}
                         </span>
                       ) : null}
+                    </div>
+                  ) : null}
+
+                  {selectedProductActivePromoCode ? (
+                    <div className="mt-4 border border-emerald-300/25 bg-emerald-950/20 p-3 text-sm leading-6 text-emerald-100">
+                      <strong className="block text-xs uppercase tracking-[0.2em]">
+                        Promo code {selectedProductActivePromoCode.code}
+                      </strong>
+                      <span className="mt-1 block text-emerald-100/75">
+                        Available from {formatDisplayDate(selectedProductActivePromoCode.startDate)} to{" "}
+                        {formatDisplayDate(selectedProductActivePromoCode.endDate)}.
+                      </span>
+                      <span className="mt-1 block font-semibold text-emerald-100">
+                        Save {selectedProductActivePromoCode.discountPercentage}%
+                      </span>
                     </div>
                   ) : null}
                 </div>

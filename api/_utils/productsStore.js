@@ -12,6 +12,7 @@ const WRITE_RETRY_BASE_DELAY_MS = 120;
 const DEFAULT_BLOB_ACCESS = "private";
 const BLOB_ACCESS_VALUES = new Set(["private", "public"]);
 const DEFAULT_CATALOG_CACHE_TTL_MS = 30 * 1000;
+const MAX_PROMO_CODES_PER_PRODUCT = 24;
 export const PRODUCT_COMPANY = {
   STANDARD: "rebelco",
   COMPANY_TWO: "company-2",
@@ -233,6 +234,188 @@ function normalizeSpecialOption(value = {}) {
     startDate,
     endDate,
     discountAmount,
+  };
+}
+
+function parsePercentage(value) {
+  const percentage = Number.parseFloat(
+    String(value || "")
+      .replace(/[^\d.,-]/g, "")
+      .replace(",", "."),
+  );
+
+  if (!Number.isFinite(percentage) || percentage <= 0 || percentage > 100) {
+    return null;
+  }
+
+  return Math.round(percentage * 100) / 100;
+}
+
+function parsePromoCodePercentage(value) {
+  const percentage = parsePercentage(value);
+
+  if (percentage === null) {
+    throw new HttpError(400, "Enter a valid promo discount percentage between 0 and 100.");
+  }
+
+  return percentage;
+}
+
+function cleanPromoCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-_]/g, "")
+    .slice(0, 40);
+}
+
+function normalizePromoCodeEntry(value = {}) {
+  const id = cleanText(value.id, 80);
+  const code = cleanPromoCode(value.code);
+  const startDate = cleanText(value.startDate, 20);
+  const endDate = cleanText(value.endDate, 20);
+  const discountPercentage = parsePercentage(value.discountPercentage);
+
+  if (!id || !code || !startDate || !endDate || discountPercentage === null) {
+    return null;
+  }
+
+  const startTime = Date.parse(startDate);
+  const endTime = Date.parse(endDate);
+
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || startTime > endTime) {
+    return null;
+  }
+
+  return {
+    id,
+    code,
+    startDate,
+    endDate,
+    discountPercentage,
+    createdAt: cleanText(value.createdAt, 40),
+    updatedAt: cleanText(value.updatedAt, 40),
+  };
+}
+
+function normalizePromoCodes(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const seenPromoIds = new Set();
+
+  return value
+    .map((promoCode) => normalizePromoCodeEntry(promoCode))
+    .filter((promoCode) => {
+      if (!promoCode || seenPromoIds.has(promoCode.id)) {
+        return false;
+      }
+
+      seenPromoIds.add(promoCode.id);
+      return true;
+    })
+    .slice(0, MAX_PROMO_CODES_PER_PRODUCT);
+}
+
+function isSpecialOptionActive(specialOption, currentDate = new Date()) {
+  if (!specialOption?.enabled || !specialOption.startDate || !specialOption.endDate) {
+    return false;
+  }
+
+  const startTime = Date.parse(`${specialOption.startDate}T00:00:00`);
+  const endTime = Date.parse(`${specialOption.endDate}T23:59:59`);
+
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+    return false;
+  }
+
+  const currentTime = currentDate.getTime();
+  return currentTime >= startTime && currentTime <= endTime;
+}
+
+function isPromoCodeActive(promoCode, currentDate = new Date()) {
+  if (!promoCode?.startDate || !promoCode?.endDate) {
+    return false;
+  }
+
+  const startTime = Date.parse(`${promoCode.startDate}T00:00:00`);
+  const endTime = Date.parse(`${promoCode.endDate}T23:59:59`);
+
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+    return false;
+  }
+
+  const currentTime = currentDate.getTime();
+  return currentTime >= startTime && currentTime <= endTime;
+}
+
+function getPromoDiscountedPrice(price, promoCode) {
+  const basePrice = Number(price || 0);
+  const discountPercentage = Number(promoCode?.discountPercentage || 0);
+
+  if (!Number.isFinite(basePrice) || !Number.isFinite(discountPercentage) || discountPercentage <= 0) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((basePrice * (1 - discountPercentage / 100)) * 100) / 100);
+}
+
+function getActivePromoCode(promoCodes, price) {
+  const currentDate = new Date();
+
+  return normalizePromoCodes(promoCodes).reduce((bestPromoCode, promoCode) => {
+    if (!isPromoCodeActive(promoCode, currentDate)) {
+      return bestPromoCode;
+    }
+
+    const promoPrice = getPromoDiscountedPrice(price, promoCode);
+
+    if (promoPrice === null) {
+      return bestPromoCode;
+    }
+
+    if (!bestPromoCode) {
+      return promoCode;
+    }
+
+    const bestPromoPrice = getPromoDiscountedPrice(price, bestPromoCode);
+
+    if (bestPromoPrice === null || promoPrice < bestPromoPrice) {
+      return promoCode;
+    }
+
+    return bestPromoCode;
+  }, null);
+}
+
+function getEffectiveProductPrice(product) {
+  const basePrice = Number(product?.price || 0);
+  const specialOption = normalizeSpecialOption(product?.specialOption || {});
+  const specialPrice =
+    isSpecialOptionActive(specialOption) && Number.isFinite(Number(specialOption.discountAmount))
+      ? Math.max(0, Math.round((basePrice - Number(specialOption.discountAmount || 0)) * 100) / 100)
+      : null;
+  const activePromoCode = getActivePromoCode(product?.promoCodes, basePrice);
+  const promoPrice = activePromoCode ? getPromoDiscountedPrice(basePrice, activePromoCode) : null;
+  const effectivePriceCandidates = [basePrice];
+
+  if (specialPrice !== null) {
+    effectivePriceCandidates.push(specialPrice);
+  }
+
+  if (promoPrice !== null) {
+    effectivePriceCandidates.push(promoPrice);
+  }
+
+  const effectivePrice = Math.min(...effectivePriceCandidates);
+
+  return {
+    promoCodes: normalizePromoCodes(product?.promoCodes),
+    activePromoCode,
+    promoPrice,
+    specialPrice,
+    effectivePrice: Math.round(effectivePrice * 100) / 100,
   };
 }
 
@@ -478,6 +661,7 @@ function normalizeProduct(product) {
     : rawImageUrls;
 
   const minimumOrderQuantity = Number.parseInt(String(product.minimumOrderQuantity || ""), 10);
+  const pricing = getEffectiveProductPrice(product);
 
   return {
     id: String(product.id || ""),
@@ -499,6 +683,11 @@ function normalizeProduct(product) {
     colors: cleanList(product.colors),
     scents: cleanList(product.scents),
     specialOption: normalizeSpecialOption(product.specialOption || {}),
+    promoCodes: pricing.promoCodes,
+    activePromoCode: pricing.activePromoCode,
+    promoPrice: pricing.promoPrice,
+    specialPrice: pricing.specialPrice,
+    effectivePrice: pricing.effectivePrice,
     createdAt: String(product.createdAt || ""),
     updatedAt: String(product.updatedAt || ""),
   };
@@ -1094,6 +1283,142 @@ export async function updateProductDetails(productId, fields, images = [], optio
 
   return {
     product: result.product,
+    products: result.products,
+  };
+}
+
+export async function createPromoCodeAssignment(input = {}) {
+  const code = cleanPromoCode(input.code);
+  const startDate = cleanText(input.startDate, 20);
+  const endDate = cleanText(input.endDate, 20);
+  const discountPercentage = parsePromoCodePercentage(input.discountPercentage);
+  const selectedProductIds = Array.isArray(input.productIds)
+    ? input.productIds.map((productId) => String(productId || "").trim()).filter(Boolean)
+    : [];
+
+  if (!code) {
+    throw new HttpError(400, "Promo code is required.");
+  }
+
+  if (!startDate || !endDate) {
+    throw new HttpError(400, "Promo start and end dates are required.");
+  }
+
+  const startTime = Date.parse(startDate);
+  const endTime = Date.parse(endDate);
+
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+    throw new HttpError(400, "Enter valid promo code dates.");
+  }
+
+  if (startTime > endTime) {
+    throw new HttpError(400, "Promo code start date must be before the end date.");
+  }
+
+  if (selectedProductIds.length === 0) {
+    throw new HttpError(400, "Select at least one product for this promo code.");
+  }
+
+  const uniqueProductIds = Array.from(new Set(selectedProductIds));
+  const now = new Date().toISOString();
+  const promoCodeEntry = {
+    id: `promo-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    code,
+    startDate,
+    endDate,
+    discountPercentage,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const result = await mutateProductsWithRetry((products) => {
+    const availableProductIds = new Set(products.map((product) => String(product.id || "").trim()));
+    const missingProductId = uniqueProductIds.find((productId) => !availableProductIds.has(productId));
+
+    if (missingProductId) {
+      throw new HttpError(404, "One or more selected products were not found.");
+    }
+
+    const updatedProducts = products.map((product) => {
+      if (!uniqueProductIds.includes(product.id)) {
+        return product;
+      }
+
+      const promoCodes = normalizePromoCodes(product.promoCodes);
+
+      if (promoCodes.length >= MAX_PROMO_CODES_PER_PRODUCT) {
+        throw new HttpError(400, `Products can have up to ${MAX_PROMO_CODES_PER_PRODUCT} promo codes.`);
+      }
+
+      return normalizeProduct({
+        ...product,
+        promoCodes: [promoCodeEntry, ...promoCodes],
+        updatedAt: now,
+      });
+    });
+
+    return {
+      promoCode: promoCodeEntry,
+      products: updatedProducts,
+    };
+  });
+
+  return {
+    promoCode: result.promoCode,
+    products: result.products,
+  };
+}
+
+export async function deletePromoCodeAssignment(promoCodeId) {
+  const id = cleanText(promoCodeId, 80);
+
+  if (!id) {
+    throw new HttpError(400, "Promo code ID is required.");
+  }
+
+  const now = new Date().toISOString();
+  const result = await mutateProductsWithRetry((products) => {
+    let removedPromoCode = null;
+    let affectedProductCount = 0;
+
+    const updatedProducts = products.map((product) => {
+      const promoCodes = normalizePromoCodes(product.promoCodes);
+      const retainedPromoCodes = promoCodes.filter((promoCode) => {
+        if (promoCode.id !== id) {
+          return true;
+        }
+
+        removedPromoCode = promoCode;
+        return false;
+      });
+
+      if (retainedPromoCodes.length === promoCodes.length) {
+        return product;
+      }
+
+      affectedProductCount += 1;
+
+      return normalizeProduct({
+        ...product,
+        promoCodes: retainedPromoCodes,
+        updatedAt: now,
+      });
+    });
+
+    if (!removedPromoCode || affectedProductCount === 0) {
+      throw new HttpError(404, "Promo code was not found.");
+    }
+
+    return {
+      removedPromoCode,
+      affectedProductCount,
+      products: updatedProducts,
+    };
+  });
+
+  return {
+    removedPromoCode: result.removedPromoCode,
+    affectedProductCount: result.affectedProductCount,
     products: result.products,
   };
 }

@@ -484,6 +484,8 @@ function validateOrderInput(payload) {
 }
 
 function buildOrderRecord(product, payload, quantity, now, orderGroupId, customerOrderId) {
+  const productPrice = Number(product.effectivePrice ?? product.price ?? 0);
+
   return normalizeOrder({
     id: `order-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
     orderGroupId,
@@ -493,7 +495,7 @@ function buildOrderRecord(product, payload, quantity, now, orderGroupId, custome
     productDescription: product.description,
     productCategory: product.category,
     productWeight: product.weight,
-    productPrice: product.price,
+    productPrice,
     imageUrl: product.imageUrl,
     imageUrls: product.imageUrls,
     quantity,
