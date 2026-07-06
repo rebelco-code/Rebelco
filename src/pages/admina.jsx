@@ -781,16 +781,6 @@ export default function AdminaPage() {
     );
   }
 
-  function selectAllPromoProducts() {
-    setSelectedPromoProductIds(
-      products.map((product) => String(product.id || "").trim()).filter(Boolean),
-    );
-  }
-
-  function clearPromoProductSelection() {
-    setSelectedPromoProductIds([]);
-  }
-
   async function submitPromoCode(event) {
     event.preventDefault();
 
@@ -2455,81 +2445,6 @@ export default function AdminaPage() {
                       </label>
                     </div>
 
-                    <div className="rounded-2xl border border-[#d8d8d1] bg-[#f8f8f6] p-4">
-                      <div className="flex flex-col gap-3 border-b border-[#d8d8d1] pb-3 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#555555]">
-                            Existing Products
-                          </div>
-                          <div className="mt-1 text-xs leading-5 text-[#777777]">
-                            Select the products that already exist in your catalogue.
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={selectAllPromoProducts}
-                            disabled={products.length === 0}
-                            className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#555555] transition hover:border-[#121212] hover:text-[#121212] disabled:cursor-not-allowed disabled:opacity-55"
-                          >
-                            Select All
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={clearPromoProductSelection}
-                            disabled={selectedPromoProductIds.length === 0}
-                            className="rounded-full border border-[#d8d8d1] bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#555555] transition hover:border-[#121212] hover:text-[#121212] disabled:cursor-not-allowed disabled:opacity-55"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-
-                      {products.length > 0 ? (
-                        <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                          {products.map((product) => {
-                            const isSelected = selectedPromoProductIds.includes(product.id);
-
-                            return (
-                              <label
-                                key={`promo-selector-${product.id}`}
-                                className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-sm transition ${
-                                  isSelected
-                                    ? "border-[#121212] bg-white text-[#121212]"
-                                    : "border-[#d8d8d1] bg-white/70 text-[#555555] hover:border-[#121212]"
-                                }`}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => togglePromoProductSelection(product.id)}
-                                  className="mt-0.5 h-4 w-4 shrink-0 accent-[#121212]"
-                                />
-
-                                <span className="min-w-0">
-                                  <span className="block truncate font-semibold text-[#121212]">
-                                    {product.title}
-                                  </span>
-                                  <span className="mt-1 block text-xs text-[#777777]">
-                                    {product.category || "Uncategorised"} •{" "}
-                                    {PRODUCT_COMPANY_LABEL_BY_KEY[
-                                      String(product.companyKey || DEFAULT_PRODUCT_COMPANY_KEY)
-                                    ] || PRODUCT_COMPANY_LABEL_BY_KEY[DEFAULT_PRODUCT_COMPANY_KEY]}
-                                  </span>
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="mt-3 rounded-xl border border-[#d8d8d1] bg-white px-3 py-3 text-sm text-[#555555]">
-                          No existing products found yet.
-                        </div>
-                      )}
-                    </div>
-
                     <div className="flex flex-wrap items-center gap-3">
                       <button
                         type="submit"
@@ -2541,7 +2456,7 @@ export default function AdminaPage() {
 
                       <div className="text-xs text-[#555555]">
                         {selectedPromoProductIds.length === 0
-                          ? "Select at least one existing product."
+                          ? "Tick at least one product below."
                           : "The code will be attached to every selected product."}
                       </div>
                     </div>
@@ -2761,16 +2676,6 @@ export default function AdminaPage() {
                                           </div>
                                         ) : null}
 
-                                        <label className="absolute right-3 bottom-3 flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/75 backdrop-blur">
-                                          <input
-                                            type="checkbox"
-                                            checked={isPromoSelected}
-                                            onChange={() => togglePromoProductSelection(product.id)}
-                                            className="h-3.5 w-3.5 accent-amber-200"
-                                          />
-                                          Selected
-                                        </label>
-
                                         {product.specialOption?.enabled ? (
                                           <div className="absolute bottom-3 left-3 max-w-[calc(100%-24px)] rounded-full border border-amber-300/25 bg-amber-950/80 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-amber-100 backdrop-blur">
                                             <span className="block truncate">
@@ -2893,6 +2798,16 @@ export default function AdminaPage() {
                                         ) : null}
 
                                         <div className="mt-3 grid gap-2 border-t border-white/10 pt-3">
+                                          <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75">
+                                            <input
+                                              type="checkbox"
+                                              checked={isPromoSelected}
+                                              onChange={() => togglePromoProductSelection(product.id)}
+                                              className="h-4 w-4 accent-amber-200"
+                                            />
+                                            Use This Product For Promo Code
+                                          </label>
+
                                           <div className="text-[10px] uppercase tracking-[0.16em] text-white/45">
                                             Update Stock
                                           </div>
