@@ -468,6 +468,11 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
   const normalizedPromoCodeInput = useMemo(() => cleanPromoCode(promoCodeInput), [promoCodeInput]);
 
+  const selectedProductMatchingPromoCode = useMemo(
+    () => (selectedProduct ? getMatchingPromoCode(selectedProduct, normalizedPromoCodeInput) : null),
+    [normalizedPromoCodeInput, selectedProduct],
+  );
+
   const cartLines = useMemo(() => {
     return cartItems
       .map((item) => {
@@ -609,12 +614,15 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     }
 
     const hasEligibleProduct = cartLines.some((line) => line.appliedPromo);
+    const selectedProductStillMatches = selectedProduct
+      ? Boolean(getMatchingPromoCode(selectedProduct, appliedPromoCode))
+      : false;
 
-    if (!hasEligibleProduct) {
+    if (!hasEligibleProduct && !selectedProductStillMatches) {
       setAppliedPromoCode("");
       setOrderMessage("Promo code removed because it no longer applies to the cart.");
     }
-  }, [appliedPromoCode, cartLines]);
+  }, [appliedPromoCode, cartLines, selectedProduct]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1067,7 +1075,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
       return;
     }
 
-    if (promoEligibleLines.length === 0) {
+    if (promoEligibleLines.length === 0 && !selectedProductMatchingPromoCode) {
       setAppliedPromoCode("");
       setOrderError("That promo code does not apply to the current cart.");
       setOrderMessage("");
@@ -1077,7 +1085,11 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     setAppliedPromoCode(normalizedPromoCodeInput);
     setPromoCodeInput(normalizedPromoCodeInput);
     setOrderError("");
-    setOrderMessage(`Promo code ${normalizedPromoCodeInput} applied.`);
+    setOrderMessage(
+      promoEligibleLines.length > 0
+        ? `Promo code ${normalizedPromoCodeInput} applied.`
+        : `Promo code ${normalizedPromoCodeInput} saved and will apply when this product is added to the cart.`,
+    );
   }
 
   function removePromoCode() {
@@ -1831,6 +1843,9 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       <div className="rounded-xl border border-emerald-400/30 bg-emerald-950/25 p-3 text-xs leading-5 text-emerald-100">
                         Applied promo code: <strong>{appliedPromoCode}</strong>
                         {appliedPromoSavings > 0 ? ` • Savings ${formatPrice(appliedPromoSavings)}` : ""}
+                        {appliedPromoSavings <= 0 && selectedProductMatchingPromoCode
+                          ? " • It will apply once this product is added to the cart."
+                          : ""}
                       </div>
                     ) : null}
                   </div>
