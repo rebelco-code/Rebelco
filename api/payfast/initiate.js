@@ -170,6 +170,16 @@ export default async function handler(request, response) {
       custom_str2: String(body.pudoLockerCode || "").trim(),
       custom_str3: customerOrderId,
     });
+
+    console.info("PayFast initiate payload URLs", {
+      orderGroupId,
+      sandbox: payfastConfig.sandbox,
+      processUrl: payfastConfig.processUrl,
+      notifyUrl: payfastFields.notify_url,
+      returnUrl: payfastFields.return_url,
+      cancelUrl: payfastFields.cancel_url,
+    });
+
     const signedFields = buildPayfastFormPayload(payfastFields, payfastConfig.passphrase);
 
     sendJson(response, 200, {
