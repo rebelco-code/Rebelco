@@ -9,7 +9,7 @@ const DEFAULT_SANDBOX_PROCESS_URL = "https://sandbox.payfast.co.za/eng/process";
 const DEFAULT_SANDBOX_VALIDATE_URL = "https://sandbox.payfast.co.za/eng/query/validate";
 const DEFAULT_RETURN_URL = "https://rebelco.vercel.app/payment/success";
 const DEFAULT_CANCEL_URL = "https://rebelco.vercel.app/payment/cancel";
-const DEFAULT_NOTIFY_URL = "https://rebelco.vercel.app/api/payfast/notify";
+const DEFAULT_NOTIFY_URL = "https://rebelco.vercel.app/api/payfast/itn";
 const DEFAULT_SOURCE_IP_CIDRS = [
   "197.97.145.144/28",
   "41.74.179.192/27",

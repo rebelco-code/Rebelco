@@ -50,7 +50,7 @@ Optional:
 - `PAYFAST_SANDBOX` (`true` for sandbox, otherwise live)
 - `PAYFAST_RETURN_URL` (defaults to `https://rebelco.vercel.app/payment/success`)
 - `PAYFAST_CANCEL_URL` (defaults to `https://rebelco.vercel.app/payment/cancel`)
-- `PAYFAST_NOTIFY_URL` (defaults to `https://rebelco.vercel.app/api/payfast/notify`)
+- `PAYFAST_NOTIFY_URL` (defaults to `https://rebelco.vercel.app/api/payfast/itn`)
 - `PAYFAST_ITN_TRUSTED_IPS` (optional comma-separated CIDRs/IPs to override the built-in PayFast ITN ranges)
 
 4. Start dev server:
@@ -74,7 +74,8 @@ npm run dev
   - `POST /api/orders` (creates the order and returns the signed PayFast redirect payload)
   - `GET /api/pudo-lockers`
   - `POST /api/payfast/initiate`
-  - `POST /api/payfast/notify`
+  - `POST /api/payfast/itn`
+  - `POST /api/payfast/notify` (legacy alias)
   - `GET /api/payfast/status`
 
 - Admin APIs (session required):
