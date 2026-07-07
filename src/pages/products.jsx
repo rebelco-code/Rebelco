@@ -116,6 +116,40 @@ function getPromoPrice(product) {
   return Number.isFinite(promoPrice) ? promoPrice : null;
 }
 
+function cleanPromoCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-_]/g, "")
+    .slice(0, 40);
+}
+
+function isPromoCodeCurrentlyActive(promoCode) {
+  if (!promoCode?.startDate || !promoCode?.endDate) {
+    return false;
+  }
+
+  const now = Date.now();
+  const startTime = Date.parse(`${promoCode.startDate}T00:00:00`);
+  const endTime = Date.parse(`${promoCode.endDate}T23:59:59`);
+
+  return Number.isFinite(startTime) && Number.isFinite(endTime) && now >= startTime && now <= endTime;
+}
+
+function getMatchingPromoCode(product, promoCodeValue) {
+  const normalizedPromoCode = cleanPromoCode(promoCodeValue);
+
+  if (!normalizedPromoCode) {
+    return null;
+  }
+
+  return (Array.isArray(product?.promoCodes) ? product.promoCodes : []).find(
+    (promoCode) =>
+      cleanPromoCode(promoCode?.code) === normalizedPromoCode &&
+      isPromoCodeCurrentlyActive(promoCode),
+  ) || null;
+}
+
 function getPricingDetails(product) {
   const basePrice = Number(product?.price || 0);
   const specialPrice = getSpecialPrice(product);
@@ -207,6 +241,26 @@ function getEffectiveProductPrice(product) {
   return getPricingDetails(product).displayPrice;
 }
 
+function getCheckoutPriceForProduct(product, promoCodeValue) {
+  const pricing = getPricingDetails(product);
+  const matchingPromoCode = getMatchingPromoCode(product, promoCodeValue);
+  const matchingPromoPrice = matchingPromoCode
+    ? Math.max(
+        0,
+        Math.round(
+          (pricing.basePrice * (1 - Number(matchingPromoCode.discountPercentage || 0) / 100)) * 100,
+        ) / 100,
+      )
+    : null;
+  const candidatePrices = [pricing.displayPrice];
+
+  if (matchingPromoPrice !== null) {
+    candidatePrices.push(matchingPromoPrice);
+  }
+
+  return Math.round(Math.min(...candidatePrices) * 100) / 100;
+}
+
 function safeTime(value) {
   const parsedTime = Date.parse(String(value || ""));
   return Number.isFinite(parsedTime) ? parsedTime : 0;
@@ -284,6 +338,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [orderForm, setOrderForm] = useState(() => buildInitialOrderForm());
   const [cartItems, setCartItems] = useState([]);
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState("");
   const [isTrolleyOpen, setIsTrolleyOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState("idle");
   const [locationStatus, setLocationStatus] = useState("idle");
@@ -410,6 +466,8 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     [selectedProduct],
   );
 
+  const normalizedPromoCodeInput = useMemo(() => cleanPromoCode(promoCodeInput), [promoCodeInput]);
+
   const cartLines = useMemo(() => {
     return cartItems
       .map((item) => {
@@ -422,11 +480,18 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
         return {
           ...item,
           product,
-          unitPrice: getEffectiveProductPrice(product),
+          appliedPromo: getMatchingPromoCode(product, appliedPromoCode),
+          baseUnitPrice: getEffectiveProductPrice(product),
+          unitPrice: getCheckoutPriceForProduct(product, appliedPromoCode),
         };
       })
       .filter(Boolean);
-  }, [cartItems, products]);
+  }, [appliedPromoCode, cartItems, products]);
+
+  const promoEligibleLines = useMemo(
+    () => cartLines.filter((line) => getMatchingPromoCode(line.product, normalizedPromoCodeInput)),
+    [cartLines, normalizedPromoCodeInput],
+  );
 
   const cartTotalQuantity = useMemo(
     () => cartLines.reduce((sum, line) => sum + Number(line.quantity || 0), 0),
@@ -440,6 +505,29 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     );
 
     return Math.round(subtotal * 100) / 100;
+  }, [cartLines]);
+
+  const appliedPromoSavings = useMemo(() => {
+    return (
+      Math.round(
+        cartLines.reduce((sum, line) => {
+          const baseUnitPrice = Number(line.baseUnitPrice || 0);
+          const discountedUnitPrice = Number(line.unitPrice || 0);
+          const quantity = Number(line.quantity || 0);
+
+          if (
+            !Number.isFinite(baseUnitPrice) ||
+            !Number.isFinite(discountedUnitPrice) ||
+            !Number.isFinite(quantity) ||
+            quantity < 1
+          ) {
+            return sum;
+          }
+
+          return sum + Math.max(0, baseUnitPrice - discountedUnitPrice) * quantity;
+        }, 0) * 100,
+      ) / 100
+    );
   }, [cartLines]);
 
   const canSubmitOrder =
@@ -514,6 +602,19 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
 
     setSelectedImageIndex(0);
   }, [selectedImageIndex, selectedProductImages.length]);
+
+  useEffect(() => {
+    if (!appliedPromoCode) {
+      return;
+    }
+
+    const hasEligibleProduct = cartLines.some((line) => line.appliedPromo);
+
+    if (!hasEligibleProduct) {
+      setAppliedPromoCode("");
+      setOrderMessage("Promo code removed because it no longer applies to the cart.");
+    }
+  }, [appliedPromoCode, cartLines]);
 
   useEffect(() => {
     let isMounted = true;
@@ -959,6 +1060,33 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     setCartItems((currentItems) => currentItems.filter((item) => item.productId !== productId));
   }
 
+  function applyPromoCode() {
+    if (!normalizedPromoCodeInput) {
+      setOrderError("Enter a promo code first.");
+      setOrderMessage("");
+      return;
+    }
+
+    if (promoEligibleLines.length === 0) {
+      setAppliedPromoCode("");
+      setOrderError("That promo code does not apply to the current cart.");
+      setOrderMessage("");
+      return;
+    }
+
+    setAppliedPromoCode(normalizedPromoCodeInput);
+    setPromoCodeInput(normalizedPromoCodeInput);
+    setOrderError("");
+    setOrderMessage(`Promo code ${normalizedPromoCodeInput} applied.`);
+  }
+
+  function removePromoCode() {
+    setAppliedPromoCode("");
+    setPromoCodeInput("");
+    setOrderError("");
+    setOrderMessage("Promo code removed.");
+  }
+
   function openBasket() {
     if (!selectedProduct && products.length > 0) {
       selectProductForOrder(products[0].id);
@@ -1011,6 +1139,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
         },
         body: JSON.stringify({
           items: cartItems,
+          promoCode: appliedPromoCode,
           customerEmail: orderForm.customerEmail,
           locationText: orderForm.locationText,
           googleMapsLocation: orderForm.googleMapsLocation,
@@ -1661,6 +1790,51 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     Your cart stays in the trolley at the bottom right until you proceed to PayFast.
                   </div>
 
+                  <div className="grid gap-3 rounded-xl border border-[var(--theme-border)] bg-white/75 p-3 text-sm text-[var(--theme-text-soft)]">
+                    <div>
+                      <div className="theme-kicker text-xs text-[var(--theme-text)]">Promo Code</div>
+                      <div className="mt-1 text-xs leading-5">
+                        Apply a valid code before checkout. The discounted amount is sent through to PayFast.
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        type="text"
+                        name="promoCode"
+                        value={promoCodeInput}
+                        onChange={(event) => setPromoCodeInput(cleanPromoCode(event.target.value))}
+                        placeholder="Enter promo code"
+                        className="theme-input min-w-0 flex-1 px-4 py-3 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={applyPromoCode}
+                        disabled={!normalizedPromoCodeInput || orderStatus === "saving"}
+                        className="theme-button-secondary rounded-full px-4 py-3 text-xs uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Apply Code
+                      </button>
+                      {appliedPromoCode ? (
+                        <button
+                          type="button"
+                          onClick={removePromoCode}
+                          disabled={orderStatus === "saving"}
+                          className="rounded-full border border-red-300/40 px-4 py-3 text-xs uppercase tracking-[0.2em] text-red-200 transition hover:border-red-200 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Remove Code
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {appliedPromoCode ? (
+                      <div className="rounded-xl border border-emerald-400/30 bg-emerald-950/25 p-3 text-xs leading-5 text-emerald-100">
+                        Applied promo code: <strong>{appliedPromoCode}</strong>
+                        {appliedPromoSavings > 0 ? ` • Savings ${formatPrice(appliedPromoSavings)}` : ""}
+                      </div>
+                    ) : null}
+                  </div>
+
                   <label className="theme-copy grid gap-2 text-sm">
                     <span className="theme-kicker text-xs opacity-80">
                       Customer Email
@@ -1910,15 +2084,38 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                               x {formatPrice(line.unitPrice)} = {formatPrice(line.unitPrice * line.quantity)}
                             </div>
                           </div>
+                          {line.appliedPromo ? (
+                            <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-emerald-900">
+                              Promo {line.appliedPromo.code} applied
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>
 
                     <div className="mt-3 rounded-lg border border-[var(--theme-border)] bg-white/75 px-3 py-2 text-sm">
+                      {appliedPromoCode ? (
+                        <div className="theme-copy mb-2 flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-2 text-xs">
+                          <span>Promo {appliedPromoCode}</span>
+                          <button
+                            type="button"
+                            onClick={removePromoCode}
+                            className="uppercase tracking-[0.14em] text-red-200/80 underline-offset-4 hover:text-red-100 hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : null}
                       <div className="theme-copy flex items-center justify-between">
                         <span>Total</span>
                         <span className="font-semibold text-[var(--theme-text)]">{formatPrice(cartTotalPrice)}</span>
                       </div>
+                      {appliedPromoCode && appliedPromoSavings > 0 ? (
+                        <div className="theme-copy mt-2 flex items-center justify-between text-xs text-emerald-900">
+                          <span>Savings</span>
+                          <span>-{formatPrice(appliedPromoSavings)}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </>
                 )}

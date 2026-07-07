@@ -483,8 +483,13 @@ function validateOrderInput(payload) {
   };
 }
 
-function buildOrderRecord(product, payload, quantity, now, orderGroupId, customerOrderId) {
-  const productPrice = Number(product.effectivePrice ?? product.price ?? 0);
+function buildOrderRecord(orderItem, payload, now, orderGroupId, customerOrderId) {
+  const product = orderItem?.product || {};
+  const quantity = parseQuantity(orderItem?.quantity);
+  const explicitUnitPrice = Number(orderItem?.unitPrice);
+  const productPrice = Number.isFinite(explicitUnitPrice)
+    ? explicitUnitPrice
+    : Number(product.effectivePrice ?? product.price ?? 0);
 
   return normalizeOrder({
     id: `order-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
@@ -541,18 +546,18 @@ export async function createOrders(orderItems, payload) {
       throw new HttpError(400, "Product ID is required.");
     }
 
-    const quantity = parseQuantity(item?.quantity);
-
     return buildOrderRecord(
       {
-        ...product,
-        id: productId,
+        ...item,
+        product: {
+          ...product,
+          id: productId,
+        },
       },
       {
         ...payload,
         ...input,
       },
-      quantity,
       now,
       orderGroupId,
       customerOrderId,

@@ -269,6 +269,10 @@ function cleanPromoCode(value) {
     .slice(0, 40);
 }
 
+export function sanitizePromoCode(value) {
+  return cleanPromoCode(value);
+}
+
 function normalizePromoCodeEntry(value = {}) {
   const id = cleanText(value.id, 80);
   const code = cleanPromoCode(value.code);
@@ -361,6 +365,56 @@ function getPromoDiscountedPrice(price, promoCode) {
   return Math.max(0, Math.round((basePrice * (1 - discountPercentage / 100)) * 100) / 100);
 }
 
+function getSpecialDiscountedPrice(product) {
+  const basePrice = Number(product?.price || 0);
+  const specialOption = normalizeSpecialOption(product?.specialOption || {});
+
+  if (
+    !Number.isFinite(basePrice) ||
+    !isSpecialOptionActive(specialOption) ||
+    !Number.isFinite(Number(specialOption.discountAmount))
+  ) {
+    return null;
+  }
+
+  return Math.max(0, Math.round((basePrice - Number(specialOption.discountAmount || 0)) * 100) / 100);
+}
+
+export function getCheckoutUnitPrice(product, promoCode = "") {
+  const basePrice = Number(product?.price || 0);
+
+  if (!Number.isFinite(basePrice)) {
+    return 0;
+  }
+
+  const normalizedPromoCode = cleanPromoCode(promoCode);
+  const specialPrice = getSpecialDiscountedPrice(product);
+  const storedEffectivePrice = Number(product?.effectivePrice);
+  const matchingPromoCode = normalizedPromoCode
+    ? normalizePromoCodes(product?.promoCodes).find(
+        (entry) => entry.code === normalizedPromoCode && isPromoCodeActive(entry),
+      ) || null
+    : null;
+  const matchingPromoPrice = matchingPromoCode
+    ? getPromoDiscountedPrice(basePrice, matchingPromoCode)
+    : null;
+  const candidatePrices = [basePrice];
+
+  if (specialPrice !== null) {
+    candidatePrices.push(specialPrice);
+  }
+
+  if (Number.isFinite(storedEffectivePrice) && storedEffectivePrice > 0) {
+    candidatePrices.push(storedEffectivePrice);
+  }
+
+  if (matchingPromoPrice !== null) {
+    candidatePrices.push(matchingPromoPrice);
+  }
+
+  return Math.round(Math.min(...candidatePrices) * 100) / 100;
+}
+
 function getActivePromoCode(promoCodes, price) {
   const currentDate = new Date();
 
@@ -391,11 +445,7 @@ function getActivePromoCode(promoCodes, price) {
 
 function getEffectiveProductPrice(product) {
   const basePrice = Number(product?.price || 0);
-  const specialOption = normalizeSpecialOption(product?.specialOption || {});
-  const specialPrice =
-    isSpecialOptionActive(specialOption) && Number.isFinite(Number(specialOption.discountAmount))
-      ? Math.max(0, Math.round((basePrice - Number(specialOption.discountAmount || 0)) * 100) / 100)
-      : null;
+  const specialPrice = getSpecialDiscountedPrice(product);
   const activePromoCode = getActivePromoCode(product?.promoCodes, basePrice);
   const promoPrice = activePromoCode ? getPromoDiscountedPrice(basePrice, activePromoCode) : null;
   const effectivePriceCandidates = [basePrice];

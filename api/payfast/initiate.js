@@ -8,8 +8,10 @@ import {
 import { requireMethod, readJsonBody, sendError, sendJson } from "../_utils/http.js";
 import { createOrders } from "../_utils/ordersStore.js";
 import {
+  getCheckoutUnitPrice,
   reserveStockForOrderItems,
   restoreStockForOrderItems,
+  sanitizePromoCode,
 } from "../_utils/productsStore.js";
 
 function parseRequestedQuantity(value) {
@@ -80,7 +82,10 @@ function calculateOrderTotal(createdOrders) {
 function calculateReservedItemsTotal(items) {
   return items.reduce((sum, item) => {
     const quantity = Number.parseInt(String(item?.quantity || "0"), 10);
-    const unitPrice = Number(item?.product?.effectivePrice ?? item?.product?.price ?? 0);
+    const explicitUnitPrice = Number(item?.unitPrice);
+    const unitPrice = Number.isFinite(explicitUnitPrice)
+      ? explicitUnitPrice
+      : Number(item?.product?.effectivePrice ?? item?.product?.price ?? 0);
 
     if (!Number.isInteger(quantity) || quantity < 1 || !Number.isFinite(unitPrice)) {
       return sum;
@@ -104,14 +109,20 @@ export default async function handler(request, response) {
           },
         ];
     const orderItems = normalizeOrderItems(rawItemPayloads);
+    const promoCode = sanitizePromoCode(body.promoCode);
 
     const reservation = await reserveStockForOrderItems(orderItems);
-    const reservedAmount = calculateReservedItemsTotal(reservation.items);
+    const pricedReservationItems = reservation.items.map((item) => ({
+      ...item,
+      unitPrice: getCheckoutUnitPrice(item.product, promoCode),
+    }));
+    const reservedAmount = calculateReservedItemsTotal(pricedReservationItems);
     let createdOrderResult;
 
     try {
-      createdOrderResult = await createOrders(reservation.items, {
+      createdOrderResult = await createOrders(pricedReservationItems, {
         ...body,
+        promoCode,
         paymentMethod: "payfast",
         paymentProvider: "payfast",
         paymentStatus: "pending",
