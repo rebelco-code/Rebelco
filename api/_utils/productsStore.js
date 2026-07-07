@@ -365,6 +365,20 @@ function getPromoDiscountedPrice(price, promoCode) {
   return Math.max(0, Math.round((basePrice * (1 - discountPercentage / 100)) * 100) / 100);
 }
 
+export function getMatchingPromoCodeEntry(product, promoCode = "") {
+  const normalizedPromoCode = cleanPromoCode(promoCode);
+
+  if (!normalizedPromoCode) {
+    return null;
+  }
+
+  return (
+    normalizePromoCodes(product?.promoCodes).find(
+      (entry) => entry.code === normalizedPromoCode && isPromoCodeActive(entry),
+    ) || null
+  );
+}
+
 function getSpecialDiscountedPrice(product) {
   const basePrice = Number(product?.price || 0);
   const specialOption = normalizeSpecialOption(product?.specialOption || {});
@@ -389,12 +403,7 @@ export function getCheckoutUnitPrice(product, promoCode = "") {
 
   const normalizedPromoCode = cleanPromoCode(promoCode);
   const specialPrice = getSpecialDiscountedPrice(product);
-  const storedEffectivePrice = Number(product?.effectivePrice);
-  const matchingPromoCode = normalizedPromoCode
-    ? normalizePromoCodes(product?.promoCodes).find(
-        (entry) => entry.code === normalizedPromoCode && isPromoCodeActive(entry),
-      ) || null
-    : null;
+  const matchingPromoCode = getMatchingPromoCodeEntry(product, normalizedPromoCode);
   const matchingPromoPrice = matchingPromoCode
     ? getPromoDiscountedPrice(basePrice, matchingPromoCode)
     : null;
@@ -404,10 +413,6 @@ export function getCheckoutUnitPrice(product, promoCode = "") {
     candidatePrices.push(specialPrice);
   }
 
-  if (Number.isFinite(storedEffectivePrice) && storedEffectivePrice > 0) {
-    candidatePrices.push(storedEffectivePrice);
-  }
-
   if (matchingPromoPrice !== null) {
     candidatePrices.push(matchingPromoPrice);
   }
@@ -415,55 +420,21 @@ export function getCheckoutUnitPrice(product, promoCode = "") {
   return Math.round(Math.min(...candidatePrices) * 100) / 100;
 }
 
-function getActivePromoCode(promoCodes, price) {
-  const currentDate = new Date();
-
-  return normalizePromoCodes(promoCodes).reduce((bestPromoCode, promoCode) => {
-    if (!isPromoCodeActive(promoCode, currentDate)) {
-      return bestPromoCode;
-    }
-
-    const promoPrice = getPromoDiscountedPrice(price, promoCode);
-
-    if (promoPrice === null) {
-      return bestPromoCode;
-    }
-
-    if (!bestPromoCode) {
-      return promoCode;
-    }
-
-    const bestPromoPrice = getPromoDiscountedPrice(price, bestPromoCode);
-
-    if (bestPromoPrice === null || promoPrice < bestPromoPrice) {
-      return promoCode;
-    }
-
-    return bestPromoCode;
-  }, null);
-}
-
 function getEffectiveProductPrice(product) {
   const basePrice = Number(product?.price || 0);
   const specialPrice = getSpecialDiscountedPrice(product);
-  const activePromoCode = getActivePromoCode(product?.promoCodes, basePrice);
-  const promoPrice = activePromoCode ? getPromoDiscountedPrice(basePrice, activePromoCode) : null;
   const effectivePriceCandidates = [basePrice];
 
   if (specialPrice !== null) {
     effectivePriceCandidates.push(specialPrice);
   }
 
-  if (promoPrice !== null) {
-    effectivePriceCandidates.push(promoPrice);
-  }
-
   const effectivePrice = Math.min(...effectivePriceCandidates);
 
   return {
     promoCodes: normalizePromoCodes(product?.promoCodes),
-    activePromoCode,
-    promoPrice,
+    activePromoCode: null,
+    promoPrice: null,
     specialPrice,
     effectivePrice: Math.round(effectivePrice * 100) / 100,
   };

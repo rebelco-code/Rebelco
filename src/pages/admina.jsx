@@ -2626,7 +2626,6 @@ export default function AdminaPage() {
                                   );
                                   const colors = getProductList(product.colors);
                                   const scents = getProductList(product.scents);
-                                  const activePromoCode = product.activePromoCode || null;
                                   const discountAmount = Number(
                                     product.specialOption?.discountAmount || 0,
                                   );
@@ -2762,20 +2761,6 @@ export default function AdminaPage() {
                                                   {scent}
                                                 </span>
                                               ))}
-                                            </div>
-                                          </div>
-                                        ) : null}
-
-                                        {activePromoCode ? (
-                                          <div className="mt-2 rounded-xl border border-emerald-300/25 bg-emerald-950/20 p-2 text-[10px] leading-4 text-emerald-100">
-                                            <div className="font-semibold uppercase tracking-[0.16em]">
-                                              Promo {activePromoCode.code}
-                                            </div>
-                                            <div className="mt-1 text-emerald-100/70">
-                                              {activePromoCode.discountPercentage}% off
-                                            </div>
-                                            <div className="mt-1 text-emerald-100/70">
-                                              {activePromoCode.startDate} to {activePromoCode.endDate}
                                             </div>
                                           </div>
                                         ) : null}

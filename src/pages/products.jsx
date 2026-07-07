@@ -107,15 +107,6 @@ function getSpecialPrice(product) {
   return Math.max(0, Math.round((price - discountAmount) * 100) / 100);
 }
 
-function getActivePromoCode(product) {
-  return product?.activePromoCode || null;
-}
-
-function getPromoPrice(product) {
-  const promoPrice = Number(product?.promoPrice);
-  return Number.isFinite(promoPrice) ? promoPrice : null;
-}
-
 function cleanPromoCode(value) {
   return String(value || "")
     .trim()
@@ -124,51 +115,19 @@ function cleanPromoCode(value) {
     .slice(0, 40);
 }
 
-function isPromoCodeCurrentlyActive(promoCode) {
-  if (!promoCode?.startDate || !promoCode?.endDate) {
-    return false;
-  }
-
-  const now = Date.now();
-  const startTime = Date.parse(`${promoCode.startDate}T00:00:00`);
-  const endTime = Date.parse(`${promoCode.endDate}T23:59:59`);
-
-  return Number.isFinite(startTime) && Number.isFinite(endTime) && now >= startTime && now <= endTime;
-}
-
-function getMatchingPromoCode(product, promoCodeValue) {
-  const normalizedPromoCode = cleanPromoCode(promoCodeValue);
-
-  if (!normalizedPromoCode) {
-    return null;
-  }
-
-  return (Array.isArray(product?.promoCodes) ? product.promoCodes : []).find(
-    (promoCode) =>
-      cleanPromoCode(promoCode?.code) === normalizedPromoCode &&
-      isPromoCodeCurrentlyActive(promoCode),
-  ) || null;
-}
-
 function getPricingDetails(product) {
   const basePrice = Number(product?.price || 0);
   const specialPrice = getSpecialPrice(product);
-  const activePromoCode = getActivePromoCode(product);
-  const promoPrice = getPromoPrice(product);
   const effectivePrice = Number(product?.effectivePrice);
   const displayPrice = Number.isFinite(effectivePrice)
     ? effectivePrice
     : specialPrice !== null
       ? specialPrice
-      : promoPrice !== null
-        ? promoPrice
-        : basePrice;
+      : basePrice;
 
   return {
     basePrice,
     specialPrice,
-    activePromoCode,
-    promoPrice,
     displayPrice,
     hasDiscount: displayPrice < basePrice,
   };
@@ -241,21 +200,15 @@ function getEffectiveProductPrice(product) {
   return getPricingDetails(product).displayPrice;
 }
 
-function getCheckoutPriceForProduct(product, promoCodeValue) {
+function getCheckoutPriceForProduct(product, appliedPromoPricesByProductId) {
   const pricing = getPricingDetails(product);
-  const matchingPromoCode = getMatchingPromoCode(product, promoCodeValue);
-  const matchingPromoPrice = matchingPromoCode
-    ? Math.max(
-        0,
-        Math.round(
-          (pricing.basePrice * (1 - Number(matchingPromoCode.discountPercentage || 0) / 100)) * 100,
-        ) / 100,
-      )
-    : null;
+  const appliedPromoPrice = Number(
+    appliedPromoPricesByProductId?.[String(product?.id || "").trim()],
+  );
   const candidatePrices = [pricing.displayPrice];
 
-  if (matchingPromoPrice !== null) {
-    candidatePrices.push(matchingPromoPrice);
+  if (Number.isFinite(appliedPromoPrice) && appliedPromoPrice >= 0) {
+    candidatePrices.push(appliedPromoPrice);
   }
 
   return Math.round(Math.min(...candidatePrices) * 100) / 100;
@@ -340,6 +293,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
   const [cartItems, setCartItems] = useState([]);
   const [promoCodeInput, setPromoCodeInput] = useState("");
   const [appliedPromoCode, setAppliedPromoCode] = useState("");
+  const [appliedPromoPricesByProductId, setAppliedPromoPricesByProductId] = useState({});
   const [isTrolleyOpen, setIsTrolleyOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState("idle");
   const [locationStatus, setLocationStatus] = useState("idle");
@@ -461,16 +415,11 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     [selectedProduct],
   );
 
-  const selectedProductActivePromoCode = useMemo(
-    () => (selectedProduct ? getActivePromoCode(selectedProduct) : null),
-    [selectedProduct],
-  );
-
   const normalizedPromoCodeInput = useMemo(() => cleanPromoCode(promoCodeInput), [promoCodeInput]);
 
-  const selectedProductMatchingPromoCode = useMemo(
-    () => (selectedProduct ? getMatchingPromoCode(selectedProduct, normalizedPromoCodeInput) : null),
-    [normalizedPromoCodeInput, selectedProduct],
+  const selectedProductHasAppliedPromo = useMemo(
+    () => Boolean(appliedPromoPricesByProductId[String(selectedProduct?.id || "").trim()]),
+    [appliedPromoPricesByProductId, selectedProduct],
   );
 
   const cartLines = useMemo(() => {
@@ -485,18 +434,13 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
         return {
           ...item,
           product,
-          appliedPromo: getMatchingPromoCode(product, appliedPromoCode),
+          appliedPromo: Boolean(appliedPromoPricesByProductId[String(product.id || "").trim()]),
           baseUnitPrice: getEffectiveProductPrice(product),
-          unitPrice: getCheckoutPriceForProduct(product, appliedPromoCode),
+          unitPrice: getCheckoutPriceForProduct(product, appliedPromoPricesByProductId),
         };
       })
       .filter(Boolean);
-  }, [appliedPromoCode, cartItems, products]);
-
-  const promoEligibleLines = useMemo(
-    () => cartLines.filter((line) => getMatchingPromoCode(line.product, normalizedPromoCodeInput)),
-    [cartLines, normalizedPromoCodeInput],
-  );
+  }, [appliedPromoPricesByProductId, cartItems, products]);
 
   const cartTotalQuantity = useMemo(
     () => cartLines.reduce((sum, line) => sum + Number(line.quantity || 0), 0),
@@ -614,15 +558,14 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     }
 
     const hasEligibleProduct = cartLines.some((line) => line.appliedPromo);
-    const selectedProductStillMatches = selectedProduct
-      ? Boolean(getMatchingPromoCode(selectedProduct, appliedPromoCode))
-      : false;
+    const selectedProductStillMatches = selectedProductHasAppliedPromo;
 
     if (!hasEligibleProduct && !selectedProductStillMatches) {
       setAppliedPromoCode("");
+      setAppliedPromoPricesByProductId({});
       setOrderMessage("Promo code removed because it no longer applies to the cart.");
     }
-  }, [appliedPromoCode, cartLines, selectedProduct]);
+  }, [appliedPromoCode, cartLines, selectedProductHasAppliedPromo]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1068,32 +1011,70 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
     setCartItems((currentItems) => currentItems.filter((item) => item.productId !== productId));
   }
 
-  function applyPromoCode() {
+  async function applyPromoCode() {
     if (!normalizedPromoCodeInput) {
       setOrderError("Enter a promo code first.");
       setOrderMessage("");
       return;
     }
 
-    if (promoEligibleLines.length === 0 && !selectedProductMatchingPromoCode) {
-      setAppliedPromoCode("");
-      setOrderError("That promo code does not apply to the current cart.");
-      setOrderMessage("");
-      return;
-    }
+    try {
+      const response = await fetch("/api/promo-code-validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          promoCode: normalizedPromoCodeInput,
+          company: companyKey,
+          productIds: cartItems.map((item) => item.productId),
+          selectedProductId: selectedProduct?.id || "",
+        }),
+      });
+      const data = await readJsonResponse(response, "Could not validate promo code.");
+      const applicableProducts = Array.isArray(data.applicableProducts)
+        ? data.applicableProducts
+        : [];
 
-    setAppliedPromoCode(normalizedPromoCodeInput);
-    setPromoCodeInput(normalizedPromoCodeInput);
-    setOrderError("");
-    setOrderMessage(
-      promoEligibleLines.length > 0
-        ? `Promo code ${normalizedPromoCodeInput} applied.`
-        : `Promo code ${normalizedPromoCodeInput} saved and will apply when this product is added to the cart.`,
-    );
+      if (!data.valid || applicableProducts.length === 0) {
+        setAppliedPromoCode("");
+        setAppliedPromoPricesByProductId({});
+        setOrderError("That promo code does not apply to the current cart.");
+        setOrderMessage("");
+        return;
+      }
+
+      const nextPromoPricesByProductId = Object.fromEntries(
+        applicableProducts.map((product) => [
+          String(product.productId || "").trim(),
+          Number(product.unitPrice || 0),
+        ]),
+      );
+      const hasCartDiscount = applicableProducts.some((product) =>
+        cartItems.some((item) => item.productId === product.productId),
+      );
+
+      setAppliedPromoCode(cleanPromoCode(data.promoCode || normalizedPromoCodeInput));
+      setAppliedPromoPricesByProductId(nextPromoPricesByProductId);
+      setPromoCodeInput(cleanPromoCode(data.promoCode || normalizedPromoCodeInput));
+      setOrderError("");
+      setOrderMessage(
+        hasCartDiscount
+          ? `Promo code ${normalizedPromoCodeInput} applied.`
+          : `Promo code ${normalizedPromoCodeInput} saved and will apply when this product is added to the cart.`,
+      );
+    } catch (applyError) {
+      setAppliedPromoCode("");
+      setAppliedPromoPricesByProductId({});
+      setOrderError(applyError.message);
+      setOrderMessage("");
+    }
   }
 
   function removePromoCode() {
     setAppliedPromoCode("");
+    setAppliedPromoPricesByProductId({});
     setPromoCodeInput("");
     setOrderError("");
     setOrderMessage("Promo code removed.");
@@ -1372,11 +1353,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   </div>
                                 ) : null}
 
-                                {pricing.activePromoCode ? (
-                                  <div className="absolute left-3 bottom-3 border border-emerald-300/40 bg-emerald-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-emerald-100 backdrop-blur">
-                                    {pricing.activePromoCode.code} • {pricing.activePromoCode.discountPercentage}% off
-                                  </div>
-                                ) : hasSpecialOption ? (
+                                {hasSpecialOption ? (
                                   <div className="absolute left-3 bottom-3 border border-amber-300/40 bg-amber-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-100 backdrop-blur">
                                     {product.specialOption.label || "Special"}
                                   </div>
@@ -1484,20 +1461,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                                   </div>
                                 ) : null}
 
-                                {pricing.activePromoCode ? (
-                                  <div className="mt-5 border border-emerald-300/25 bg-emerald-950/20 p-3 text-sm leading-6 text-emerald-100">
-                                    <strong className="block text-xs uppercase tracking-[0.2em]">
-                                      Promo code {pricing.activePromoCode.code}
-                                    </strong>
-                                    <span className="mt-1 block text-emerald-100/75">
-                                      Available from {formatDisplayDate(pricing.activePromoCode.startDate)} to{" "}
-                                      {formatDisplayDate(pricing.activePromoCode.endDate)}.
-                                    </span>
-                                    <span className="mt-1 block font-semibold text-emerald-100">
-                                      Save {pricing.activePromoCode.discountPercentage}%
-                                    </span>
-                                  </div>
-                                ) : hasSpecialOption ? (
+                                {hasSpecialOption ? (
                                   <div className="mt-5 border border-amber-300/25 bg-amber-950/20 p-3 text-sm leading-6 text-amber-100">
                                     <strong className="block text-xs uppercase tracking-[0.2em]">
                                       {product.specialOption.label || "Special Option"}
@@ -1619,11 +1583,6 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       </div>
                     ) : null}
 
-                    {selectedProductActivePromoCode ? (
-                      <div className="absolute right-3 bottom-3 border border-emerald-300/40 bg-emerald-950/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-emerald-100 backdrop-blur">
-                        {selectedProductActivePromoCode.code} • {selectedProductActivePromoCode.discountPercentage}% off
-                      </div>
-                    ) : null}
                   </div>
 
                   {selectedProductImages.length > 1 ? (
@@ -1735,20 +1694,6 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                     </div>
                   ) : null}
 
-                  {selectedProductActivePromoCode ? (
-                    <div className="mt-4 border border-emerald-300/25 bg-emerald-950/20 p-3 text-sm leading-6 text-emerald-100">
-                      <strong className="block text-xs uppercase tracking-[0.2em]">
-                        Promo code {selectedProductActivePromoCode.code}
-                      </strong>
-                      <span className="mt-1 block text-emerald-100/75">
-                        Available from {formatDisplayDate(selectedProductActivePromoCode.startDate)} to{" "}
-                        {formatDisplayDate(selectedProductActivePromoCode.endDate)}.
-                      </span>
-                      <span className="mt-1 block font-semibold text-emerald-100">
-                        Save {selectedProductActivePromoCode.discountPercentage}%
-                      </span>
-                    </div>
-                  ) : null}
                 </div>
 
                 <form className="theme-panel grid gap-4 p-4" onSubmit={submitOrder}>
@@ -1843,7 +1788,7 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
                       <div className="rounded-xl border border-emerald-400/30 bg-emerald-950/25 p-3 text-xs leading-5 text-emerald-100">
                         Applied promo code: <strong>{appliedPromoCode}</strong>
                         {appliedPromoSavings > 0 ? ` • Savings ${formatPrice(appliedPromoSavings)}` : ""}
-                        {appliedPromoSavings <= 0 && selectedProductMatchingPromoCode
+                        {appliedPromoSavings <= 0 && selectedProductHasAppliedPromo
                           ? " • It will apply once this product is added to the cart."
                           : ""}
                       </div>
