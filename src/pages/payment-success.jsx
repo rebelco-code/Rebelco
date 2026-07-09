@@ -57,8 +57,16 @@ export default function PaymentSuccessPage() {
 
     async function loadStatus() {
       try {
+        const statusQueryParams = new URLSearchParams({
+          orderGroupId: orderReference,
+        });
+
+        if (paymentId) {
+          statusQueryParams.set("pfPaymentId", paymentId);
+        }
+
         const response = await fetch(
-          `/api/payfast/status?orderGroupId=${encodeURIComponent(orderReference)}`,
+          `/api/payfast/status?${statusQueryParams.toString()}`,
           {
             headers: {
               Accept: "application/json",
@@ -97,7 +105,7 @@ export default function PaymentSuccessPage() {
       isMounted = false;
       window.clearTimeout(timeoutId);
     };
-  }, [orderReference]);
+  }, [orderReference, paymentId]);
 
   return (
     <div className="theme-page theme-shell">

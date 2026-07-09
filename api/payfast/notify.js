@@ -8,7 +8,11 @@ import {
   verifyPayfastSourceIp,
 } from "../_utils/payfast.js";
 import { requireMethod, sendError } from "../_utils/http.js";
-import { readOrdersByGroupId, updateOrderGroupPayment } from "../_utils/ordersStore.js";
+import {
+  readOrdersByGroupId,
+  updateOrderGroupPayment,
+} from "../_utils/ordersStore.js";
+import { createPudoShipmentAfterPayment } from "../_utils/payfastReconciliation.js";
 import { restoreStockForOrderItems } from "../_utils/productsStore.js";
 
 function cleanValue(value) {
@@ -149,6 +153,18 @@ export default async function handler(request, response) {
       paymentAmount: expectedAmount,
       proofOfPaymentReceived,
     });
+
+    if (proofOfPaymentReceived) {
+      try {
+        await createPudoShipmentAfterPayment(orderGroupId);
+      } catch (shipmentError) {
+        console.error("PUDO shipment creation failed after PayFast confirmation.", {
+          orderGroupId,
+          message: shipmentError?.message || String(shipmentError),
+          stack: shipmentError?.stack || "",
+        });
+      }
+    }
 
     sendOk(response);
   } catch (error) {
