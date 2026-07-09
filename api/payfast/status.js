@@ -1,7 +1,10 @@
 import { HttpError } from "../_utils/errors.js";
 import { requireMethod, sendError, sendJson } from "../_utils/http.js";
 import { readOrderGroupSummary } from "../_utils/ordersStore.js";
-import { reconcilePayfastPaymentForOrderGroup } from "../_utils/payfastReconciliation.js";
+import {
+  reconcilePayfastPaymentForOrderGroup,
+  reconcilePendingPayfastOrderGroup,
+} from "../_utils/payfastReconciliation.js";
 
 function getOrderGroupId(request) {
   const requestUrl = new URL(request.url, `https://${request.headers.host || "localhost"}`);
@@ -46,6 +49,27 @@ export default async function handler(request, response) {
         console.warn("PayFast status reconciliation skipped.", {
           orderGroupId,
           payfastPaymentId,
+          message: reconciliationError?.message || String(reconciliationError),
+        });
+      }
+    }
+
+    if (
+      !payfastPaymentId &&
+      !["complete", "failed", "cancelled"].includes(String(summary.paymentStatus || "").trim().toLowerCase())
+    ) {
+      try {
+        const reconciliationResult = await reconcilePendingPayfastOrderGroup(orderGroupId, {
+          paymentReference: summary.paymentReference,
+          createdAt: summary.orders?.[0]?.createdAt,
+        });
+
+        if (reconciliationResult?.reconciled) {
+          summary = await readOrderGroupSummary(orderGroupId);
+        }
+      } catch (reconciliationError) {
+        console.warn("PayFast history reconciliation skipped.", {
+          orderGroupId,
           message: reconciliationError?.message || String(reconciliationError),
         });
       }

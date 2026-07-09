@@ -11,6 +11,7 @@ import {
 
 const PAYFAST_API_BASE_URL = "https://api.payfast.co.za";
 const PAYFAST_API_VERSION = "v1";
+const MS_PER_DAY = 24 * 60 * 60 * 1_000;
 
 function cleanValue(value) {
   return String(value || "").trim();
@@ -52,6 +53,150 @@ function buildApiHeaders(payfastConfig, extraFields = {}) {
     version: PAYFAST_API_VERSION,
     signature,
   };
+}
+
+function formatDateOnly(value) {
+  const timestamp = Date.parse(String(value || "").trim());
+
+  if (!Number.isFinite(timestamp)) {
+    return "";
+  }
+
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function shiftDateOnly(dateText, dayDelta) {
+  const timestamp = Date.parse(`${String(dateText || "").trim()}T00:00:00.000Z`);
+
+  if (!Number.isFinite(timestamp)) {
+    return "";
+  }
+
+  return new Date(timestamp + dayDelta * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    const nextCharacter = line[index + 1];
+
+    if (character === '"') {
+      if (inQuotes && nextCharacter === '"') {
+        current += '"';
+        index += 1;
+        continue;
+      }
+
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (character === "," && !inQuotes) {
+      cells.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += character;
+  }
+
+  cells.push(current.trim());
+  return cells;
+}
+
+function parseCsvTable(rawCsv) {
+  const lines = String(rawCsv || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  const headers = parseCsvLine(lines[0]).map((header) => cleanValue(header).toLowerCase());
+
+  return lines.slice(1).map((line) => {
+    const values = parseCsvLine(line);
+    const row = {};
+
+    headers.forEach((header, index) => {
+      row[header] = cleanValue(values[index]);
+    });
+
+    return row;
+  });
+}
+
+async function queryPayfastTransactionHistoryRange(fromDate, toDate) {
+  const payfastConfig = getPayfastConfig();
+  const url = new URL(`${PAYFAST_API_BASE_URL}/transactions/history`);
+  url.searchParams.set("from", fromDate);
+  url.searchParams.set("to", toDate);
+  url.searchParams.set("limit", "200");
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: buildApiHeaders(payfastConfig, {
+      from: fromDate,
+      limit: "200",
+      to: toDate,
+    }),
+  });
+
+  const rawBody = await response.text();
+
+  if (!response.ok) {
+    throw new HttpError(
+      502,
+      `PayFast transaction history lookup failed with status ${response.status}.`,
+    );
+  }
+
+  return rawBody;
+}
+
+async function findPayfastPaymentIdForOrderGroup(orderGroupId, createdAt) {
+  const createdDate = formatDateOnly(createdAt);
+
+  if (!createdDate) {
+    return "";
+  }
+
+  const ranges = [
+    {
+      from: shiftDateOnly(createdDate, -1),
+      to: shiftDateOnly(createdDate, 1),
+    },
+    {
+      from: shiftDateOnly(createdDate, -7),
+      to: shiftDateOnly(createdDate, 7),
+    },
+  ];
+
+  for (const range of ranges) {
+    if (!range.from || !range.to) {
+      continue;
+    }
+
+    const csvResponse = await queryPayfastTransactionHistoryRange(range.from, range.to);
+    const rows = parseCsvTable(csvResponse);
+    const matchingRow = rows.find((row) => {
+      const merchantPaymentId = cleanValue(row["m payment id"]);
+      const customStr1 = cleanValue(row["custom str1"]);
+      return merchantPaymentId === orderGroupId || customStr1 === orderGroupId;
+    });
+
+    if (matchingRow) {
+      return cleanValue(matchingRow["pf payment id"]);
+    }
+  }
+
+  return "";
 }
 
 function parseAmountCandidates(value) {
@@ -214,4 +359,23 @@ export async function reconcilePayfastPaymentForOrderGroup(orderGroupId, payment
     paymentStatus,
     paymentReference: normalizedPaymentId,
   };
+}
+
+export async function reconcilePendingPayfastOrderGroup(orderGroupId, options = {}) {
+  const normalizedOrderGroupId = cleanValue(orderGroupId);
+
+  if (!normalizedOrderGroupId) {
+    return null;
+  }
+
+  const paymentReference = cleanValue(options.paymentReference);
+  const createdAt = cleanValue(options.createdAt);
+  const paymentId =
+    paymentReference || (await findPayfastPaymentIdForOrderGroup(normalizedOrderGroupId, createdAt));
+
+  if (!paymentId) {
+    return null;
+  }
+
+  return reconcilePayfastPaymentForOrderGroup(normalizedOrderGroupId, paymentId);
 }

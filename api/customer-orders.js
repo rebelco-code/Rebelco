@@ -1,6 +1,7 @@
 import { HttpError } from "./_utils/errors.js";
 import { requireMethod, sendError, sendJson } from "./_utils/http.js";
 import { readCustomerOrderHistory, readCustomerOrderSummary } from "./_utils/ordersStore.js";
+import { reconcilePendingPayfastOrderGroup } from "./_utils/payfastReconciliation.js";
 
 function getLookupParams(request) {
   const requestUrl = new URL(request.url, `https://${request.headers.host || "localhost"}`);
@@ -27,7 +28,27 @@ export default async function handler(request, response) {
     }
 
     if (String(customerOrderId || "").trim()) {
-      const summary = await readCustomerOrderSummary(customerOrderId, customerEmail);
+      let summary = await readCustomerOrderSummary(customerOrderId, customerEmail);
+
+      if (!["complete", "failed", "cancelled"].includes(String(summary.paymentStatus || "").trim().toLowerCase())) {
+        try {
+          const reconciliationResult = await reconcilePendingPayfastOrderGroup(summary.orderGroupId, {
+            paymentReference: summary.paymentReference,
+            createdAt: summary.orders?.[0]?.createdAt,
+          });
+
+          if (reconciliationResult?.reconciled) {
+            summary = await readCustomerOrderSummary(customerOrderId, customerEmail);
+          }
+        } catch (reconciliationError) {
+          console.warn("Customer order reconciliation skipped.", {
+            customerOrderId,
+            orderGroupId: summary.orderGroupId,
+            message: reconciliationError?.message || String(reconciliationError),
+          });
+        }
+      }
+
       sendJson(response, 200, {
         mode: "single",
         ...summary,
@@ -35,7 +56,36 @@ export default async function handler(request, response) {
       return;
     }
 
-    const history = await readCustomerOrderHistory(customerEmail);
+    let history = await readCustomerOrderHistory(customerEmail);
+    let reconciledCount = 0;
+
+    for (const summary of history.orders || []) {
+      if (["complete", "failed", "cancelled"].includes(String(summary.paymentStatus || "").trim().toLowerCase())) {
+        continue;
+      }
+
+      try {
+        const reconciliationResult = await reconcilePendingPayfastOrderGroup(summary.orderGroupId, {
+          paymentReference: summary.paymentReference,
+          createdAt: summary.orders?.[0]?.createdAt,
+        });
+
+        if (reconciliationResult?.reconciled) {
+          reconciledCount += 1;
+        }
+      } catch (reconciliationError) {
+        console.warn("Customer order history reconciliation skipped.", {
+          customerEmail,
+          orderGroupId: summary.orderGroupId,
+          message: reconciliationError?.message || String(reconciliationError),
+        });
+      }
+    }
+
+    if (reconciledCount > 0) {
+      history = await readCustomerOrderHistory(customerEmail);
+    }
+
     sendJson(response, 200, {
       mode: "history",
       ...history,
