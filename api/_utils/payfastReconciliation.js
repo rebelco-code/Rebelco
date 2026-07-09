@@ -17,6 +17,10 @@ function cleanValue(value) {
   return String(value || "").trim();
 }
 
+function logReconciliation(event, details = {}) {
+  console.info(`[PayFast Reconciliation] ${event}`, details);
+}
+
 function encodeApiValue(value) {
   return encodeURIComponent(String(value ?? "")).replace(/%20/g, "+");
 }
@@ -150,6 +154,14 @@ async function queryPayfastTransactionHistoryRange(fromDate, toDate) {
 
   const rawBody = await response.text();
 
+  logReconciliation("transaction-history-response", {
+    fromDate,
+    toDate,
+    status: response.status,
+    ok: response.ok,
+    bodyPreview: cleanValue(rawBody).slice(0, 180),
+  });
+
   if (!response.ok) {
     throw new HttpError(
       502,
@@ -163,7 +175,17 @@ async function queryPayfastTransactionHistoryRange(fromDate, toDate) {
 async function findPayfastPaymentIdForOrderGroup(orderGroupId, createdAt) {
   const createdDate = formatDateOnly(createdAt);
 
+  logReconciliation("find-payment-id-start", {
+    orderGroupId,
+    createdAt,
+    createdDate,
+  });
+
   if (!createdDate) {
+    logReconciliation("find-payment-id-no-created-date", {
+      orderGroupId,
+      createdAt,
+    });
     return "";
   }
 
@@ -180,11 +202,30 @@ async function findPayfastPaymentIdForOrderGroup(orderGroupId, createdAt) {
 
   for (const range of ranges) {
     if (!range.from || !range.to) {
+      logReconciliation("find-payment-id-skip-range", {
+        orderGroupId,
+        range,
+      });
       continue;
     }
 
     const csvResponse = await queryPayfastTransactionHistoryRange(range.from, range.to);
     const rows = parseCsvTable(csvResponse);
+    const rowPreview = rows.slice(0, 5).map((row) => ({
+      merchantPaymentId: cleanValue(row["m payment id"]),
+      pfPaymentId: cleanValue(row["pf payment id"]),
+      customStr1: cleanValue(row["custom str1"]),
+      name: cleanValue(row.name),
+      date: cleanValue(row.date),
+    }));
+
+    logReconciliation("find-payment-id-range-results", {
+      orderGroupId,
+      range,
+      rowCount: rows.length,
+      rowPreview,
+    });
+
     const matchingRow = rows.find((row) => {
       const merchantPaymentId = cleanValue(row["m payment id"]);
       const customStr1 = cleanValue(row["custom str1"]);
@@ -192,10 +233,21 @@ async function findPayfastPaymentIdForOrderGroup(orderGroupId, createdAt) {
     });
 
     if (matchingRow) {
+      logReconciliation("find-payment-id-match", {
+        orderGroupId,
+        range,
+        merchantPaymentId: cleanValue(matchingRow["m payment id"]),
+        pfPaymentId: cleanValue(matchingRow["pf payment id"]),
+        customStr1: cleanValue(matchingRow["custom str1"]),
+      });
       return cleanValue(matchingRow["pf payment id"]);
     }
   }
 
+  logReconciliation("find-payment-id-no-match", {
+    orderGroupId,
+    createdDate,
+  });
   return "";
 }
 
@@ -234,6 +286,11 @@ function calculateExpectedAmount(orders) {
 export async function createPudoShipmentAfterPayment(orderGroupId) {
   const currentOrders = await readOrdersByGroupId(orderGroupId);
 
+  logReconciliation("shipment-check", {
+    orderGroupId,
+    orderCount: currentOrders.length,
+  });
+
   if (currentOrders.length === 0) {
     return;
   }
@@ -246,10 +303,19 @@ export async function createPudoShipmentAfterPayment(orderGroupId) {
   );
 
   if (hasExistingShipment) {
+    logReconciliation("shipment-skip-existing", {
+      orderGroupId,
+    });
     return;
   }
 
   const shipmentResult = await createPudoShipmentForOrders(currentOrders);
+
+  logReconciliation("shipment-created", {
+    orderGroupId,
+    shipmentId: shipmentResult.shipment.shipmentId,
+    trackingNumber: shipmentResult.shipment.trackingNumber,
+  });
 
   await updateOrderGroupTracking(orderGroupId, {
     pudoShipmentId: shipmentResult.shipment.shipmentId,
@@ -269,6 +335,10 @@ export async function queryPayfastPayment(paymentId) {
   }
 
   const payfastConfig = getPayfastConfig();
+  logReconciliation("payment-query-start", {
+    paymentId: normalizedPaymentId,
+    sandbox: payfastConfig.sandbox,
+  });
   const response = await fetch(
     `${PAYFAST_API_BASE_URL}/process/query/${encodeURIComponent(normalizedPaymentId)}`,
     {
@@ -284,6 +354,13 @@ export async function queryPayfastPayment(paymentId) {
   } catch {
     payload = null;
   }
+
+  logReconciliation("payment-query-response", {
+    paymentId: normalizedPaymentId,
+    status: response.status,
+    ok: response.ok,
+    payload,
+  });
 
   if (!response.ok) {
     throw new HttpError(
@@ -318,6 +395,16 @@ export async function reconcilePayfastPaymentForOrderGroup(orderGroupId, payment
   const expectedAmount = calculateExpectedAmount(orders);
   const receivedAmounts = parseAmountCandidates(paymentResponse.amount);
 
+  logReconciliation("payment-verify", {
+    orderGroupId: normalizedOrderGroupId,
+    paymentId: normalizedPaymentId,
+    payfastOrderGroupId,
+    paymentStatus,
+    expectedAmount,
+    receivedAmounts,
+    orderCount: orders.length,
+  });
+
   if (payfastOrderGroupId && payfastOrderGroupId !== normalizedOrderGroupId) {
     throw new HttpError(409, "PayFast payment does not belong to this order group.");
   }
@@ -327,6 +414,11 @@ export async function reconcilePayfastPaymentForOrderGroup(orderGroupId, payment
   }
 
   if (paymentStatus !== "complete") {
+    logReconciliation("payment-not-complete", {
+      orderGroupId: normalizedOrderGroupId,
+      paymentId: normalizedPaymentId,
+      paymentStatus,
+    });
     return {
       reconciled: false,
       paymentStatus,
@@ -354,6 +446,12 @@ export async function reconcilePayfastPaymentForOrderGroup(orderGroupId, payment
     });
   }
 
+  logReconciliation("payment-reconciled", {
+    orderGroupId: normalizedOrderGroupId,
+    paymentId: normalizedPaymentId,
+    paymentStatus,
+  });
+
   return {
     reconciled: true,
     paymentStatus,
@@ -372,6 +470,13 @@ export async function reconcilePendingPayfastOrderGroup(orderGroupId, options = 
   const createdAt = cleanValue(options.createdAt);
   const paymentId =
     paymentReference || (await findPayfastPaymentIdForOrderGroup(normalizedOrderGroupId, createdAt));
+
+  logReconciliation("pending-order-payment-id-result", {
+    orderGroupId: normalizedOrderGroupId,
+    paymentReference,
+    createdAt,
+    resolvedPaymentId: paymentId,
+  });
 
   if (!paymentId) {
     return null;
