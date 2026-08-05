@@ -1,5 +1,6 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { trackMetaPageView } from "./lib/meta-pixel";
 
 const HomePage = lazy(() => import("./pages/home"));
 const ContactPage = lazy(() => import("./pages/contact"));
@@ -14,9 +15,20 @@ const PaymentCancelPage = lazy(() => import("./pages/payment-cancel"));
 const AdminaPage = lazy(() => import("./pages/admina"));
 const NotFoundPage = lazy(() => import("./pages/not-found"));
 
+function MetaPixelPageTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackMetaPageView();
+  }, [location.pathname, location.search]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <MetaPixelPageTracker />
       <Suspense fallback={<div className="min-h-screen bg-white" />}>
         <Routes>
           <Route path="/" element={<HomePage />} />

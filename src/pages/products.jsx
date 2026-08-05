@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
+import { trackMetaEvent } from "../lib/meta-pixel";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
 
@@ -543,6 +544,14 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
       };
     });
   }, [selectedProductId, selectedProductMinimumOrderQuantity]);
+
+  useEffect(() => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    trackMetaEvent("ViewContent", buildMetaProductEventPayload(selectedProduct));
+  }, [selectedProduct]);
 
   useEffect(() => {
     if (selectedImageIndex < selectedProductImages.length) {

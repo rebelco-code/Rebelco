@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
 import { readJsonResponse } from "../lib/api";
+import { trackMetaEventOnce } from "../lib/meta-pixel";
 
 function getPaymentHeadline(paymentStatus) {
   if (paymentStatus === "complete") {
@@ -46,6 +47,7 @@ export default function PaymentSuccessPage() {
   const [paymentReference, setPaymentReference] = useState("");
   const [customerOrderId, setCustomerOrderId] = useState("");
   const [statusError, setStatusError] = useState("");
+  const [orderSummary, setOrderSummary] = useState(null);
 
   useEffect(() => {
     if (!orderReference) {
@@ -82,6 +84,7 @@ export default function PaymentSuccessPage() {
         setPaymentStatus(String(data.paymentStatus || "").trim().toLowerCase());
         setPaymentReference(String(data.paymentReference || "").trim());
         setCustomerOrderId(String(data.customerOrderId || "").trim());
+        setOrderSummary(data);
         setStatus("ready");
 
         const nextStatus = String(data.paymentStatus || "").trim().toLowerCase();
@@ -106,6 +109,32 @@ export default function PaymentSuccessPage() {
       window.clearTimeout(timeoutId);
     };
   }, [orderReference, paymentId]);
+
+  useEffect(() => {
+    if (paymentStatus !== "complete" || !orderReference) {
+      return;
+    }
+
+    const orders = Array.isArray(orderSummary?.orders) ? orderSummary.orders : [];
+    const contents = orders
+      .map((order) => ({
+        id: String(order?.productId || "").trim(),
+        quantity: Number(order?.quantity || 0) || 1,
+        item_price: Math.round(Number(order?.productPrice || 0) * 100) / 100,
+      }))
+      .filter((item) => item.id);
+    const contentIds = contents.map((item) => item.id);
+
+    trackMetaEventOnce(`purchase:${orderReference}`, "Purchase", {
+      content_ids: contentIds,
+      content_type: "product",
+      contents,
+      currency: "ZAR",
+      num_items: contents.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+      value: Math.round(Number(orderSummary?.totalAmount || 0) * 100) / 100,
+      order_id: customerOrderId || orderReference,
+    });
+  }, [customerOrderId, orderReference, orderSummary, paymentStatus]);
 
   return (
     <div className="theme-page theme-shell">
