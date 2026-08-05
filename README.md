@@ -52,7 +52,6 @@ Optional:
 - `PAYFAST_CANCEL_URL` (defaults to `https://rebelco.vercel.app/payment/cancel`)
 - `PAYFAST_NOTIFY_URL` (defaults to `https://rebelco.vercel.app/api/payfast/itn`)
 - `PAYFAST_ITN_TRUSTED_IPS` (optional comma-separated CIDRs/IPs to override the built-in PayFast ITN ranges)
-- `VITE_META_PIXEL_ID` (Meta Pixel ID for site-wide PageView, ViewContent, AddToCart, InitiateCheckout, and Purchase tracking)
 
 4. Start dev server:
 

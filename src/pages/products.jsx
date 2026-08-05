@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/footer";
 import Navbar from "../components/navbar";
-import { trackMetaEvent } from "../lib/meta-pixel";
 import { readJsonResponse } from "../lib/api";
 import { formatPrice, formatStockAmount } from "../lib/formatters";
 
@@ -201,59 +200,6 @@ function getEffectiveProductPrice(product) {
   return getPricingDetails(product).displayPrice;
 }
 
-function buildMetaContentItem(product, quantity = 1, unitPrice = null) {
-  const productId = String(product?.id || "").trim();
-  const category = String(product?.category || "").trim();
-  const resolvedPrice =
-    Number.isFinite(Number(unitPrice)) && Number(unitPrice) >= 0
-      ? Number(unitPrice)
-      : getEffectiveProductPrice(product);
-
-  return {
-    id: productId,
-    quantity: Number(quantity) || 1,
-    item_price: Math.round(Number(resolvedPrice || 0) * 100) / 100,
-    ...(category ? { category } : {}),
-  };
-}
-
-function buildMetaProductEventPayload(product, quantity = 1, unitPrice = null) {
-  const productId = String(product?.id || "").trim();
-  const productTitle = String(product?.title || "").trim();
-  const contentItem = buildMetaContentItem(product, quantity, unitPrice);
-
-  return {
-    content_ids: productId ? [productId] : [],
-    content_name: productTitle || undefined,
-    content_type: "product",
-    contents: productId ? [contentItem] : [],
-    currency: "ZAR",
-    value: Math.round(contentItem.item_price * contentItem.quantity * 100) / 100,
-  };
-}
-
-function buildMetaCartEventPayload(cartLines) {
-  const contents = cartLines.map((line) =>
-    buildMetaContentItem(line.product, line.quantity, line.unitPrice),
-  );
-  const contentIds = contents.map((item) => item.id).filter(Boolean);
-  const totalValue =
-    Math.round(
-      cartLines.reduce(
-        (sum, line) => sum + Number(line.unitPrice || 0) * Number(line.quantity || 0),
-        0,
-      ) * 100,
-    ) / 100;
-
-  return {
-    content_ids: contentIds,
-    content_type: "product",
-    contents,
-    currency: "ZAR",
-    num_items: cartLines.reduce((sum, line) => sum + Number(line.quantity || 0), 0),
-    value: totalValue,
-  };
-}
 function getCheckoutPriceForProduct(product, appliedPromoPricesByProductId) {
   const pricing = getPricingDetails(product);
   const appliedPromoPrice = Number(
@@ -597,14 +543,6 @@ function ProductsPageBase({ pageVariantKey = DEFAULT_PRODUCTS_PAGE_VARIANT_KEY }
       };
     });
   }, [selectedProductId, selectedProductMinimumOrderQuantity]);
-
-  useEffect(() => {
-    if (!selectedProduct) {
-      return;
-    }
-
-    trackMetaEvent("ViewContent", buildMetaProductEventPayload(selectedProduct));
-  }, [selectedProduct]);
 
   useEffect(() => {
     if (selectedImageIndex < selectedProductImages.length) {
